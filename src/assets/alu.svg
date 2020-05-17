@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="578" height="535" viewBox="0 0 578 535">
+  <g id="alu" transform="translate(-396 -188)">
+    <g id="Gruppe_8" data-name="Gruppe 8">
+      <text id="instr_sub_op1-op2_else_op1_op2" data-name="instr_sub op1-op2
+else op1+op2" transform="translate(761 499)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-36.846" y="0">instr_sub op1-op2</tspan><tspan x="-27.54" y="11">else op1+op2</tspan></text>
+      <path id="Pfad_5" data-name="Pfad 5" d="M860.338,516l-26.127,46.689" fill="none" stroke="#fff" stroke-width="1"/>
+      <path id="Pfad_6" data-name="Pfad 6" d="M760.524,562.689V603.8" fill="none" stroke="#fff" stroke-width="1"/>
+      <path id="Pfad_7" data-name="Pfad 7" d="M760.524,521.733V535.4" fill="none" stroke="#fff" stroke-width="1"/>
+      <g id="MUX" transform="translate(24 -205)">
+        <path id="Pfad_3" data-name="Pfad 3" d="M520.766,349.414c2.11,1.083,26.4,12.513,37.679,17.81,2.814,1.322,4.771,2.241,4.771,6.116V391.8c-.262,5.216-2.272,5.513-4.527,6.7-1.739.913-25.649,12.416-36.794,17.773-2.218,1.066-5.015,2.41-5.014-2.153l-.026-62.848C516.825,350.532,517.358,347.535,520.766,349.414Z" transform="translate(1119.66 292.501) rotate(90)" stroke="#fff" stroke-width="1"/>
+        <line id="Linie_1" data-name="Linie 1" y1="11" transform="translate(714.5 798.5)" fill="none" stroke="#fff" stroke-width="1"/>
+        <line id="Linie_2" data-name="Linie 2" y1="11" transform="translate(759.5 798.5)" fill="none" stroke="#fff" stroke-width="1"/>
+        <line id="Linie_3" data-name="Linie 3" y2="10" transform="translate(736.5 855.5)" fill="none" stroke="#fff" stroke-width="1"/>
+      </g>
+      <text id="is_lui_auipc_jal_jalr_addi_add_sub_alu_add_sub" data-name="is_lui_auipc_jal_jalr_addi_add_sub
+alu_add_sub" transform="translate(761 545)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-68.756" y="0">is_lui_auipc_jal_jalr_addi_add_sub</tspan><tspan x="-25.592" y="11">alu_add_sub</tspan></text>
+      <text id="Logic_Functions_" data-name="Logic
+Functions
+" transform="translate(705 576)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-11.083" y="0">Logic</tspan><tspan x="-19.755" y="11">Functions</tspan><tspan x="0" y="22"></tspan></text>
+      <text id="is_compare_alu_out_0" data-name="is_compare
+alu_out_0" transform="translate(810 576)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-23.256" y="0">is_compare</tspan><tspan x="-19.422" y="11">alu_out_0</tspan></text>
+      <g id="Gruppe_1" data-name="Gruppe 1" transform="translate(28 -23)">
+        <text id="instr_beq_alu_eq" data-name="instr_beq alu_eq" transform="translate(825 481)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-33.174" y="0">instr_beq alu_eq</tspan></text>
+        <text id="instr_bne_alu_eq" data-name="instr_bne !alu_eq" transform="translate(825 492)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-34.173" y="0">instr_bne !alu_eq</tspan></text>
+        <text id="instr_bgeu_alu_ltu" data-name="instr_bgeu !alu_ltu" transform="translate(825 503)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-36.59" y="0">instr_bgeu !alu_ltu</tspan></text>
+        <text id="is_slti_blt_slt_alu_lts" data-name="is_slti_blt_slt alu_lts" transform="translate(825 514)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-39.501" y="0">is_slti_blt_slt alu_lts</tspan></text>
+        <text id="is_sltiu_bltu_sltu_alu_ltu" data-name="is_sltiu_bltu_sltu alu_ltu" transform="translate(825 525)" fill="#fff" font-size="9" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-47.259" y="0">is_sltiu_bltu_sltu alu_ltu</tspan></text>
+      </g>
+    </g>
+    <path id="Pfad_2" data-name="Pfad 2" d="M572.5,382.284c4.081-.043,115.186.18,136.407.187,3.919-.022,6.558,2.528,8.3,5.858,1.474,2.823,30.949,58.6,40.411,76.483,1.554,2.936,3.455,3.464,4.976.172,0,0,38.195-73.553,40.228-77.073s5.666-5.412,8.241-5.39c2.2.019,118.73.006,152.909,0,5.612,0,7.67,2.878,4.9,8.213,0,0-136.342,258.658-140,264.436s-8.021,5.555-11.933,5.569c-26.959.1-110.576.385-113.414.2-3.39-.215-4.757-.268-7.011-4.506-16.463-33.671-125.615-256.9-129.78-265.026C562.224,382.616,568.007,382.332,572.5,382.284Z" stroke="#fff" stroke-width="1"/>
+    <g id="Gruppe_5" data-name="Gruppe 5" transform="translate(-4 7)">
+      <text id="reg_op2_text" transform="translate(566 370)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="0" y="0">OP 2</tspan></text>
+      <text id="reg_op2" transform="translate(716 368)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+    </g>
+    <g id="Gruppe_6" data-name="Gruppe 6" transform="translate(-2 2)">
+      <text id="reg_op1_text" transform="translate(809 375)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="0" y="0">OP 1</tspan></text>
+      <text id="reg_op1" transform="translate(976 373)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+    </g>
+    <g id="Gruppe_7" data-name="Gruppe 7" transform="translate(-6 -2)">
+      <text id="alu_out_text" transform="translate(700 679)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="0" y="0">OUT</tspan></text>
+      <text id="alu_out" transform="translate(837 682)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+    </g>
+    <g id="Gruppe_4" data-name="Gruppe 4" transform="translate(-9 -5)">
+      <text id="Imm" transform="translate(606 324)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="0" y="0">Imm</tspan></text>
+      <g id="MUX-2" data-name="MUX" transform="translate(-155.476 1051.524) rotate(-90)">
+        <path id="Pfad_3-2" data-name="Pfad 3" d="M520.766,349.414c2.11,1.083,26.4,12.513,37.679,17.81,2.814,1.322,4.771,2.241,4.771,6.116V391.8c-.262,5.216-2.272,5.513-4.527,6.7-1.739.913-25.649,12.416-36.794,17.773-2.218,1.066-5.015,2.41-5.014-2.153l-.026-62.848C516.825,350.532,517.358,347.535,520.766,349.414Z" transform="translate(1119.66 292.501) rotate(90)" stroke="#fff" stroke-width="1"/>
+        <line id="Linie_1-2" data-name="Linie 1" y1="11" transform="translate(714.5 798.5)" fill="none" stroke="#fff" stroke-width="1"/>
+        <line id="Linie_2-2" data-name="Linie 2" y1="11" transform="translate(759.5 798.5)" fill="none" stroke="#fff" stroke-width="1"/>
+        <line id="Linie_3-2" data-name="Linie 3" y2="10" transform="translate(736.5 855.5)" fill="none" stroke="#fff" stroke-width="1"/>
+      </g>
+      <path id="Pfad_4" data-name="Pfad 4" d="M596.024,315h10.47v44.186" transform="translate(105)" fill="none" stroke="#fff" stroke-width="1"/>
+      <text id="decoded_imm" transform="translate(637 344)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+      <text id="RS_2" data-name="RS 2" transform="translate(602 279)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="0" y="0">RS 2</tspan></text>
+      <text id="cpuregs_rs2" transform="translate(637 299)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+      <text id="RS_1" data-name="RS 1" transform="translate(874 319)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="0" y="0">RS 1</tspan></text>
+      <text id="cpuregs_rs1" transform="translate(909 339)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+      <text id="CPU_REG_RS1" data-name="CPU REG RS1" transform="translate(909 254)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-105.472" y="0">CPU REG RS1</tspan></text>
+      <text id="decoded_rs1" transform="translate(909 274)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+      <text id="CPU_REG_RS_2" data-name="CPU REG RS 2" transform="translate(515 279)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-109.92" y="0">CPU REG RS 2</tspan></text>
+      <text id="decoded_rs2" transform="translate(515 299)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+      <g id="Gruppe_20" data-name="Gruppe 20" transform="translate(-385 178)">
+        <text id="reg_op1_text-2" data-name="reg_op1_text" transform="translate(966 349)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-106.352" y="0">INSTRUCTION</tspan></text>
+        <text id="reg_inst" transform="translate(966 373)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-48.008" y="0">andi</tspan></text>
+      </g>
+    </g>
+    <line id="Linie_5" data-name="Linie 5" y2="48" transform="translate(669.5 238.5)" fill="none" stroke="#fff" stroke-width="1"/>
+    <g id="Gruppe_9" data-name="Gruppe 9" transform="translate(149 33)">
+      <text id="alu_out_text-2" data-name="alu_out_text" transform="translate(771 661)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="0" y="0">RD</tspan></text>
+      <text id="decoded_rd" transform="translate(793 685)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-96.016" y="0">00000000</tspan></text>
+    </g>
+    <path id="Pfad_8" data-name="Pfad 8" d="M764.877,696.429v21.717h74.239" transform="translate(0 -6)" fill="none" stroke="#fff" stroke-width="1"/>
+    <path id="Pfad_9" data-name="Pfad 9" d="M861.253,321.687v37.83" transform="translate(-7.137 21.814)" fill="none" stroke="#fff" stroke-width="1"/>
+    <path id="Pfad_10" data-name="Pfad 10" d="M861.253,321.687v37.83" transform="translate(-7.137 -46.186)" fill="none" stroke="#fff" stroke-width="1"/>
+    <path id="Pfad_11" data-name="Pfad 11" d="M511.418,335.655h16.333" transform="translate(-2 -49)" fill="none" stroke="#fff" stroke-width="1"/>
+    <text id="MUX-3" data-name="MUX" transform="translate(657 313)" fill="#fff" font-size="10" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">MUX</tspan></text>
+    <text id="ALU-2" data-name="ALU" transform="translate(715 564)" fill="#fff" font-size="50" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">ALU</tspan></text>
+    <g id="Gruppe_19" data-name="Gruppe 19" transform="translate(-275 -146)">
+      <text id="reg_op1_text-3" data-name="reg_op1_text" transform="translate(966 349)" fill="#fff" font-size="16" font-family="HelveticaNeue, Helvetica Neue"><tspan x="-106.352" y="0">INSTRUCTION</tspan></text>
+      <text id="reg_instr" transform="translate(966 373)" fill="#fff" font-size="20" font-family="RobotoMono-Regular, Roboto Mono"><tspan x="-48.008" y="0">andi</tspan></text>
+    </g>
+    <line id="Linie_6" data-name="Linie 6" x2="60" transform="translate(577.5 537.5)" fill="none" stroke="#fff" stroke-width="1"/>
+  </g>
+</svg>

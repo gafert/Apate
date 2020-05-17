@@ -1,0 +1,130 @@
+@import "../../../import";
+
+.box {
+  margin: 1em;
+}
+
+.folder-button {
+  border: solid 1px $grey2;
+  background: $grey3;
+  color: white;
+  width: 8em;
+  margin: 0.4em 0.4em 0.4em 1em;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:hover {
+    background: $grey2;
+  }
+}
+
+.source-box {
+  background: $grey3;
+  border: solid 1px $grey2;
+  padding: 0.3em;
+  color: white;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: scroll;
+  height: 10em;
+}
+
+.setting-box {
+  position: relative;
+
+  i {
+    position: absolute;
+    right: 1em;
+    top: 25%;
+  }
+
+  .path {
+    background: $grey3;
+    border: solid 1px $grey2;
+    padding: 0.3em;
+    color: white;
+    width: 100%;
+    white-space: nowrap;
+    overflow: scroll;
+    font-size: inherit;
+    height: 2em;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  button {
+    border: solid 1px $grey2;
+    background: $grey3;
+    color: white;
+    width: 5em;
+    margin: 0.4em 0.4em 0.4em 1em;
+
+    &:focus {
+      outline: none;
+    }
+
+    &:hover {
+      background: $grey2;
+    }
+  }
+}
+
+.file {
+  &:hover {
+    background: $grey2;
+  }
+}
+
+.file-bar {
+  height: 2em;
+  background: $grey3;
+  position: relative;
+
+  .file-bar-bottomer {
+    position: absolute;
+    bottom: 0;
+    left: 0.5em;
+
+    .file-title {
+      padding: 0.2em 0.4em 0 0.4em;
+      height: 1.5em;
+      background: $grey4;
+      width: fit-content;
+    }
+  }
+}
+
+.file-area {
+  background: transparent;
+  color: white;
+  font-size: 1em;
+  width: 100%;
+  height: calc(100% - 2em);
+  border: none;
+  font-family: "Roboto Mono";
+  padding: 0;
+  margin: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.option-menu {
+  position: absolute;
+  font-size: 0.9em;
+  background-color: $grey1;
+  display: none;
+
+  .option {
+    padding: 0.2em 0.5em 0.2em 0.5em;
+
+    &:hover {
+      background: $grey2;
+    }
+  }
+}

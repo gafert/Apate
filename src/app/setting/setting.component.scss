@@ -1,0 +1,17 @@
+@import "../../import";
+
+.setting {
+  background: $grey3;
+  border: solid 1px $grey2;
+  padding: 0.3em;
+  color: white;
+  width: 100%;
+  white-space: nowrap;
+  overflow: scroll;
+  font-size: inherit;
+  height: 2em;
+
+  &:focus {
+    outline: none;
+  }
+}

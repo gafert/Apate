@@ -1,0 +1,28 @@
+// COLORS
+
+$grey0: #7e7e7e;
+$grey1: #4E4E4E;
+$grey2: #343434;
+$grey3: #272727;
+$grey4: #151515;
+
+$greyCount: 4;
+$greys: $grey1 $grey2 $grey3 $grey4;
+
+@for $i from 1 through $greyCount {
+  .grey#{$i} {
+    background-color: nth($greys, $i) ;
+  }
+}
+
+// FONTS
+.mono {
+  font-family: "Roboto Mono", monospace;
+}
+
+
+// SIZES
+$headerHeight: 2em;
+$sectionsHeight: 2em;
+$bodyMarginTop: $headerHeight + $sectionsHeight
+

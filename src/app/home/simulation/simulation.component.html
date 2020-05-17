@@ -1,0 +1,74 @@
+<div class="header">
+  <button (click)="initiateSimulation()">Initiate</button>
+  <button (click)="simLibInterfaceService.advanceSimulationPc()">Advance Program Counter</button>
+  <button (click)="simLibInterfaceService.advanceSimulationClock()">Advance Clock</button>
+  <div style="display: flex; align-items: center">
+    <div style="margin-left: 1em; margin-right: 1em">Elf Path</div>
+    <app-setting [settingDefault]="'unset'" settingKey="elfPath" [(setting)]="simulationElfPath"></app-setting>
+  </div>
+  <div style="display: flex; align-items: center">
+    <div style="margin-left: 1em; margin-right: 1em">Program Counter</div>
+    <div>{{simLibInterfaceService.bindings.uut__DOT__reg_pc}}</div>
+  </div>
+</div>
+
+<div id="simulation-container">
+  <div class="grid-stack"
+       style="min-width: 60em; width: 100%"
+       data-gs-removeable=0
+       data-gs-max-row=14>
+    <div *ngIf="showInstructions"
+         class="grid-stack-item"
+         data-gs-min-width="3"
+         data-gs-min-height="5"
+         data-gs-x="0"
+         data-gs-y="0"
+         data-gs-height="14">
+      <app-instructions
+        [elfPath]="simulationElfPath"
+        [programCounter]="simLibInterfaceService.bindings.uut__DOT__reg_pc"
+        class="grid-stack-item-content"></app-instructions>
+    </div>
+    <div *ngIf="showRegisters"
+         class="grid-stack-item"
+         data-gs-min-width="3"
+         data-gs-min-height="5"
+         data-gs-x="3"
+         data-gs-y="0"
+         data-gs-height="14">
+      <app-registers
+        class="grid-stack-item-content"
+        [registers]="simLibInterfaceService.bindings.uut__DOT__cpuregs"></app-registers>
+    </div>
+    <div class="grid-stack-item"
+         data-gs-min-width="3"
+         data-gs-min-height="2"
+         data-gs-x="10"
+         data-gs-y="0"
+         data-gs-height="2">
+      <app-terminal class="grid-stack-item-content"></app-terminal>
+    </div>
+    <!--app-alu
+      [bindings]="simLibInterfaceService.bindings"
+      [reg_op1]="simLibInterfaceService.bindings.uut__DOT__reg_op1"
+      [reg_op2]="simLibInterfaceService.bindings.uut__DOT__reg_op2"
+      [alu_out]="simLibInterfaceService.bindings.uut__DOT__alu_out"
+      [decoded_imm]="simLibInterfaceService.bindings.uut__DOT__decoded_imm"
+      [decoded_rd]="simLibInterfaceService.bindings.uut__DOT__decoded_rd"
+      [decoded_rs1]="simLibInterfaceService.bindings.uut__DOT__decoded_rs1"
+      [decoded_rs2]="simLibInterfaceService.bindings.uut__DOT__decoded_rs2"
+      [cpuregs_rs1]="simLibInterfaceService.bindings.uut__DOT__cpuregs_rs1"
+      [cpuregs_rs2]="simLibInterfaceService.bindings.uut__DOT__cpuregs_rs2"
+      [instr_addi]="simLibInterfaceService.bindings.uut__DOT__instr_addi"
+    >
+    </app-alu>
+
+    <app-memory
+      [mem_addr]="simLibInterfaceService.bindings.mem_addr"
+      [mem_rdata]="simLibInterfaceService.bindings.mem_rdata"
+      [mem_wdata]="simLibInterfaceService.bindings.mem_wdata"
+      [mem_valid]="simLibInterfaceService.bindings.mem_valid"
+      [memory]="simLibInterfaceService.bindings.memory"
+    ></app-memory-->
+  </div>
+</div>

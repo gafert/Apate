@@ -1,0 +1,85 @@
+<div class="shadow-container">
+  <div style="width: 9em">CPU</div>
+  <table style="font-size: 1em; width: 100%; line-height: 1em">
+  <tr>
+      <td>
+        State:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="cpuStates[cpuState]"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        OP1:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="regOp1"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        OP2:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="regOp2"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Out:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="cpuOut"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        RS1:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="cpuRs1"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        RS2:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="cpuRs2"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        D RS1:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="decodedRs1"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        D RS2:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="decodedRs2"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        D RD:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="decodedRd"></app-memory-cell>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        L RD:
+      </td>
+      <td>
+        <app-memory-cell [cellValue]="cpuLatchedRd"></app-memory-cell>
+      </td>
+    </tr>
+  </table>
+</div>

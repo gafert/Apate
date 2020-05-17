@@ -1,0 +1,13 @@
+.compile-button {
+  background-color: #009400;
+  color: #ffffff;
+  font-size: 1em;
+  padding: 0.5em 1em 0.5em 1em;
+  border: none;
+  margin: 2em;
+  transform: scale(1);
+
+  &:focus {
+    outline: none;
+  }
+}

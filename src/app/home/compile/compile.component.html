@@ -1,0 +1,105 @@
+<div style="display: flex; height: 100%">
+  <div style="height: 100%; background-color: #292929; width: 20em; overflow-y: scroll">
+    <div class="box">
+      <div>
+        Sources
+      </div>
+      <div class="source-box">
+        <div *ngFor="let file of filesInFolder" class="file" (click)="clickFile($event, file)">{{file}}</div>
+      </div>
+    </div>
+    <div class="box">
+      RISC-V Toolchain
+      <div class="setting-box" (click)="clickToolchainPath($event)">
+        <div contenteditable="false"
+             class="path">
+          <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING"
+               style="margin-right: 2em; overflow-x: scroll">Downloading... {{toolchainPercentDownloaded}} %
+          </div>
+          <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.UNZIPPING"
+               style="margin-right: 2em; overflow-x: scroll">Unzipping...
+          </div>
+          <div
+            *ngIf="toolchainDownloaderState === ToolchainDownEnum.NOT_DOWNLOADED || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
+            style="margin-right: 2em; overflow-x: scroll">{{toolchainPath ? toolchainPath : 'unset'}}
+          </div>
+        </div>
+
+        <i class="fas fa-caret-down"></i>
+      </div>
+    </div>
+    <div class="box">
+      Prefix
+      <div class="setting-box">
+        <app-setting [(setting)]="toolchainPrefix" [settingDefault]="toolchainPrefixDefault"
+                     settingKey="toolchainPrefix"></app-setting>
+      </div>
+    </div>
+    <div class="box">
+      GCC FLAGS
+      <div class="setting-box">
+        <app-setting [(setting)]="gccFlags" [settingDefault]="gccFlagsDefault" settingKey="gccFlags"></app-setting>
+      </div>
+    </div>
+    <div class="box">
+      Sources
+      <div class="setting-box">
+        <app-setting [(setting)]="gccSources" [settingDefault]="" settingKey="gccSources"></app-setting>
+      </div>
+    </div>
+    <div style="text-align: center;">
+      <app-compile-button [compiling]="compiling" (compile)="compile()"></app-compile-button>
+    </div>
+    <div class="box">
+      <div>
+        Terminal Output
+      </div>
+      <div class="source-box" style="white-space: pre-wrap">
+        {{terminalOutput}}
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 100%; flex-grow: 2; flex-basis: 0; min-width: 30em">
+    <div class="file-bar">
+      <div class="file-bar-bottomer">
+        <div class="file-title">{{activeFile}}
+          <i *ngIf="fileIsSavable" style="margin-left: 0.5em; font-size: 0.9em;"
+             class="fas fa-pen"></i></div>
+      </div>
+    </div>
+    <textarea class="file-area" [(ngModel)]="fileContent" (change)="fileContentChanged()"></textarea>
+  </div>
+</div>
+
+<div #fileOptions class="option-menu">
+  <div class="option" (click)="openFileAsHexDump()">
+    Hexdump
+  </div>
+  <div class="option" (click)="openFileAsObjectDump()">
+    Objdump
+  </div>
+  <div class="option" (click)="openFileAsReadElf()">
+    Readelf
+  </div>
+</div>
+
+<div #toolchainPathOptions class="option-menu">
+  <div class="option" (click)="openToolchainPathDialog()">
+    Set local...
+  </div>
+  <div class="option" *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
+       (click)="useDownloadedToolchain()">
+    Use downloaded Toolchain
+  </div>
+  <div class="option" (click)="downloadToolchain()"
+       *ngIf="toolchainDownloaderState === ToolchainDownEnum.NOT_DOWNLOADED">
+    Download Toolchain
+  </div>
+  <div class="option" *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING">
+    {{'Downloading... ' + toolchainPercentDownloaded + "%"}}
+  </div>
+  <div class="option" *ngIf="toolchainDownloaderState === ToolchainDownEnum.UNZIPPING">
+    Unzipping
+  </div>
+</div>

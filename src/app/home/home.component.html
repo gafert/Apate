@@ -1,0 +1,14 @@
+<div class="header">
+  <button (click)="openFolderPathDialog()">Open Folder</button>
+  <!--input type="range" min="10" max="20" value="12" class="slider" id="myRange" (input)="changeFont($event)"-->
+</div>
+
+<div class="sections">
+  <button [routerLink]="'compile'">Compile</button>
+  <button [routerLink]="'simulation'">Simulation</button>
+</div>
+
+<div class="container">
+  <router-outlet>
+  </router-outlet>
+</div>

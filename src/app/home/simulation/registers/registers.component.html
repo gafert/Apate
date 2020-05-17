@@ -1,0 +1,34 @@
+<div class="grid-container">
+  <div>CPU Registers</div>
+  <table style="font-size: 1em; width: 100%; line-height: 1em; table-layout: fixed">
+    <tr>
+      <th style="width: 22%">
+        Reg
+      </th>
+      <th style="width: 25%">
+        Hex
+      </th>
+      <th style="width: 25%">
+        Dec
+      </th>
+      <th style="width: 13%">
+        Char
+      </th>
+    </tr>
+    <tr *ngFor="let item of [].constructor(32); let i = index">
+      <td (mouseenter)="hoverEnterRegister($event, i)"
+          (mouseout)="mouseOutRegister($event)">
+        <div class="text-rounded-container grey1">{{i}} </div>
+        {{cpuRegDefinitions[i][0]}} </td>
+      <td>
+        <app-changing-value [cellValue]="byteToHex(cpuRegisters[i], 2)"></app-changing-value>
+      </td>
+      <td>
+        <app-changing-value [cellValue]="cpuRegisters[i]"></app-changing-value>
+      </td>
+      <td>
+        <app-changing-value [cellValue]="fromCharCode(cpuRegisters[i])"></app-changing-value>
+      </td>
+    </tr>
+  </table>
+</div>

@@ -1,0 +1,45 @@
+{
+  "productName": "RISC-V Visualizer",
+  "directories": {
+    "output": "release/"
+  },
+  "extraResources": [
+    "binaries/"
+  ],
+  "files": [
+    "**/*",
+    "!**/*.ts",
+    "!*.code-workspace",
+    "!LICENSE.md",
+    "!package.json",
+    "!package-lock.json",
+    "!src/",
+    "!e2e/",
+    "!hooks/",
+    "!angular.json",
+    "!_config.yml",
+    "!karma.conf.js",
+    "!tsconfig.json",
+    "!tslint.json",
+    "!binaries/",
+    "!downloads/"
+  ],
+  "win": {
+    "icon": "dist",
+    "target": [
+      "portable"
+    ]
+  },
+  "mac": {
+    "icon": "dist",
+    "target": [
+      "dmg"
+    ]
+  },
+  "linux": {
+    "icon": "dist",
+    "target": [
+      "AppImage"
+    ]
+  }
+}

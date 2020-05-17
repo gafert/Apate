@@ -1,0 +1,6 @@
+<div #memoryCell
+     (mouseenter)="hoverOverCell($event)"
+     (mouseout)="mouseLeaveCell($event)"
+     style="border-radius: 0.2em; text-align: right; font-family: 'Roboto Mono'">
+  {{byteToHex(cellValue, 2)}}
+</div>

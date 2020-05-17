@@ -1,0 +1,70 @@
+/* You can add global styles to this file, and also import other style filesInFolder */
+@import "import";
+@import "../node_modules/@fortawesome/fontawesome-free/css/all.css";
+
+/* apply a natural box layout model to all elements, but allowing components to change */
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+*::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('assets/Roboto/Roboto-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('assets/Roboto_Mono/RobotoMono-Regular.ttf');
+}
+
+.grid-stack-item .grid-stack-item-content,
+.grid-stack-item .placeholder-content {
+  left: 0px !important;
+  right: 0px !important;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  color: white;
+  font-family: Roboto, serif;
+  background: $grey4;
+  height: 100%;
+}
+
+.shadow-container {
+  //box-shadow: 6px 6px 10px #242424, -6px -6px 10px #4a4a4a;
+  background-color: $grey3;
+  border-radius: 1em;
+  margin: 1em;
+  border: solid transparent 1em;
+}
+
+.grid-container {
+  height: 100%;
+  width: 100%;
+  background: $grey2;
+  border: solid 1px transparent;
+  overflow: scroll;
+}
+
+.small-rounded-container {
+  border-radius: 1em;
+  margin: 0.2em;
+  border: solid transparent 0.3em;
+}
+
+.text-rounded-container {
+  border-radius: 1em;
+  margin: 0.05em;
+  border: solid transparent 0.25em;
+  display: inline-block;
+}
+

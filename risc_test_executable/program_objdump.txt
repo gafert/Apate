@@ -1,0 +1,121 @@
+
+/Users/gafert/Desktop/verilator/cmake-build-debug/risc_exe/program.elf:     file format elf32-littleriscv
+
+SYMBOL TABLE:
+00000000 l    d  .text.init	00000000 .text.init
+00000014 l    d  .text	00000000 .text
+00000098 l    d  .data	00000000 .data
+00000000 l       .text.init	00000000 entry
+00000010 l       .text.init	00000000 end
+00000014 g     F .text	0000004c print
+00000060 g     F .text	00000038 main
+
+
+Contents of section .text.init:
+ 0000 37010000 13010120 ef008005 73000000  7...... ....s...
+ 0010 6f000000                             o...            
+Contents of section .text:
+ 0014 130101fe 232e8100 13040102 2326a4fe  ....#.......#&..
+ 0024 6f00c001 8327c4fe 13871700 2326e4fe  o....'......#&..
+ 0034 03c70700 b7070010 23a0e700 8327c4fe  ........#....'..
+ 0044 83c70700 e39007fe 13000000 13000000  ................
+ 0054 0324c101 13010102 67800000 130101fe  .$......g.......
+ 0064 232e1100 232c8100 13040102 93078009  #...#,..........
+ 0074 2326f4fe 0325c4fe eff09ff9 93070000  #&...%..........
+ 0084 13850700 8320c101 03248101 13010102  ..... ...$......
+ 0094 67800000                             g...            
+Contents of section .data:
+ 0098 48656c6c 6f206672 6f6d2073 65207072  Hello from se pr
+ 00a8 6f677261 6d0a00                      ogram..         
+
+Disassembly of section .text.init:
+
+00000000 <entry>:
+    addi x29, zero, 0
+    addi x30, zero, 0
+    addi x31, zero, 0*/
+
+    /* set stack pointer */
+    lui sp, %hi(512)
+   0:	00000137          	lui	sp,0x0
+    addi sp, sp, %lo(512)
+   4:	20010113          	addi	sp,sp,512 # 200 <main+0x1a0>
+    /* push zeros on the stack for argc and argv */
+    /* (stack is aligned to 16 bytes in riscv calling convention) */
+    /* addi sp,sp,-16 */
+
+
+    call  main          # call the main function
+   8:	058000ef          	jal	ra,60 <main>
+    ecall               # halt the simluation when it returns
+   c:	00000073          	ecall
+
+00000010 <end>:
+
+end:
+  10:	0000006f          	j	10 <end>
+
+Disassembly of section .text:
+
+00000014 <print>:
+#include <stdint.h>
+
+void print(const char *p) {
+  14:	fe010113          	addi	sp,sp,-32
+  18:	00812e23          	sw	s0,28(sp)
+  1c:	02010413          	addi	s0,sp,32
+  20:	fea42623          	sw	a0,-20(s0)
+    while (*p)
+  24:	01c0006f          	j	40 <print+0x2c>
+        *(volatile int *) 0x10000000 = *(p++);
+  28:	fec42783          	lw	a5,-20(s0)
+  2c:	00178713          	addi	a4,a5,1
+  30:	fee42623          	sw	a4,-20(s0)
+  34:	0007c703          	lbu	a4,0(a5)
+  38:	100007b7          	lui	a5,0x10000
+  3c:	00e7a023          	sw	a4,0(a5) # 10000000 <main+0xfffffa0>
+    while (*p)
+  40:	fec42783          	lw	a5,-20(s0)
+  44:	0007c783          	lbu	a5,0(a5)
+  48:	fe0790e3          	bnez	a5,28 <print+0x14>
+}
+  4c:	00000013          	nop
+  50:	00000013          	nop
+  54:	01c12403          	lw	s0,28(sp)
+  58:	02010113          	addi	sp,sp,32
+  5c:	00008067          	ret
+
+00000060 <main>:
+
+int main(void) {
+  60:	fe010113          	addi	sp,sp,-32
+  64:	00112e23          	sw	ra,28(sp)
+  68:	00812c23          	sw	s0,24(sp)
+  6c:	02010413          	addi	s0,sp,32
+    const char *p = "Hello from se program\n";
+  70:	09800793          	li	a5,152
+  74:	fef42623          	sw	a5,-20(s0)
+    print(p);
+  78:	fec42503          	lw	a0,-20(s0)
+  7c:	f99ff0ef          	jal	ra,14 <print>
+  80:	00000793          	li	a5,0
+}
+  84:	00078513          	mv	a0,a5
+  88:	01c12083          	lw	ra,28(sp)
+  8c:	01812403          	lw	s0,24(sp)
+  90:	02010113          	addi	sp,sp,32
+  94:	00008067          	ret
+
+Disassembly of section .data:
+
+00000098 <.data>:
+  98:	6548                	flw	fa0,12(a0)
+  9a:	6c6c                	flw	fa1,92(s0)
+  9c:	7266206f          	j	627c2 <main+0x62762>
+  a0:	73206d6f          	jal	s10,67d2 <main+0x6772>
+  a4:	2065                	jal	14c <main+0xec>
+  a6:	7270                	flw	fa2,100(a2)
+  a8:	6172676f          	jal	a4,26ebe <main+0x26e5e>
+  ac:	0a6d                	addi	s4,s4,27
+  ae:	00              	Address 0x00000000000000ae is out of bounds.
+

@@ -1,0 +1,1 @@
+/usr/local/bin/verilator_bin;--compiler;gcc;--prefix;Vtestbench;--Mdir;/Users/gafert/Documents/RISC-V-Simulation/simulation_library/verilated_sources;--make;cmake;-Wno-fatal;--cc;testbench.v
