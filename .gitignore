@@ -54,3 +54,4 @@ Thumbs.db
 /simulation_library/cmake_install.cmake
 /simulation_library/CMakeCache.txt
 /simulation_library/Makefile
+/simulation_library/SimulationLibrary.cbp

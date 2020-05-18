@@ -20,8 +20,6 @@ export class SimLibInterfaceService {
       libraryPath = path.join(process.resourcesPath, 'binaries/libVtestbench.dylib');
     }
 
-    libraryPath = '/Users/gafert/Desktop/verilator/cmake-build-debug/libVtestbench.dylib';
-
     this.SimLib = new Library(libraryPath,
       {
         'advance_simulation_with_statechange': ['void', []],
