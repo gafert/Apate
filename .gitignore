@@ -48,8 +48,9 @@ package-lock.json
 # System Files
 .DS_Store
 Thumbs.db
+
+# App specific
 /downloads/
-/binaries/libVtestbench.dylib
 /simulation_library/CMakeFiles/
 /simulation_library/cmake_install.cmake
 /simulation_library/CMakeCache.txt

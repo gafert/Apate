@@ -42,5 +42,4 @@ else ()
             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/verilated_sources)
 endif ()
 
-
-
+include(bindgen/CMakeLists.txt)
