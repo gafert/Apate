@@ -76,10 +76,6 @@ export class CompileComponent {
         case ToolchainDownEnum.DOWNLOADING:
           this.toolchainPercentDownloaded = state.reason as number;
       }
-      if(this.toolchainDownloaderState === state.state) {
-        // Prevent rerendering on the first render and to stop angular from going stupid
-        this.changeDetection.detectChanges();
-      }
       this.toolchainDownloaderState = state.state;
       console.log("New toolchainDownloaderState", state)
     })
@@ -241,6 +237,9 @@ export class CompileComponent {
   }
 
   reloadFolderContents() {
+    if(!this.folderPath) {
+      return;
+    }
     new Promise((resolve => {
       fs.readdir(this.folderPath, (err, files) => {
         if (err) {

@@ -11,16 +11,30 @@ export class SimLibInterfaceService {
   private SimLib;
   public bindings = bindings;
 
+  private isWin = process.platform === "win32";
+  private isMac = process.platform === "darwin";
+  private isLinux = process.platform === "linux";
+
+  private libraryPath;
+
   constructor() {
+    let extension;
+    if (this.isMac) {
+      extension = "dylib";
+    } else if (this.isLinux) {
+      extension = "so";
+    } else if (this.isWin) {
+      extension = "dll";
+    }
+
+    this.libraryPath = './binaries/libVtestbench.' + extension;
+    if (!isDev) {
+      this.libraryPath = path.join(process.resourcesPath, 'binaries/libVtestbench.' + extension);
+    }
   }
 
   initSimulation(pathToVerilogHex: string) {
-    let libraryPath = './binaries/libVtestbench.dylib';
-    if (!isDev) {
-      libraryPath = path.join(process.resourcesPath, 'binaries/libVtestbench.dylib');
-    }
-
-    this.SimLib = new Library(libraryPath,
+    this.SimLib = new Library(this.libraryPath,
       {
         'advance_simulation_with_statechange': ['void', []],
         'advance_simulation_with_pc': ['void', []],
