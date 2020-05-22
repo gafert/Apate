@@ -34,10 +34,6 @@ To use this python script run:
 
 `npm run build:simlib_binding`
 
-### downloads
-
-Used as a temporary download folder for things downloaded by the app in development. In production the downloads folder will be inside the resource path.
-
 ### risc_test_executable
 
 A simple example which can be compiled with the risc-v toolchain.

@@ -8,15 +8,18 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { CoreModule } from './core/core.module';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { SettingsComponent } from './settings/settings.component';
+import {CompileModule} from "./home/compile/compile.module";
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, SettingsComponent],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
     CoreModule,
-    AppRoutingModule
+    AppRoutingModule,
+    CompileModule
   ],
   providers: [],
   bootstrap: [AppComponent]

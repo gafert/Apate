@@ -3,6 +3,7 @@ import {Callback, Library} from "ffi-napi";
 import bindings from "./bindings";
 import * as path from "path";
 import isDev from "electron-is-dev"
+import * as electron from "electron";
 
 @Injectable({
   providedIn: 'root'
@@ -27,9 +28,10 @@ export class SimLibInterfaceService {
       extension = "dll";
     }
 
-    this.libraryPath = './binaries/libVtestbench.' + extension;
-    if (!isDev) {
-      this.libraryPath = path.join(process.resourcesPath, 'binaries/libVtestbench.' + extension);
+    this.libraryPath = path.join(process.resourcesPath, 'binaries', 'libVtestbench.' + extension);
+    console.log(this.libraryPath);
+    if (isDev) {
+      this.libraryPath = path.join(electron.remote.app.getAppPath(), 'binaries', 'libVtestbench.' + extension);
     }
   }
 

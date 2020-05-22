@@ -11,7 +11,7 @@ const app = electron.remote.app;
 import {BehaviorSubject} from "rxjs";
 import {DataService} from "./data.service";
 import isDev from "electron-is-dev";
-import validate = WebAssembly.validate;
+import {PathLike} from "fs";
 
 export enum ToolchainDownEnum {
   DOWNLOADING,
@@ -43,25 +43,23 @@ export class ToolchainDownloaderService {
   private downloadPath;
   private toolchainDownloadZipFile;
 
+  private toolchainFolder = "riscv64-toolchain";
+
   public state: BehaviorSubject<ToolchainDownState> =
     new BehaviorSubject<ToolchainDownState>(new ToolchainDownState(ToolchainDownEnum.NOT_DOWNLOADED, ""));
 
   constructor(private dataService: DataService) {
-    // Set paths
-    this.downloadPath = path.join(process.resourcesPath, 'downloads');
-    if (isDev) {
-      this.downloadPath = app.getAppPath() + '/downloads';
-    }
+    this.downloadPath = path.join(app.getPath('userData'), 'downloads');
 
     // Make new directory if it does not exist
     fs.mkdir(this.downloadPath, null, () => null);
 
-    this.toolchainDownloadZipFile = this.downloadPath + "/riscv.tar.gz";
-    this.toolchainDownloadPath = this.downloadPath + "/riscv64-toolchain/bin";
+    this.toolchainDownloadZipFile = path.join(this.downloadPath, "riscv.tar.gz");
+    this.toolchainDownloadPath =  path.join(this.downloadPath, this.toolchainFolder, "bin");
 
     dataService.toolchainDownloaded.subscribe((value) => {
       if (value === true) {
-        this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADED, ""))
+        this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADED, "Already Downloaded"))
       }
     });
   }
@@ -83,7 +81,7 @@ export class ToolchainDownloaderService {
 
     const query = "name contains 'riscv64-toolchain-" + platform + "'";
 
-    this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADING, ""));
+    this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADING, 0));
     authorize().then((jwtClient => {
       new Promise<any>((resolveGetId, rejectGetId) => {
         https.request(`https://www.googleapis.com/drive/v3/files?q=${query}`,
@@ -138,4 +136,28 @@ export class ToolchainDownloaderService {
       }))
     }))
   }
+
+  public removeToolchain() {
+    this.deleteFolderRecursive(path.join(this.downloadPath, this.toolchainFolder)).then(() => {
+      this.state.next(new ToolchainDownState(ToolchainDownEnum.NOT_DOWNLOADED, "Removed Toolchain from " + this.downloadPath + "/" + this.toolchainFolder));
+      this.dataService.toolchainDownloaded.next(false);
+    });
+  }
+
+  deleteFolderRecursive(folder) {
+    return new Promise((resolve, reject) => {
+      if (fs.existsSync(folder)) {
+        fs.readdirSync(folder).forEach((file, index) => {
+          const curPath = path.join(folder, file);
+          if (fs.lstatSync(curPath).isDirectory()) { // recurse
+            this.deleteFolderRecursive(curPath);
+          } else { // delete file
+            fs.unlinkSync(curPath);
+          }
+        });
+        fs.rmdirSync(folder);
+      }
+      resolve();
+    });
+  };
 }

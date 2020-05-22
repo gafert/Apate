@@ -100,10 +100,12 @@ export class CompileButtonComponent implements OnInit, OnChanges {
 
   resetCompilerButton() {
     let button = document.getElementById('compiler-button');
+    let currentScale = button.getBoundingClientRect().width / button.offsetWidth;
+
     const style = styler(button);
     tween({
-      from: {backgroundColor: style.get('background-color')},
-      to: {backgroundColor: '#009400'},
+      from: {backgroundColor: style.get('background-color'), scale: currentScale},
+      to: {backgroundColor: '#009400', scale: 1},
       ease: easing.linear,
       duration: 50
     }).start(v => style.set(v));

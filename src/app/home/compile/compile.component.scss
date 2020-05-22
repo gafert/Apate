@@ -1,76 +1,46 @@
 @import "../../../import";
 
-.box {
-  margin: 1em;
+.header {
+  background-color: $grey3;
+  border: $border;
+  height: 3em;
+  width: 100%;
+  display: flex;
+  align-items: center;
 }
 
-.folder-button {
-  border: solid 1px $grey2;
-  background: $grey3;
-  color: white;
-  width: 8em;
-  margin: 0.4em 0.4em 0.4em 1em;
+.container {
+  height: calc(100% - 3em);
+  display: flex;
+}
 
-  &:focus {
-    outline: none;
-  }
+.box-container {
+  overflow-y: scroll;
 
-  &:hover {
-    background: $grey2;
+  .box {
+    outline: $border;
+    //margin-top: 1px;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-bottom: 1px;
+    background-color: $grey3;
+    &--header {
+      border-bottom: $border;
+      padding: 0.5em;
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
+    }
   }
 }
 
-.source-box {
-  background: $grey3;
-  border: solid 1px $grey2;
-  padding: 0.3em;
+.text-box {
+  padding: 0.5em;
   color: white;
   width: 100%;
   text-overflow: ellipsis;
   overflow: scroll;
-  height: 10em;
-}
-
-.setting-box {
-  position: relative;
-
-  i {
-    position: absolute;
-    right: 1em;
-    top: 25%;
-  }
-
-  .path {
-    background: $grey3;
-    border: solid 1px $grey2;
-    padding: 0.3em;
-    color: white;
-    width: 100%;
-    white-space: nowrap;
-    overflow: scroll;
-    font-size: inherit;
-    height: 2em;
-
-    &:focus {
-      outline: none;
-    }
-  }
-
-  button {
-    border: solid 1px $grey2;
-    background: $grey3;
-    color: white;
-    width: 5em;
-    margin: 0.4em 0.4em 0.4em 1em;
-
-    &:focus {
-      outline: none;
-    }
-
-    &:hover {
-      background: $grey2;
-    }
-  }
+  height: calc(100% - 2em - 2px);
 }
 
 .file {
@@ -80,39 +50,59 @@
 }
 
 .file-bar {
-  height: 2em;
-  background: $grey3;
+  height: 3em;
+  background: $grey2;
   position: relative;
 
   .file-bar-bottomer {
     position: absolute;
     bottom: 0;
-    left: 0.5em;
+    left: 4em;
+  }
+}
 
-    .file-title {
-      padding: 0.2em 0.4em 0 0.4em;
-      height: 1.5em;
-      background: $grey4;
-      width: fit-content;
+.file-area-container {
+  height: calc(100% - 3em);
+  overflow-y: scroll;
+  display: flex;
+  border-top: $border;
+  border-right: $border;
+  border-bottom: $border;
+
+  .line-number {
+    width: 4em;
+    height: 100%;
+    background-color: $grey2;
+    height: max-content;
+    min-height: 100%;
+    border-right: $border;
+
+    pre {
+      margin: 0;
+      font-size: 1em;
+      font-family: "Roboto Mono";
+      text-align: right;
+      padding-right: 1em;
+    }
+  }
+
+  .file-area {
+    background: $grey3;
+    border: none;
+    color: white;
+    font-size: 1em;
+    font-family: "Roboto Mono";
+    margin: 0;
+    width: 100%;
+    padding: 0 0 0 0.5em;
+    resize: none;
+
+    &:focus {
+      outline: none;
     }
   }
 }
 
-.file-area {
-  background: transparent;
-  color: white;
-  font-size: 1em;
-  width: 100%;
-  height: calc(100% - 2em);
-  border: none;
-  font-family: "Roboto Mono";
-  padding: 0;
-  margin: 0;
-
-  &:focus {
-    outline: none;
-  }
-}
 
 .option-menu {
   position: absolute;

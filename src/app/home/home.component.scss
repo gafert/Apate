@@ -3,30 +3,7 @@
 .container {
   height: calc(100% - #{$bodyMarginTop});
   width: 100%;
-  background-color: $grey4;
-}
-
-.sections {
-  display: flex;
-  height: $sectionsHeight;
-  width: 100%;
-  background-color: $grey2;
-  justify-content: space-around;
-
-  button {
-    flex-grow: 1;
-    background-color: transparent;
-    border: none;
-    color: white;
-
-    &:focus {
-      outline: 0;
-    }
-
-    &:hover {
-      background-color: #292929;
-    }
-  }
+  background-color: $grey3;
 }
 
 .header {

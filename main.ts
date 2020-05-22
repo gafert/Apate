@@ -17,6 +17,7 @@ function createWindow(): BrowserWindow {
     y: 0,
     width: size.width,
     height: size.height,
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,

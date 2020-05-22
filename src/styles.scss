@@ -35,8 +35,20 @@ html, body {
   padding: 0;
   color: white;
   font-family: Roboto, serif;
-  background: $grey4;
+  background: $grey3;
   height: 100%;
+  font-size: 10pt;
+}
+
+button {
+  font-size: 10pt;
+  -webkit-app-region: no-drag !important;
+  background: none;
+  color: white;
+  border: none;
+  &:focus {
+    outline: none;
+  }
 }
 
 .shadow-container {
@@ -68,3 +80,27 @@ html, body {
   display: inline-block;
 }
 
+
+.tabs {
+  display: flex;
+  height: $sectionsHeight;
+  background-color: $grey2;
+
+  button {
+    color: white;
+    background-color: $grey2;
+    border: $border;
+    margin-left: 0.6em;
+    padding: 0em 1em;
+    margin-bottom: -1px;
+
+    &:focus {
+      outline: 0;
+    }
+
+    &[selected=true] {
+      background-color: $grey3;
+      border-bottom: 0;
+    }
+  }
+}

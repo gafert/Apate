@@ -465,34 +465,34 @@ uint32_t *get_pointer_uut__DOT__cpuregs_rs1() { return &top->testbench__DOT__uut
 uint32_t *get_pointer_uut__DOT__cpuregs_rs2() { return &top->testbench__DOT__uut__DOT__cpuregs_rs2; }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs1() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs1; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs1() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs1); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs2() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs2; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs2() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs2); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__rd() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rd; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__rd() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rd); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__rdx() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rdx; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__rdx() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rdx); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rs1() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rs1; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rs1() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rs1); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rs2() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rs2; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rs2() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rs2); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__this_rs2() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__this_rs2; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__this_rs2() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__this_rs2); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rd() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rd; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rd() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rd); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rdx() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rdx; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rdx() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rdx); }
 
 /** Returns pointer of unsigned long int */
-unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rdt() { return &top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rdt; }
+unsigned long int *get_pointer_uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rdt() { return reinterpret_cast<unsigned long *>(&top->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__next_rdt); }
 
 /** Returns pointer of uint8_t array with length 512 */
 uint8_t *get_pointer_memory() { return top->testbench__DOT__memory; }

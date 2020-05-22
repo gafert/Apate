@@ -5,6 +5,9 @@ project(SimulationLibrary DESCRIPTION "simulation library")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../binaries)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../binaries)
 
+set(CMAKE_C_FLAGS "-static -m64")
+set(CMAKE_CXX_FLAGS "-static -m64")
+
 add_library(Vtestbench SHARED ${SOURCES} pico_simulator.cc bindings.cc)
 
 set_target_properties(Vtestbench

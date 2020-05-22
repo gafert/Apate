@@ -51,4 +51,3 @@ add_custom_target(make_program_dump
         DEPENDS program
         COMMAND ${RISC_DUMP} --section .text.init --section .text --section .data --full-contents --disassemble --syms --wide --source -z ${CMAKE_CURRENT_BINARY_DIR}/program.elf >  ${CMAKE_CURRENT_SOURCE_DIR}/program_objdump.txt
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
