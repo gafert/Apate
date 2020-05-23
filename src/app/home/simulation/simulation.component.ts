@@ -1,11 +1,10 @@
-import {AfterViewInit, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import * as d3 from "d3";
-import * as Store from "electron-store";
 import * as fs from "fs";
 import * as path from "path";
 import {byteToHex, range} from "../../globals";
-import {SimLibInterfaceService} from "../../core/services";
-import {spawn} from "child_process";
+import {DataService, SimLibInterfaceService} from "../../core/services";
+import {InstructionsComponent} from "./instructions/instructions.component";
 
 @Component({
   selector: 'app-simulation',
@@ -13,6 +12,8 @@ import {spawn} from "child_process";
   styleUrls: ['./simulation.component.scss']
 })
 export class SimulationComponent implements OnInit, AfterViewInit {
+  @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
+
   public byteToHex = byteToHex;
   public range = range;
   public showRegisters = true;
@@ -20,45 +21,48 @@ export class SimulationComponent implements OnInit, AfterViewInit {
   private grid;
 
   /** Is set by loading settings input */
-  public simulationElfPath = "unset";
+  public simulationElfPath;
 
-  private store = new Store();
-  private toolchainPath = this.store.get('toolchainPath');
-  private toolchainPrefix = this.store.get('toolchainPrefix');
-  private folderPath = this.store.get('folderPath');
-  private objdumpPath = `${this.toolchainPath}/${this.toolchainPrefix}objdump`;
-  private objcopyPath = `${this.toolchainPath}/${this.toolchainPrefix}objcopy`;
-  private simulationHexPath = `${this.folderPath}/program.hex`;
-  private objcopyFlags = "-O verilog";
+  public stepOptions = {
+    clock: {
+      name: "Clock",
+      selected: false
+    },
+    pc: {
+      name: "Program Counter",
+      selected: true
+    }
+  };
 
-  constructor(public simLibInterfaceService: SimLibInterfaceService, private changeDetection: ChangeDetectorRef) {
+  constructor(public simLibInterfaceService: SimLibInterfaceService,
+              private changeDetection: ChangeDetectorRef,
+              private dataService: DataService) {
   }
 
   ngOnInit(): void {
-    if(this.folderPath) {
-      // Search for .elf in project
-      fs.readdir(this.folderPath, (err, files) => {
-        for (let file of files) {
-          console.log(file.split('.').pop());
-          if (file.split('.').pop().indexOf("elf") >= 0) {
-            this.simulationElfPath = this.folderPath + "/" + file;
-            this.changeDetection.detectChanges();
-            console.log(this.simulationElfPath);
+    this.dataService.folderPath.subscribe(value => {
+      if (value) {
+        // Search for .elf in project
+        fs.readdir(value, (err, files) => {
+          for (let file of files) {
+            if (file.split('.').pop().indexOf("elf") >= 0) {
+              this.simulationElfPath = path.join(value, file);
+            }
           }
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
   ngAfterViewInit(): void {
     // Needs timeout so grid is rendered before it is initiated
-      this.grid = window.GridStack.init({
-        float: true,
-        verticalMargin: 0,
-        disableOneColumnMode: true
-      });
-      this.setHeightOfGrid();
-      window.addEventListener('resize', () => this.setHeightOfGrid());
+    this.grid = window.GridStack.init({
+      float: true,
+      verticalMargin: 0,
+      disableOneColumnMode: true
+    });
+    this.setHeightOfGrid();
+    window.addEventListener('resize', () => this.setHeightOfGrid());
   }
 
   setHeightOfGrid() {
@@ -66,32 +70,20 @@ export class SimulationComponent implements OnInit, AfterViewInit {
       .getBoundingClientRect().height / 14);
   }
 
-  changeFont(event) {
-    d3.select('html').style('font-size', event.target.value + "pt");
-    this.setHeightOfGrid();
-  }
-
   initiateSimulation() {
-    this.generateHexFromElf().then(() => {
-      this.simLibInterfaceService.initSimulation(this.simulationHexPath);
-    })
+    if (this.simulationElfPath) {
+      if (this.simulationElfPath.indexOf('.elf') > 0) {
+        this.simLibInterfaceService.initSimulation(this.simulationElfPath);
+        this.instructionsComponent.reload();
+      }
+    }
   }
 
-  generateHexFromElf() {
-    return new Promise((resolve, reject) => {
-      const gcc = spawn(this.objcopyPath, [...`${this.objcopyFlags} ${this.simulationElfPath} ${this.simulationHexPath}`.split(' ')]);
-      gcc.on('error', (err) => {
-        console.error('Failed to start gcc', err);
-        reject()
-      });
-      gcc.on('close', (code) => {
-        console.log('Exited objcopy with code', code);
-        if (code === 0) {
-          resolve();
-        } else {
-          reject();
-        }
-      });
-    });
+  stepSimulation() {
+    if (this.stepOptions.clock.selected) {
+      this.simLibInterfaceService.advanceSimulationClock();
+    } else {
+      this.simLibInterfaceService.advanceSimulationPc();
+    }
   }
 }

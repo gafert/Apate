@@ -1,19 +1,5 @@
 @import "../../../import";
 
-.header {
-  background-color: $grey3;
-  border: $border;
-  height: 3em;
-  width: 100%;
-  display: flex;
-  align-items: center;
-}
-
-.container {
-  height: calc(100% - 3em);
-  display: flex;
-}
-
 .box-container {
   overflow-y: scroll;
 

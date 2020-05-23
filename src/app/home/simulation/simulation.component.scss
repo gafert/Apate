@@ -1,29 +1,2 @@
 @import "../../../import";
 
-.header {
-  display: flex;
-  height: 3em;
-  width: 100%;
-  background-color: $grey3;
-  border: $border;
-
-  button {
-    background-color: transparent;
-    border: none;
-    color: white;
-    padding: 1em;
-
-    &:focus {
-      outline: 0;
-    }
-
-    &:hover {
-      background-color: $grey2;
-    }
-  }
-}
-
-#simulation-container {
-  height: calc(100% - 3em);
-  overflow: scroll;
-}

@@ -1,11 +1,11 @@
-.compile-button {
+.button {
   background-color: #009400;
   color: #ffffff;
   font-size: 1em;
   padding: 0.5em 1em 0.5em 1em;
   border: none;
-  margin: 2em;
   transform: scale(1);
+  margin-left: 1em;
   border-radius: 1em;
 
   &:focus {

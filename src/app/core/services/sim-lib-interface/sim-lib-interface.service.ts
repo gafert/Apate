@@ -1,9 +1,11 @@
 import {Injectable} from '@angular/core';
-import {Callback, Library} from "ffi-napi";
+import {Library} from "ffi-napi";
 import bindings from "./bindings";
 import * as path from "path";
 import isDev from "electron-is-dev"
 import * as electron from "electron";
+import {spawn} from "child_process";
+import {DataService} from "../data.service";
 
 @Injectable({
   providedIn: 'root'
@@ -16,9 +18,17 @@ export class SimLibInterfaceService {
   private isMac = process.platform === "darwin";
   private isLinux = process.platform === "linux";
 
+  public elfIsLoaded = false;
+  public currentlyLoadedElf: string;
+
   private libraryPath;
 
-  constructor() {
+  private folderPath;
+  private toolchainPath;
+  private toolchainPrefix;
+  private objcopyFlags = "-O verilog";
+
+  constructor(private dataService: DataService) {
     let extension;
     if (this.isMac) {
       extension = "dylib";
@@ -33,25 +43,34 @@ export class SimLibInterfaceService {
     if (isDev) {
       this.libraryPath = path.join(electron.remote.app.getAppPath(), 'binaries', 'libVtestbench.' + extension);
     }
+
+    this.dataService.folderPath.subscribe(value => this.folderPath = value);
+    this.dataService.toolchainPath.subscribe(value => this.toolchainPath = value);
+    this.dataService.toolchainPrefix.subscribe(value => this.toolchainPrefix = value);
   }
 
-  initSimulation(pathToVerilogHex: string) {
-    this.SimLib = new Library(this.libraryPath,
-      {
-        'advance_simulation_with_statechange': ['void', []],
-        'advance_simulation_with_pc': ['void', []],
-        'advance_simulation_with_clock': ['void', []],
-        'init_simulation': ['void', ['string']],
-        ...bindings.function_definitions
-      });
+  initSimulation(pathToElf: string) {
+    this.generateHexFromElf(pathToElf).then((hexPath) => {
 
-    this.SimLib.init_simulation(pathToVerilogHex);
+      this.SimLib = new Library(this.libraryPath,
+        {
+          'advance_simulation_with_statechange': ['void', []],
+          'advance_simulation_with_pc': ['void', []],
+          'advance_simulation_with_clock': ['void', []],
+          'init_simulation': ['void', ['string']],
+          ...bindings.function_definitions
+        });
 
-    bindings.setPointers(this.SimLib);
+      this.SimLib.init_simulation(hexPath);
+      this.elfIsLoaded = true;
+      this.currentlyLoadedElf = pathToElf;
 
-    for (let i = 0; i < 100; i++) {
-      this.SimLib.advance_simulation_with_clock();
-    }
+      bindings.setPointers(this.SimLib);
+
+      for (let i = 0; i < 100; i++) {
+        this.SimLib.advance_simulation_with_clock();
+      }
+    })
   }
 
   advanceSimulationClock() {
@@ -60,5 +79,23 @@ export class SimLibInterfaceService {
 
   advanceSimulationPc() {
     this.SimLib.advance_simulation_with_pc();
+  }
+
+  generateHexFromElf(elfPath) {
+    return new Promise((resolve, reject) => {
+      const gcc = spawn(path.join(this.toolchainPath, this.toolchainPrefix + "objcopy"), [...`${this.objcopyFlags} ${elfPath} ${path.join(this.folderPath, "program.hex")}`.split(' ')]);
+      gcc.on('error', (err) => {
+        console.error('Failed to start gcc', err);
+        reject()
+      });
+      gcc.on('close', (code) => {
+        console.log('Exited objcopy with code', code);
+        if (code === 0) {
+          resolve(path.join(this.folderPath, "program.hex"));
+        } else {
+          reject();
+        }
+      });
+    });
   }
 }

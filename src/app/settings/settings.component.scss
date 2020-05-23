@@ -1,0 +1,67 @@
+@import "../../import";
+
+.option-menu {
+  position: absolute;
+  font-size: 0.9em;
+  background-color: $grey1;
+  display: none;
+
+  .option {
+    padding: 0.2em 0.5em 0.2em 0.5em;
+
+    &:hover {
+      background: $grey2;
+    }
+  }
+}
+
+.settings {
+  border: $border;
+  height: 100%;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1em;
+  -webkit-app-region: drag;
+  border-bottom: $border;
+
+  .title {
+    font-size: 1.5em;
+  }
+}
+
+.setting-box {
+  position: relative;
+  margin: 1em;
+
+  .title {
+    margin-bottom: 0.3em;
+  }
+
+  i {
+    position: absolute;
+    right: 1em;
+    top: 25%;
+  }
+
+  .toolchain-path {
+    background: $grey2;
+    border: $border;
+    padding: 0.3em;
+    color: white;
+    width: 100%;
+    white-space: nowrap;
+    overflow: scroll;
+    font-size: inherit;
+    height: 2em;
+    border-radius: 0.7em;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

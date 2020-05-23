@@ -1,0 +1,53 @@
+<div class="settings">
+  <div class="header">
+    <div class="title">Settings</div>
+    <button (click)="closeWindow()"><i class="fas fa-times" style="font-size: 1.5em;"></i></button>
+  </div>
+
+  <div (click)="clickToolchainPath($event)" class="setting-box">
+    <div class="title">RISC-V Toolchain</div>
+    <div class="toolchain-path" contenteditable="false">
+      <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING"
+           style="margin-right: 2em; overflow-x: scroll">Downloading... {{toolchainPercentDownloaded}} %
+      </div>
+      <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.UNZIPPING"
+           style="margin-right: 2em; overflow-x: scroll">Unzipping...
+      </div>
+      <div
+        *ngIf="toolchainDownloaderState === ToolchainDownEnum.NOT_DOWNLOADED || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
+        style="margin-right: 2em; overflow-x: scroll">{{toolchainPath ? toolchainPath : 'unset'}}
+      </div>
+    </div>
+  </div>
+  <div class="setting-box">
+    <div class="title">Prefix</div>
+    <app-setting [(setting)]="toolchainPrefix" [settingDefault]="toolchainPrefixDefault"
+                 settingKey="toolchainPrefix"></app-setting>
+  </div>
+
+</div>
+
+
+<div #toolchainPathOptions class="option-menu">
+  <div (click)="openToolchainPathDialog()" class="option">
+    Set local...
+  </div>
+  <div (click)="useDownloadedToolchain()" *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
+       class="option">
+    Use downloaded toolchain
+  </div>
+  <div (click)="removeToolchain()" *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
+       class="option">
+    Remove downloaded toolchain
+  </div>
+  <div (click)="downloadToolchain()" *ngIf="toolchainDownloaderState === ToolchainDownEnum.NOT_DOWNLOADED"
+       class="option">
+    Download toolchain
+  </div>
+  <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING" class="option">
+    {{'Downloading... ' + toolchainPercentDownloaded + "%"}}
+  </div>
+  <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.UNZIPPING" class="option">
+    Unzipping
+  </div>
+</div>

@@ -1,0 +1,6 @@
+<button #button (mousedown)="buttonDown()"
+        (mouseleave)="buttonLeave()"
+        (mouseup)="buttonUp()"
+        class="button">{{iconClass ? text + " " : text}}<i class="{{iconClass}}"
+                                                           style="user-select: none; pointer-events: none"></i>
+</button>

@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {BehaviorSubject} from "rxjs";
 import * as Store from 'electron-store';
 
 @Injectable({
@@ -7,6 +7,9 @@ import * as Store from 'electron-store';
 })
 export class DataService {
   private store = new Store();
+
+  // Temporary Variables set by the application
+  public instructionsSections: any;
 
   toolchainPath: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
   folderPath: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);

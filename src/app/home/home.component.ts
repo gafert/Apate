@@ -1,11 +1,9 @@
 import {Component} from '@angular/core';
 import {DataService} from "../core/services";
 import {byteToHex} from "../globals";
-import {Subject} from "rxjs";
 import electron from "electron";
 import {Router} from "@angular/router";
 import * as url from "url";
-import * as path from "path";
 import isDev from "electron-is-dev";
 
 @Component({
@@ -49,7 +47,6 @@ export class HomeComponent {
         nodeIntegration: true,
         nodeIntegrationInWorker: true,
       },
-
     });
 
     if (isDev) {
@@ -63,7 +60,7 @@ export class HomeComponent {
       child.loadURL(webPath + "/index.html#settings")
     }
 
-    child.webContents.openDevTools();
+    //child.webContents.openDevTools();
     child.once('ready-to-show', () => {
       child.show();
     });
