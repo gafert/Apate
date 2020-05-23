@@ -61,13 +61,17 @@ export class SimulationComponent implements OnInit, AfterViewInit {
       verticalMargin: 0,
       disableOneColumnMode: true
     });
-    this.setHeightOfGrid();
-    window.addEventListener('resize', () => this.setHeightOfGrid());
+    this.setSizeOfGrid();
+    window.addEventListener('resize', () => this.setSizeOfGrid());
   }
 
-  setHeightOfGrid() {
+  setSizeOfGrid() {
     this.grid.cellHeight((d3.select('#simulation-container').node() as HTMLElement)
       .getBoundingClientRect().height / 14);
+
+    const width = (d3.select('#simulation-container').node() as HTMLElement).getBoundingClientRect().width;
+    this.grid.column(Number((width / 130).toFixed(0)));
+    console.log(Number((width / 130).toFixed(0)));
   }
 
   initiateSimulation() {

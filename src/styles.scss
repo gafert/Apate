@@ -2,6 +2,9 @@
 @import "import";
 @import "../node_modules/@fortawesome/fontawesome-free/css/all.css";
 
+$gridstack-columns: 30;
+@import "../node_modules/gridstack/dist/src/gridstack-extra";
+
 /* apply a natural box layout model to all elements, but allowing components to change */
 html {
   box-sizing: border-box;
@@ -35,7 +38,7 @@ html, body {
   padding: 0;
   color: white;
   font-family: Roboto, serif;
-  background: $grey3;
+  background: $grey2;
   height: 100%;
   font-size: 10pt;
 }
@@ -57,14 +60,6 @@ button {
   border-radius: 1em;
   margin: 1em;
   border: solid transparent 1em;
-}
-
-.grid-container {
-  height: 100%;
-  width: 100%;
-  background: $grey2;
-  border: solid 1px transparent;
-  overflow: scroll;
 }
 
 .small-rounded-container {
@@ -118,3 +113,26 @@ button {
   height: calc(100% - 3em);
   display: flex;
 }
+
+// Used in instructions registers terminal
+.grid-container {
+  height: 100%;
+  width: 100%;
+  background: $grey3;
+  border: $border;
+  overflow: hidden;
+
+  &--header {
+    border-bottom: $border;
+    padding: 0.5em;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &--content {
+    overflow: scroll;
+    height: calc(100% - 2em);
+  }
+}
+
