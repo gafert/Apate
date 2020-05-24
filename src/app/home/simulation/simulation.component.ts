@@ -70,15 +70,18 @@ export class SimulationComponent implements OnInit, AfterViewInit {
       .getBoundingClientRect().height / 14);
 
     const width = (d3.select('#simulation-container').node() as HTMLElement).getBoundingClientRect().width;
-    this.grid.column(Number((width / 130).toFixed(0)));
-    console.log(Number((width / 130).toFixed(0)));
+    this.grid.column(Number((width / 140).toFixed(0)));
+    console.log(Number((width / 140).toFixed(0)));
   }
 
   initiateSimulation() {
     if (this.simulationElfPath) {
       if (this.simulationElfPath.indexOf('.elf') > 0) {
         this.simLibInterfaceService.initSimulation(this.simulationElfPath);
-        this.instructionsComponent.reload();
+        // Wait for program counter to be 0 before reloading
+        setTimeout( () => {
+          this.instructionsComponent.reload();
+        }, 100);
       }
     }
   }

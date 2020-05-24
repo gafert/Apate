@@ -64,15 +64,18 @@ button {
 
 .small-rounded-container {
   border-radius: 1em;
-  margin: 0.2em;
-  border: solid transparent 0.3em;
+  border: $border;
+  margin: 0.3em;
+  padding: 0.3em;
 }
 
 .text-rounded-container {
   border-radius: 1em;
   margin: 0.05em;
-  border: solid transparent 0.25em;
+  border: $border;
   display: inline-block;
+  padding: 0.3em 0.5em;
+  background: transparent;
 }
 
 

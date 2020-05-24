@@ -3,13 +3,19 @@
     Instructions
   </div>
   <div class="grid-container--content">
-    <div *ngFor="let section of sections" class="small-rounded-container grey3">
+    <div *ngIf="sections.length === 0" style="text-align: center; width: 100%; margin-top: 1em">
+      No ELF loaded. Please initiate first.
+    </div>
+    <div *ngFor="let section of sections" class="small-rounded-container grey2">
       {{section.name}}
-      <div *ngFor="let symbol of section.symbols" class="small-rounded-container grey2">
-        <div class="text-rounded-container grey1 mono">{{symbol.hex}}</div>
-        {{symbol.name}}
+      <div *ngFor="let symbol of section.symbols" class="small-rounded-container grey3">
+        <div class="symbol-header">
+          {{symbol.name}}
+          <div class="text-rounded-container grey2 mono">{{symbol.hex}}</div>
+        </div>
+
         <ng-container *ngFor="let code of symbol.code">
-          <ng-container *ngTemplateOutlet="code.code ? with_code : pure_assembly; context: { $implicit:  code}">
+          <ng-container *ngTemplateOutlet="pure_assembly; context: { $implicit:  code}">
           </ng-container>
         </ng-container>
       </div>
@@ -17,19 +23,13 @@
   </div>
 </div>
 
-<ng-template #with_code let-code>
-  <div class="small-rounded-container grey3">
-    <div *ngIf="code.code" class="text-rounded-container grey4 mono">{{code.code}}</div>
-    <ng-container *ngTemplateOutlet="pure_assembly;  context: { $implicit:  code}"></ng-container>
-  </div>
-</ng-template>
-
 <ng-template #pure_assembly let-code>
   <div id="assembly-code-div-{{assembly.pc}}" *ngFor="let assembly of code.assembly"
-       class="small-rounded-container grey4"
+       class="small-rounded-container grey2"
        style="display: flex; justify-content: space-between; align-items: center;">
-    <div class="text-rounded-container grey1 mono">{{byteToHex(assembly.pc, 1)}}</div>
+    <div id="assembly-code-div-pc-{{assembly.pc}}"
+         class="text-rounded-container mono">{{byteToHex(assembly.pc, 1)}}</div>
     <div style="flex-grow: 1; padding-left: 0.5em">{{assembly.opcode}}</div>
-    <div class="text-rounded-container grey1 mono">{{assembly.hex}}</div>
+    <div id="assembly-code-div-hex-{{assembly.pc}}" class="text-rounded-container mono">{{assembly.hex}}</div>
   </div>
 </ng-template>

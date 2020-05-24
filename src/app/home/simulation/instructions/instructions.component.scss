@@ -1,1 +1,9 @@
 @import "../../../../import";
+
+.symbol-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.2em 0.6em 0.25em 0.6em;
+  border-bottom: $border;
+}

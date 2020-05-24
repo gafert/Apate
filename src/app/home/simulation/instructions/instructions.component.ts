@@ -86,15 +86,33 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
 
   private setInstructionColor(oldPC, newPC) {
     // Change colors accordingly
-    const oldElement = document.getElementById('assembly-code-div-' + oldPC);
-    if (oldElement) {
+    const oldAssemblyDiv = document.getElementById('assembly-code-div-' + oldPC);
+    if (oldAssemblyDiv) {
       tween({
-        from: {backgroundColor: oldElement.style.backgroundColor,},
+        from: {backgroundColor: oldAssemblyDiv.style.backgroundColor,},
         to: {backgroundColor: "rgb(0,38,0)"},
         ease: easing.easeOut,
         duration: 500
-      }).start(v => styler(oldElement).set(v));
+      }).start(v => styler(oldAssemblyDiv).set(v));
+    }
+    const oldAssemblyPcDiv = document.getElementById('assembly-code-div-pc-' + oldPC);
+    const oldAssemblyHexDiv = document.getElementById('assembly-code-div-hex-' + oldPC);
+    if (oldAssemblyPcDiv && oldAssemblyHexDiv) {
+      tween({
+        from: {backgroundColor: oldAssemblyPcDiv.style.backgroundColor,},
+        to: {backgroundColor: "rgb(0,83,0)"},
+        ease: easing.easeOut,
+        duration: 500
+      }).start(v => {
+        styler(oldAssemblyPcDiv).set(v);
+        styler(oldAssemblyHexDiv).set(v);
+      });
     }
     d3.select('#assembly-code-div-' + newPC).style('background', "#009000");
+    d3.select('#assembly-code-div-' + newPC).style('border-color', "transparent");
+    d3.select('#assembly-code-div-pc-' + newPC).style('background', "#007400");
+    d3.select('#assembly-code-div-pc-' + newPC).style('border-color', "transparent");
+    d3.select('#assembly-code-div-hex-' + newPC).style('background', "#007400");
+    d3.select('#assembly-code-div-hex-' + newPC).style('border-color', "transparent");
   }
 }

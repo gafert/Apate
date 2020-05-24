@@ -17,6 +17,9 @@ export class SettingComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     if(!this.setting) {
       this.setting = this.store.get(this.settingKey, this.settingDefault);
+    } else {
+      // If the setting is not set set the default setting to
+      this.settingChanged(this.settingDefault);
     }
   }
 
