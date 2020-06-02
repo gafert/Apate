@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {ComponentFactory, ComponentFactoryResolver, ComponentRef, Injectable, NgZone} from '@angular/core';
 import {Library} from "ffi-napi";
 import bindings from "./bindings";
 import * as path from "path";
@@ -28,7 +28,8 @@ export class SimLibInterfaceService {
   private toolchainPrefix;
   private objcopyFlags = "-O verilog";
 
-  constructor(private dataService: DataService) {
+  constructor(private dataService: DataService,
+              private zone: NgZone) {
     let extension;
     if (this.isMac) {
       extension = "dylib";
@@ -51,7 +52,6 @@ export class SimLibInterfaceService {
 
   initSimulation(pathToElf: string) {
     this.generateHexFromElf(pathToElf).then((hexPath) => {
-
       this.SimLib = new Library(this.libraryPath,
         {
           'advance_simulation_with_statechange': ['void', []],
@@ -71,6 +71,8 @@ export class SimLibInterfaceService {
         this.SimLib.advance_simulation_with_clock();
       }
     })
+
+    this.bindings.detectValueChanged();
   }
 
   advanceSimulationClock() {

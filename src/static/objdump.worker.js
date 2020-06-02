@@ -6,7 +6,7 @@ onmessage = (e) => {
   let filePath = e.data.file;
   let objdumpPath = e.data.objdumpPath;
 
-  let stdout = String(execSync(`${objdumpPath} --section .text.init --section .text --section .data --full-contents --disassemble --syms --wide --source -z ${filePath}`));
+  let stdout = String(execSync(`"${objdumpPath}" --section .text.init --section .text --section .data --full-contents --disassemble --syms --wide --source -z "${filePath}"`));
 
   // Format assembly from objdump
 

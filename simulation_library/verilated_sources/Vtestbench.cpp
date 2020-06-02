@@ -124,6 +124,7 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
     IData/*31:0*/ __Vdly__testbench__DOT__uut__DOT__reg_op1;
     IData/*31:0*/ __Vdly__testbench__DOT__uut__DOT__reg_op2;
     // Body
+    __Vdlyvset__testbench__DOT__uut__DOT__cpuregs__v0 = 0U;
     __Vdly__testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__mul_counter 
         = vlTOPp->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__mul_counter;
     __Vdly__testbench__DOT__uut__DOT__latched_is_lb 
@@ -146,7 +147,6 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
         = vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst;
     __Vdly__testbench__DOT__uut__DOT__reg_out = vlTOPp->testbench__DOT__uut__DOT__reg_out;
     __Vdly__testbench__DOT__uut__DOT__cpu_state = vlTOPp->testbench__DOT__uut__DOT__cpu_state;
-    __Vdlyvset__testbench__DOT__uut__DOT__cpuregs__v0 = 0U;
     __Vdly__testbench__DOT__uut__DOT__reg_op2 = vlTOPp->testbench__DOT__uut__DOT__reg_op2;
     __Vdly__testbench__DOT__uut__DOT__reg_op1 = vlTOPp->testbench__DOT__uut__DOT__reg_op1;
     __Vdly__testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__instr_mulhsu 
@@ -156,19 +156,59 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
     __Vdly__testbench__DOT__uut__DOT__mem_state = vlTOPp->testbench__DOT__uut__DOT__mem_state;
     __Vdly__testbench__DOT__uut__DOT__pcpi_mul_wait 
         = vlTOPp->testbench__DOT__uut__DOT__pcpi_mul_wait;
-    __Vdlyvset__testbench__DOT__memory__v0 = 0U;
-    __Vdlyvset__testbench__DOT__memory__v1 = 0U;
-    __Vdlyvset__testbench__DOT__memory__v2 = 0U;
-    __Vdlyvset__testbench__DOT__memory__v3 = 0U;
+    if (VL_UNLIKELY(vlTOPp->testbench__DOT__uut__DOT__dbg_next)) {
+        VL_WRITEF("debugasm %x %x %s\n",32,vlTOPp->testbench__DOT__uut__DOT__dbg_insn_addr,
+                  32,vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode,
+                  64,((0U != vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr)
+                       ? vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr
+                       : VL_ULL(0x2a)));
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__dbg_next) {
+        if ((3U == (3U & vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode))) {
+            VL_WRITEF("DECODE: 0x%08x 0x%08x %-0s\n",
+                      32,vlTOPp->testbench__DOT__uut__DOT__dbg_insn_addr,
+                      32,vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode,
+                      64,((0U != vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr)
+                           ? vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr
+                           : VL_ULL(0x554e4b4e4f574e)));
+        } else {
+            VL_WRITEF("DECODE: 0x%08x     0x%04x %-0s\n",
+                      32,vlTOPp->testbench__DOT__uut__DOT__dbg_insn_addr,
+                      16,(0xffffU & vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode),
+                      64,((0U != vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr)
+                           ? vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr
+                           : VL_ULL(0x554e4b4e4f574e)));
+        }
+    }
     if (VL_UNLIKELY(((IData)(vlTOPp->testbench__DOT__resetn) 
                      & (IData)(vlTOPp->testbench__DOT__trap)))) {
         VL_FINISH_MT("testbench.v", 95, "");
     }
-    if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
-         & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
-        vlTOPp->testbench__DOT__uut__DOT__decoded_rs1 
-            = (0x1fU & (vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle 
-                        >> 0xfU));
+    __Vdlyvset__testbench__DOT__memory__v0 = 0U;
+    __Vdlyvset__testbench__DOT__memory__v1 = 0U;
+    __Vdlyvset__testbench__DOT__memory__v2 = 0U;
+    __Vdlyvset__testbench__DOT__memory__v3 = 0U;
+    vlTOPp->testbench__DOT__uut__DOT__q_insn_opcode 
+        = vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode;
+    vlTOPp->testbench__DOT__uut__DOT__q_ascii_instr 
+        = vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr;
+    if (vlTOPp->testbench__DOT__uut__DOT__decoder_trigger_q) {
+        vlTOPp->testbench__DOT__uut__DOT__cached_ascii_instr 
+            = vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr;
+    }
+    if ((((IData)(vlTOPp->testbench__DOT__resetn) & (IData)(vlTOPp->testbench__DOT__uut__DOT__cpuregs_write)) 
+         & (0U != (IData)(vlTOPp->testbench__DOT__uut__DOT__latched_rd)))) {
+        __Vdlyvval__testbench__DOT__uut__DOT__cpuregs__v0 
+            = vlTOPp->testbench__DOT__uut__DOT__cpuregs_wrdata;
+        __Vdlyvset__testbench__DOT__uut__DOT__cpuregs__v0 = 1U;
+        __Vdlyvdim0__testbench__DOT__uut__DOT__cpuregs__v0 
+            = vlTOPp->testbench__DOT__uut__DOT__latched_rd;
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__decoder_trigger_q) {
+        vlTOPp->testbench__DOT__uut__DOT__cached_insn_opcode 
+            = ((3U == (3U & vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode))
+                ? vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode
+                : (0xffffU & vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode));
     }
     if (((IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_trigger) 
          & (~ (IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger)))) {
@@ -230,14 +270,6 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
             = (IData)(((IData)(vlTOPp->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__instr_any_mulh)
                         ? (vlTOPp->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rd 
                            >> 0x20U) : vlTOPp->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rd));
-    }
-    if ((((IData)(vlTOPp->testbench__DOT__resetn) & (IData)(vlTOPp->testbench__DOT__uut__DOT__cpuregs_write)) 
-         & (0U != (IData)(vlTOPp->testbench__DOT__uut__DOT__latched_rd)))) {
-        __Vdlyvval__testbench__DOT__uut__DOT__cpuregs__v0 
-            = vlTOPp->testbench__DOT__uut__DOT__cpuregs_wrdata;
-        __Vdlyvset__testbench__DOT__uut__DOT__cpuregs__v0 = 1U;
-        __Vdlyvdim0__testbench__DOT__uut__DOT__cpuregs__v0 
-            = vlTOPp->testbench__DOT__uut__DOT__latched_rd;
     }
     __Vdly__testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__instr_mulhsu = 0U;
     if (((((IData)(vlTOPp->testbench__DOT__resetn) 
@@ -322,6 +354,11 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
         vlTOPp->testbench__DOT__uut__DOT__cpuregs[__Vdlyvdim0__testbench__DOT__uut__DOT__cpuregs__v0] 
             = __Vdlyvval__testbench__DOT__uut__DOT__cpuregs__v0;
     }
+    if (vlTOPp->testbench__DOT__uut__DOT__launch_next_insn) {
+        vlTOPp->testbench__DOT__uut__DOT__dbg_insn_addr 
+            = vlTOPp->testbench__DOT__uut__DOT__next_pc;
+    }
+    vlTOPp->testbench__DOT__uut__DOT__dbg_next = vlTOPp->testbench__DOT__uut__DOT__launch_next_insn;
     if (__Vdlyvset__testbench__DOT__memory__v0) {
         vlTOPp->testbench__DOT__memory[__Vdlyvdim0__testbench__DOT__memory__v0] 
             = __Vdlyvval__testbench__DOT__memory__v0;
@@ -337,6 +374,10 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
     if (__Vdlyvset__testbench__DOT__memory__v3) {
         vlTOPp->testbench__DOT__memory[__Vdlyvdim0__testbench__DOT__memory__v3] 
             = __Vdlyvval__testbench__DOT__memory__v3;
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__mem_xfer) {
+        vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode 
+            = vlTOPp->testbench__DOT__mem_rdata;
     }
     vlTOPp->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__instr_mul = 0U;
     if (((((IData)(vlTOPp->testbench__DOT__resetn) 
@@ -481,26 +522,41 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                     __Vdly__testbench__DOT__uut__DOT__latched_is_lu = 0U;
                     __Vdly__testbench__DOT__uut__DOT__latched_is_lh = 0U;
                     __Vdly__testbench__DOT__uut__DOT__latched_is_lb = 0U;
-                    vlTOPp->testbench__DOT__uut__DOT__latched_rd 
-                        = vlTOPp->testbench__DOT__uut__DOT__decoded_rd;
-                    vlTOPp->testbench__DOT__uut__DOT__latched_compr 
-                        = vlTOPp->testbench__DOT__uut__DOT__compressed_instr;
                     vlTOPp->testbench__DOT__uut__DOT__current_pc 
                         = vlTOPp->testbench__DOT__uut__DOT__reg_next_pc;
-                    if (vlTOPp->testbench__DOT__uut__DOT__latched_branch) {
+                    if (VL_UNLIKELY(vlTOPp->testbench__DOT__uut__DOT__latched_branch)) {
                         vlTOPp->testbench__DOT__uut__DOT__current_pc 
                             = ((IData)(vlTOPp->testbench__DOT__uut__DOT__latched_store)
                                 ? (0xfffffffeU & ((IData)(vlTOPp->testbench__DOT__uut__DOT__latched_stalu)
                                                    ? vlTOPp->testbench__DOT__uut__DOT__alu_out_q
                                                    : vlTOPp->testbench__DOT__uut__DOT__reg_out))
                                 : vlTOPp->testbench__DOT__uut__DOT__reg_next_pc);
+                        VL_WRITEF("ST_RD:  %2# 0x%08x, BRANCH 0x%08x\n",
+                                  5,vlTOPp->testbench__DOT__uut__DOT__latched_rd,
+                                  32,(vlTOPp->testbench__DOT__uut__DOT__reg_pc 
+                                      + ((IData)(vlTOPp->testbench__DOT__uut__DOT__latched_compr)
+                                          ? 2U : 4U)),
+                                  32,vlTOPp->testbench__DOT__uut__DOT__current_pc);
+                    } else {
+                        if (VL_UNLIKELY(((IData)(vlTOPp->testbench__DOT__uut__DOT__latched_store) 
+                                         & (~ (IData)(vlTOPp->testbench__DOT__uut__DOT__latched_branch))))) {
+                            VL_WRITEF("ST_RD:  %2# 0x%08x\n",
+                                      5,vlTOPp->testbench__DOT__uut__DOT__latched_rd,
+                                      32,((IData)(vlTOPp->testbench__DOT__uut__DOT__latched_stalu)
+                                           ? vlTOPp->testbench__DOT__uut__DOT__alu_out_q
+                                           : vlTOPp->testbench__DOT__uut__DOT__reg_out));
+                        }
                     }
                     __Vdly__testbench__DOT__uut__DOT__reg_pc 
                         = vlTOPp->testbench__DOT__uut__DOT__current_pc;
-                    vlTOPp->testbench__DOT__uut__DOT__reg_next_pc 
-                        = vlTOPp->testbench__DOT__uut__DOT__current_pc;
                     vlTOPp->testbench__DOT__uut__DOT__latched_store = 0U;
                     vlTOPp->testbench__DOT__uut__DOT__latched_stalu = 0U;
+                    vlTOPp->testbench__DOT__uut__DOT__latched_rd 
+                        = vlTOPp->testbench__DOT__uut__DOT__decoded_rd;
+                    vlTOPp->testbench__DOT__uut__DOT__latched_compr 
+                        = vlTOPp->testbench__DOT__uut__DOT__compressed_instr;
+                    vlTOPp->testbench__DOT__uut__DOT__reg_next_pc 
+                        = vlTOPp->testbench__DOT__uut__DOT__current_pc;
                     vlTOPp->testbench__DOT__uut__DOT__latched_branch = 0U;
                     if (vlTOPp->testbench__DOT__uut__DOT__decoder_trigger) {
                         vlTOPp->testbench__DOT__uut__DOT__reg_next_pc 
@@ -527,10 +583,16 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                         __Vdly__testbench__DOT__uut__DOT__reg_op2 = 0U;
                         if (((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_trap) 
                              | (IData)(vlTOPp->testbench__DOT__uut__DOT__is_lui_auipc_jal))) {
-                            if (vlTOPp->testbench__DOT__uut__DOT__instr_trap) {
+                            if (VL_UNLIKELY(vlTOPp->testbench__DOT__uut__DOT__instr_trap)) {
+                                VL_WRITEF("LD_RS1: %2# 0x%08x\n",
+                                          5,vlTOPp->testbench__DOT__uut__DOT__decoded_rs1,
+                                          32,vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1);
                                 __Vdly__testbench__DOT__uut__DOT__reg_op1 
                                     = vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1;
                                 vlTOPp->testbench__DOT__uut__DOT__pcpi_valid = 1U;
+                                VL_WRITEF("LD_RS2: %2# 0x%08x\n",
+                                          5,vlTOPp->testbench__DOT__uut__DOT__decoded_rs2,
+                                          32,vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs2);
                                 __Vdly__testbench__DOT__uut__DOT__reg_sh 
                                     = (0x1fU & vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs2);
                                 __Vdly__testbench__DOT__uut__DOT__reg_op2 
@@ -545,7 +607,7 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                                     __Vdly__testbench__DOT__uut__DOT__cpu_state = 0x40U;
                                 }
                             } else {
-                                if (vlTOPp->testbench__DOT__uut__DOT__is_lui_auipc_jal) {
+                                if (VL_LIKELY(vlTOPp->testbench__DOT__uut__DOT__is_lui_auipc_jal)) {
                                     __Vdly__testbench__DOT__uut__DOT__reg_op1 
                                         = ((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_lui)
                                             ? 0U : vlTOPp->testbench__DOT__uut__DOT__reg_pc);
@@ -555,6 +617,9 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                                         = vlTOPp->testbench__DOT__uut__DOT__mem_do_prefetch;
                                     __Vdly__testbench__DOT__uut__DOT__cpu_state = 8U;
                                 } else {
+                                    VL_WRITEF("LD_RS1: %2# 0x%08x\n",
+                                              5,vlTOPp->testbench__DOT__uut__DOT__decoded_rs1,
+                                              32,vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1);
                                     vlTOPp->testbench__DOT__uut__DOT__latched_store = 1U;
                                     __Vdly__testbench__DOT__uut__DOT__reg_out 
                                         = vlTOPp->testbench__DOT__uut__DOT__timer;
@@ -564,21 +629,32 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                                 }
                             }
                         } else {
-                            if (((IData)(vlTOPp->testbench__DOT__uut__DOT__is_lb_lh_lw_lbu_lhu) 
-                                 & (~ (IData)(vlTOPp->testbench__DOT__uut__DOT__instr_trap)))) {
+                            if (VL_UNLIKELY(((IData)(vlTOPp->testbench__DOT__uut__DOT__is_lb_lh_lw_lbu_lhu) 
+                                             & (~ (IData)(vlTOPp->testbench__DOT__uut__DOT__instr_trap))))) {
+                                VL_WRITEF("LD_RS1: %2# 0x%08x\n",
+                                          5,vlTOPp->testbench__DOT__uut__DOT__decoded_rs1,
+                                          32,vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1);
                                 __Vdly__testbench__DOT__uut__DOT__reg_op1 
                                     = vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1;
                                 __Vdly__testbench__DOT__uut__DOT__cpu_state = 1U;
                                 __Vdly__testbench__DOT__uut__DOT__mem_do_rinst = 1U;
                             } else {
-                                if (vlTOPp->testbench__DOT__uut__DOT__is_slli_srli_srai) {
+                                if (VL_UNLIKELY(vlTOPp->testbench__DOT__uut__DOT__is_slli_srli_srai)) {
+                                    VL_WRITEF("LD_RS1: %2# 0x%08x\n",
+                                              5,vlTOPp->testbench__DOT__uut__DOT__decoded_rs1,
+                                              32,vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1);
                                     __Vdly__testbench__DOT__uut__DOT__reg_op1 
                                         = vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1;
                                     __Vdly__testbench__DOT__uut__DOT__reg_sh 
                                         = vlTOPp->testbench__DOT__uut__DOT__decoded_rs2;
                                     __Vdly__testbench__DOT__uut__DOT__cpu_state = 4U;
                                 } else {
-                                    if (vlTOPp->testbench__DOT__uut__DOT__is_jalr_addi_slti_sltiu_xori_ori_andi) {
+                                    if (VL_LIKELY(vlTOPp->testbench__DOT__uut__DOT__is_jalr_addi_slti_sltiu_xori_ori_andi)) {
+                                        VL_WRITEF("LD_RS1: %2# 0x%08x\n",
+                                                  5,
+                                                  vlTOPp->testbench__DOT__uut__DOT__decoded_rs1,
+                                                  32,
+                                                  vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1);
                                         __Vdly__testbench__DOT__uut__DOT__reg_op1 
                                             = vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1;
                                         __Vdly__testbench__DOT__uut__DOT__reg_op2 
@@ -587,8 +663,18 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                                             = vlTOPp->testbench__DOT__uut__DOT__mem_do_prefetch;
                                         __Vdly__testbench__DOT__uut__DOT__cpu_state = 8U;
                                     } else {
+                                        VL_WRITEF("LD_RS1: %2# 0x%08x\n",
+                                                  5,
+                                                  vlTOPp->testbench__DOT__uut__DOT__decoded_rs1,
+                                                  32,
+                                                  vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1);
                                         __Vdly__testbench__DOT__uut__DOT__reg_op1 
                                             = vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1;
+                                        VL_WRITEF("LD_RS2: %2# 0x%08x\n",
+                                                  5,
+                                                  vlTOPp->testbench__DOT__uut__DOT__decoded_rs2,
+                                                  32,
+                                                  vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs2);
                                         __Vdly__testbench__DOT__uut__DOT__reg_sh 
                                             = (0x1fU 
                                                & vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs2);
@@ -611,7 +697,10 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                             }
                         }
                     } else {
-                        if ((0x10U == (IData)(vlTOPp->testbench__DOT__uut__DOT__cpu_state))) {
+                        if (VL_UNLIKELY((0x10U == (IData)(vlTOPp->testbench__DOT__uut__DOT__cpu_state)))) {
+                            VL_WRITEF("LD_RS2: %2# 0x%08x\n",
+                                      5,vlTOPp->testbench__DOT__uut__DOT__decoded_rs2,
+                                      32,vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs2);
                             __Vdly__testbench__DOT__uut__DOT__reg_sh 
                                 = (0x1fU & vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs2);
                             __Vdly__testbench__DOT__uut__DOT__reg_op2 
@@ -804,7 +893,6 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
             }
         }
     } else {
-        vlTOPp->testbench__DOT__uut__DOT__timer = 0U;
         __Vdly__testbench__DOT__uut__DOT__reg_pc = 0U;
         vlTOPp->testbench__DOT__uut__DOT__reg_next_pc = 0U;
         vlTOPp->testbench__DOT__uut__DOT__latched_store = 0U;
@@ -814,6 +902,7 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
         __Vdly__testbench__DOT__uut__DOT__latched_is_lh = 0U;
         __Vdly__testbench__DOT__uut__DOT__latched_is_lb = 0U;
         vlTOPp->testbench__DOT__uut__DOT__pcpi_valid = 0U;
+        vlTOPp->testbench__DOT__uut__DOT__timer = 0U;
         __Vdly__testbench__DOT__uut__DOT__cpu_state = 0x40U;
     }
     if ((((IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_trigger_q) 
@@ -843,27 +932,20 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
         (0xfffffffcU & vlTOPp->testbench__DOT__uut__DOT__reg_next_pc);
     vlTOPp->testbench__DOT__uut__DOT__current_pc = 0U;
     vlTOPp->testbench__DOT__uut__DOT__reg_sh = __Vdly__testbench__DOT__uut__DOT__reg_sh;
-    vlTOPp->testbench__DOT__uut__DOT__decoder_trigger_q 
-        = __Vdly__testbench__DOT__uut__DOT__decoder_trigger_q;
     vlTOPp->testbench__DOT__uut__DOT__latched_is_lu 
         = __Vdly__testbench__DOT__uut__DOT__latched_is_lu;
     vlTOPp->testbench__DOT__uut__DOT__latched_is_lh 
         = __Vdly__testbench__DOT__uut__DOT__latched_is_lh;
     vlTOPp->testbench__DOT__uut__DOT__latched_is_lb 
         = __Vdly__testbench__DOT__uut__DOT__latched_is_lb;
-    vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1 = 
-        ((0U != (IData)(vlTOPp->testbench__DOT__uut__DOT__decoded_rs1))
-          ? vlTOPp->testbench__DOT__uut__DOT__cpuregs
-         [vlTOPp->testbench__DOT__uut__DOT__decoded_rs1]
-          : 0U);
+    vlTOPp->testbench__DOT__uut__DOT__decoder_trigger_q 
+        = __Vdly__testbench__DOT__uut__DOT__decoder_trigger_q;
     vlTOPp->testbench__DOT__uut__DOT__mem_do_prefetch 
         = __Vdly__testbench__DOT__uut__DOT__mem_do_prefetch;
     vlTOPp->testbench__DOT__uut__DOT__reg_pc = __Vdly__testbench__DOT__uut__DOT__reg_pc;
     vlTOPp->testbench__DOT__uut__DOT__reg_out = __Vdly__testbench__DOT__uut__DOT__reg_out;
     vlTOPp->testbench__DOT__uut__DOT__cpu_state = __Vdly__testbench__DOT__uut__DOT__cpu_state;
     vlTOPp->testbench__DOT__uut__DOT__do_waitirq = 0U;
-    vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger_q 
-        = vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger;
     vlTOPp->testbench__DOT__uut__DOT__cpuregs_write = 0U;
     if ((0x40U == (IData)(vlTOPp->testbench__DOT__uut__DOT__cpu_state))) {
         if (vlTOPp->testbench__DOT__uut__DOT__latched_branch) {
@@ -881,6 +963,8 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                                                  (0xfffffffeU 
                                                   & vlTOPp->testbench__DOT__uut__DOT__reg_out)
                                                   : vlTOPp->testbench__DOT__uut__DOT__reg_next_pc);
+    vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger_q 
+        = vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger;
     vlTOPp->testbench__DOT__uut__DOT__alu_out_q = vlTOPp->testbench__DOT__uut__DOT__alu_out;
     if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
          & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
@@ -894,13 +978,15 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
     }
     if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
          & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
-        vlTOPp->testbench__DOT__uut__DOT__decoded_rs2 
+        vlTOPp->testbench__DOT__uut__DOT__decoded_rs1 
             = (0x1fU & (vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle 
-                        >> 0x14U));
+                        >> 0xfU));
     }
     if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
          & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
-        vlTOPp->testbench__DOT__uut__DOT__instr_retirq = 0U;
+        vlTOPp->testbench__DOT__uut__DOT__decoded_rs2 
+            = (0x1fU & (vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle 
+                        >> 0x14U));
     }
     if (((IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_trigger) 
          & (~ (IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger)))) {
@@ -911,6 +997,10 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                & (~ (IData)((0U != (0x1fffU & (vlTOPp->testbench__DOT__uut__DOT__mem_rdata_q 
                                                >> 7U))))));
     }
+    if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
+         & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
+        vlTOPp->testbench__DOT__uut__DOT__instr_retirq = 0U;
+    }
     vlTOPp->testbench__DOT__uut__DOT__pcpi_mul_ready = 0U;
     if (((IData)(vlTOPp->testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__mul_finish) 
          & (IData)(vlTOPp->testbench__DOT__resetn))) {
@@ -920,6 +1010,16 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
         = ((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_lbu) 
            | ((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_lhu) 
               | (IData)(vlTOPp->testbench__DOT__uut__DOT__instr_lw)));
+    vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode 
+        = vlTOPp->testbench__DOT__uut__DOT__q_insn_opcode;
+    if (vlTOPp->testbench__DOT__uut__DOT__dbg_next) {
+        vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode 
+            = ((IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger_q)
+                ? vlTOPp->testbench__DOT__uut__DOT__cached_insn_opcode
+                : ((3U == (3U & vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode))
+                    ? vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode
+                    : (0xffffU & vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode)));
+    }
     vlTOPp->testbench__DOT__uut__DOT__cpuregs_wrdata = 0U;
     if ((0x40U == (IData)(vlTOPp->testbench__DOT__uut__DOT__cpu_state))) {
         if (vlTOPp->testbench__DOT__uut__DOT__latched_branch) {
@@ -937,6 +1037,11 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
             }
         }
     }
+    vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1 = 
+        ((0U != (IData)(vlTOPp->testbench__DOT__uut__DOT__decoded_rs1))
+          ? vlTOPp->testbench__DOT__uut__DOT__cpuregs
+         [vlTOPp->testbench__DOT__uut__DOT__decoded_rs1]
+          : 0U);
     vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs2 = 
         ((0U != (IData)(vlTOPp->testbench__DOT__uut__DOT__decoded_rs2))
           ? vlTOPp->testbench__DOT__uut__DOT__cpuregs
@@ -1693,6 +1798,14 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
     }
     if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
          & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
+        vlTOPp->testbench__DOT__uut__DOT__is_beq_bne_blt_bge_bltu_bgeu 
+            = (0x63U == (0x7fU & vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle));
+    }
+    if ((1U & (~ (IData)(vlTOPp->testbench__DOT__resetn)))) {
+        vlTOPp->testbench__DOT__uut__DOT__is_beq_bne_blt_bge_bltu_bgeu = 0U;
+    }
+    if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
+         & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
         vlTOPp->testbench__DOT__uut__DOT__instr_auipc 
             = (0x17U == (0x7fU & vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle));
     }
@@ -1712,14 +1825,6 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
             = ((0x67U == (0x7fU & vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle)) 
                & (0U == (7U & (vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle 
                                >> 0xcU))));
-    }
-    if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
-         & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
-        vlTOPp->testbench__DOT__uut__DOT__is_beq_bne_blt_bge_bltu_bgeu 
-            = (0x63U == (0x7fU & vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle));
-    }
-    if ((1U & (~ (IData)(vlTOPp->testbench__DOT__resetn)))) {
-        vlTOPp->testbench__DOT__uut__DOT__is_beq_bne_blt_bge_bltu_bgeu = 0U;
     }
     if (((IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_trigger) 
          & (~ (IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger)))) {
@@ -1829,11 +1934,19 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
         = __Vdly__testbench__DOT__uut__DOT__decoder_pseudo_trigger;
     vlTOPp->testbench__DOT__uut__DOT__decoder_trigger 
         = __Vdly__testbench__DOT__uut__DOT__decoder_trigger;
+    vlTOPp->testbench__DOT__uut__DOT__launch_next_insn 
+        = ((0x40U == (IData)(vlTOPp->testbench__DOT__uut__DOT__cpu_state)) 
+           & (IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_trigger));
     if (VL_GTS_III(1,32,32, 0x64U, vlTOPp->testbench__DOT__resetn_cnt)) {
         vlTOPp->testbench__DOT__resetn_cnt = ((IData)(1U) 
                                               + vlTOPp->testbench__DOT__resetn_cnt);
     } else {
         vlTOPp->testbench__DOT__resetn = 1U;
+    }
+    if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
+         & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
+        vlTOPp->testbench__DOT__uut__DOT__is_alu_reg_reg 
+            = (0x33U == (0x7fU & vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle));
     }
     vlTOPp->testbench__DOT__uut__DOT__alu_out_0 = 0U;
     vlTOPp->testbench__DOT__uut__DOT__alu_out = 0U;
@@ -1948,10 +2061,147 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
                                                       | ((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_maskirq) 
                                                          | ((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_waitirq) 
                                                             | (IData)(vlTOPp->testbench__DOT__uut__DOT__instr_timer))))))))))))))))));
-    if (((IData)(vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst) 
-         & (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_done))) {
-        vlTOPp->testbench__DOT__uut__DOT__is_alu_reg_reg 
-            = (0x33U == (0x7fU & vlTOPp->testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle));
+    vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0);
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lui) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c7569);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_auipc) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6175697063);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_jal) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6a616c);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_jalr) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6a616c72);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_beq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626571);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_bne) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626e65);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_blt) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626c74);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_bge) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626765);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_bltu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626c7475);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_bgeu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x62676575);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lb) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c62);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lh) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c68);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lw) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c77);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lbu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c6275);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lhu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c6875);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sb) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7362);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sh) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7368);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sw) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7377);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_addi) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x61646469);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_slti) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c7469);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sltiu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c746975);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_xori) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x786f7269);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_ori) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6f7269);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_andi) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x616e6469);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_slli) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c6c69);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_srli) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x73726c69);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_srai) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x73726169);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_add) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x616464);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sub) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x737562);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sll) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c6c);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_slt) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c74);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sltu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c7475);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_xor) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x786f72);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_srl) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x73726c);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sra) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x737261);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_or) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6f72);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_and) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x616e64);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_rdcycle) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x72646379636c65);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_rdcycleh) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x72646379636c6568);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_rdinstr) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7264696e737472);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_rdinstrh) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7264696e73747268);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_getq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x67657471);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_setq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x73657471);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_retirq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x726574697271);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_maskirq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6d61736b697271);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_waitirq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x77616974697271);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_timer) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x74696d6572);
     }
     if (vlTOPp->testbench__DOT__uut__DOT__mem_xfer) {
         vlTOPp->testbench__DOT__uut__DOT__mem_rdata_q 
@@ -1959,6 +2209,14 @@ VL_INLINE_OPT void Vtestbench::_sequent__TOP__1(Vtestbench__Syms* __restrict vlS
     }
     vlTOPp->testbench__DOT__uut__DOT__mem_do_rinst 
         = __Vdly__testbench__DOT__uut__DOT__mem_do_rinst;
+    vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr 
+        = vlTOPp->testbench__DOT__uut__DOT__q_ascii_instr;
+    if (vlTOPp->testbench__DOT__uut__DOT__dbg_next) {
+        vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr 
+            = ((IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger_q)
+                ? vlTOPp->testbench__DOT__uut__DOT__cached_ascii_instr
+                : vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr);
+    }
     vlTOPp->testbench__DOT__uut__DOT__mem_xfer = ((IData)(vlTOPp->testbench__DOT__mem_valid) 
                                                   & (IData)(vlTOPp->testbench__DOT__mem_ready));
     vlTOPp->testbench__DOT__mem_rdata = ((0xffffff00U 
@@ -2058,11 +2316,6 @@ void Vtestbench::_settle__TOP__3(Vtestbench__Syms* __restrict vlSymsp) {
     VL_DEBUG_IF(VL_DBG_MSGF("+    Vtestbench::_settle__TOP__3\n"); );
     Vtestbench* __restrict vlTOPp VL_ATTR_UNUSED = vlSymsp->TOPp;
     // Body
-    vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1 = 
-        ((0U != (IData)(vlTOPp->testbench__DOT__uut__DOT__decoded_rs1))
-          ? vlTOPp->testbench__DOT__uut__DOT__cpuregs
-         [vlTOPp->testbench__DOT__uut__DOT__decoded_rs1]
-          : 0U);
     vlTOPp->testbench__DOT__uut__DOT__cpuregs_write = 0U;
     if ((0x40U == (IData)(vlTOPp->testbench__DOT__uut__DOT__cpu_state))) {
         if (vlTOPp->testbench__DOT__uut__DOT__latched_branch) {
@@ -2090,11 +2343,26 @@ void Vtestbench::_settle__TOP__3(Vtestbench__Syms* __restrict vlSymsp) {
         vlTOPp->testbench__DOT__uut__DOT__pcpi_int_rd 
             = vlTOPp->testbench__DOT__uut__DOT__pcpi_mul_rd;
     }
+    vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs1 = 
+        ((0U != (IData)(vlTOPp->testbench__DOT__uut__DOT__decoded_rs1))
+          ? vlTOPp->testbench__DOT__uut__DOT__cpuregs
+         [vlTOPp->testbench__DOT__uut__DOT__decoded_rs1]
+          : 0U);
     vlTOPp->testbench__DOT__uut__DOT__cpuregs_rs2 = 
         ((0U != (IData)(vlTOPp->testbench__DOT__uut__DOT__decoded_rs2))
           ? vlTOPp->testbench__DOT__uut__DOT__cpuregs
          [vlTOPp->testbench__DOT__uut__DOT__decoded_rs2]
           : 0U);
+    vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode 
+        = vlTOPp->testbench__DOT__uut__DOT__q_insn_opcode;
+    if (vlTOPp->testbench__DOT__uut__DOT__dbg_next) {
+        vlTOPp->testbench__DOT__uut__DOT__dbg_insn_opcode 
+            = ((IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger_q)
+                ? vlTOPp->testbench__DOT__uut__DOT__cached_insn_opcode
+                : ((3U == (3U & vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode))
+                    ? vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode
+                    : (0xffffU & vlTOPp->testbench__DOT__uut__DOT__next_insn_opcode)));
+    }
     vlTOPp->testbench__DOT__uut__DOT__cpuregs_wrdata = 0U;
     if ((0x40U == (IData)(vlTOPp->testbench__DOT__uut__DOT__cpu_state))) {
         if (vlTOPp->testbench__DOT__uut__DOT__latched_branch) {
@@ -2525,6 +2793,9 @@ void Vtestbench::_settle__TOP__3(Vtestbench__Syms* __restrict vlSymsp) {
     vlTOPp->testbench__DOT__uut__DOT__alu_lts = VL_LTS_III(1,32,32, vlTOPp->testbench__DOT__uut__DOT__reg_op1, vlTOPp->testbench__DOT__uut__DOT__reg_op2);
     vlTOPp->testbench__DOT__uut__DOT__alu_ltu = (vlTOPp->testbench__DOT__uut__DOT__reg_op1 
                                                  < vlTOPp->testbench__DOT__uut__DOT__reg_op2);
+    vlTOPp->testbench__DOT__uut__DOT__launch_next_insn 
+        = ((0x40U == (IData)(vlTOPp->testbench__DOT__uut__DOT__cpu_state)) 
+           & (IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_trigger));
     vlTOPp->testbench__DOT__uut__DOT__instr_trap = 
         (1U & (~ (((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_lui) 
                    | ((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_auipc) 
@@ -2573,6 +2844,148 @@ void Vtestbench::_settle__TOP__3(Vtestbench__Syms* __restrict vlSymsp) {
                                                       | ((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_maskirq) 
                                                          | ((IData)(vlTOPp->testbench__DOT__uut__DOT__instr_waitirq) 
                                                             | (IData)(vlTOPp->testbench__DOT__uut__DOT__instr_timer))))))))))))))))));
+    vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0);
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lui) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c7569);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_auipc) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6175697063);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_jal) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6a616c);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_jalr) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6a616c72);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_beq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626571);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_bne) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626e65);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_blt) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626c74);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_bge) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626765);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_bltu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x626c7475);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_bgeu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x62676575);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lb) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c62);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lh) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c68);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lw) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c77);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lbu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c6275);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_lhu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6c6875);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sb) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7362);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sh) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7368);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sw) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7377);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_addi) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x61646469);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_slti) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c7469);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sltiu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c746975);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_xori) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x786f7269);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_ori) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6f7269);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_andi) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x616e6469);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_slli) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c6c69);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_srli) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x73726c69);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_srai) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x73726169);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_add) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x616464);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sub) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x737562);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sll) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c6c);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_slt) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c74);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sltu) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x736c7475);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_xor) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x786f72);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_srl) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x73726c);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_sra) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x737261);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_or) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6f72);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_and) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x616e64);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_rdcycle) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x72646379636c65);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_rdcycleh) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x72646379636c6568);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_rdinstr) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7264696e737472);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_rdinstrh) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x7264696e73747268);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_getq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x67657471);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_setq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x73657471);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_retirq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x726574697271);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_maskirq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x6d61736b697271);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_waitirq) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x77616974697271);
+    }
+    if (vlTOPp->testbench__DOT__uut__DOT__instr_timer) {
+        vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr = VL_ULL(0x74696d6572);
+    }
     vlTOPp->testbench__DOT__mem_rdata = ((0xffffff00U 
                                           & vlTOPp->testbench__DOT__mem_rdata) 
                                          | vlTOPp->testbench__DOT__memory
@@ -2674,6 +3087,14 @@ void Vtestbench::_settle__TOP__3(Vtestbench__Syms* __restrict vlSymsp) {
                 }
             }
         }
+    }
+    vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr 
+        = vlTOPp->testbench__DOT__uut__DOT__q_ascii_instr;
+    if (vlTOPp->testbench__DOT__uut__DOT__dbg_next) {
+        vlTOPp->testbench__DOT__uut__DOT__dbg_ascii_instr 
+            = ((IData)(vlTOPp->testbench__DOT__uut__DOT__decoder_pseudo_trigger_q)
+                ? vlTOPp->testbench__DOT__uut__DOT__cached_ascii_instr
+                : vlTOPp->testbench__DOT__uut__DOT__new_ascii_instr);
     }
     if ((0U == (IData)(vlTOPp->testbench__DOT__uut__DOT__mem_wordsize))) {
         vlTOPp->testbench__DOT__uut__DOT__mem_rdata_word 
@@ -2807,6 +3228,9 @@ void Vtestbench::_ctor_var_reset() {
     testbench__DOT__uut__DOT__reg_op2 = VL_RAND_RESET_I(32);
     testbench__DOT__uut__DOT__reg_out = VL_RAND_RESET_I(32);
     testbench__DOT__uut__DOT__reg_sh = VL_RAND_RESET_I(5);
+    testbench__DOT__uut__DOT__next_insn_opcode = VL_RAND_RESET_I(32);
+    testbench__DOT__uut__DOT__dbg_insn_opcode = VL_RAND_RESET_I(32);
+    testbench__DOT__uut__DOT__dbg_insn_addr = VL_RAND_RESET_I(32);
     testbench__DOT__uut__DOT__next_pc = VL_RAND_RESET_I(32);
     testbench__DOT__uut__DOT__timer = VL_RAND_RESET_I(32);
     { int __Vi0=0; for (; __Vi0<32; ++__Vi0) {
@@ -2902,6 +3326,14 @@ void Vtestbench::_ctor_var_reset() {
     testbench__DOT__uut__DOT__is_alu_reg_imm = VL_RAND_RESET_I(1);
     testbench__DOT__uut__DOT__is_alu_reg_reg = VL_RAND_RESET_I(1);
     testbench__DOT__uut__DOT__is_compare = VL_RAND_RESET_I(1);
+    testbench__DOT__uut__DOT__new_ascii_instr = VL_RAND_RESET_Q(64);
+    testbench__DOT__uut__DOT__dbg_ascii_instr = VL_RAND_RESET_Q(64);
+    testbench__DOT__uut__DOT__q_ascii_instr = VL_RAND_RESET_Q(64);
+    testbench__DOT__uut__DOT__q_insn_opcode = VL_RAND_RESET_I(32);
+    testbench__DOT__uut__DOT__dbg_next = VL_RAND_RESET_I(1);
+    testbench__DOT__uut__DOT__launch_next_insn = VL_RAND_RESET_I(1);
+    testbench__DOT__uut__DOT__cached_ascii_instr = VL_RAND_RESET_Q(64);
+    testbench__DOT__uut__DOT__cached_insn_opcode = VL_RAND_RESET_I(32);
     testbench__DOT__uut__DOT__cpu_state = VL_RAND_RESET_I(8);
     testbench__DOT__uut__DOT__set_mem_do_rinst = VL_RAND_RESET_I(1);
     testbench__DOT__uut__DOT__set_mem_do_rdata = VL_RAND_RESET_I(1);

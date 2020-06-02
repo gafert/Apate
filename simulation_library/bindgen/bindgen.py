@@ -290,6 +290,7 @@ ffi_out_file.write(
 
 ffi_out_file.write('import ref from "ref-napi";\n')
 ffi_out_file.write('import {Callback} from "ffi-napi";\n')
+ffi_out_file.write('import {BehaviorSubject} from "rxjs";\n')
 ffi_out_file.write("const ArrayType = require('ref-array-di')(ref);\n\n")
 ffi_out_file.write("export class Bindings {\n")
 
@@ -341,14 +342,15 @@ for function in functions:
     ffi_out_file.write(line)
 
 for variable in variables:
+    line = '  public ' + variable.name + "__subject: BehaviorSubject<number> = new BehaviorSubject<number>(null);\n"
     if not variable.isarray:
-        line = '\n  private ' + variable.name + "__pointer = ref.alloc('" + get_ffi_datatype_from_string(
+        line = line + '\n  private ' + variable.name + "__pointer = ref.alloc('" + get_ffi_datatype_from_string(
             variable.vartype) + "');\n"
         line = line + '  get ' + variable.name + '() {\n    // @ts-ignore\n    return this.' + variable.name + '__pointer.deref(); }\n'
         line = line + '  set ' + variable.name + '(value) { this.' + variable.name + '__pointer.' + \
                get_ffi_write_function_from_string(variable.vartype) + '(value, 0); }\n'
     else:
-        line = '  public ' + variable.name + " = new ArrayType('" + get_ffi_datatype_from_string(
+        line = line + '  public ' + variable.name + " = new ArrayType('" + get_ffi_datatype_from_string(
             variable.vartype) + "')(" + str(variable.arraylenght) + ');\n'
     ffi_out_file.write(line)
 
@@ -382,5 +384,16 @@ for i, function in enumerate(functions):
     ffi_out_file.write(line)
 
 ffi_out_file.write('  }\n')
+
+ffi_out_file.write("""  detectValueChanged() {
+    setTimeout(() => {\n""")
+
+for i, variable in enumerate(variables):
+    line = "      if(this." + variable.name + " != this." + variable.name + "__subject.value) {\n"
+    line +="         this." + variable.name + "__subject.next(this." + variable.name + ");\n      }\n"
+    ffi_out_file.write(line)
+
+ffi_out_file.write("""      this.detectValueChanged();
+    }, 100);\n   }\n""")
 
 ffi_out_file.write('}\nexport default new Bindings();\n')

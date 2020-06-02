@@ -24,10 +24,10 @@
 
 `timescale 1ns/1ps
 // `default_nettype none
-// `define DEBUGNETS
-// `define DEBUGREGS
-// `define DEBUGASM
-// `define DEBUG
+`define DEBUGNETS
+`define DEBUGREGS
+`define DEBUGASM
+`define DEBUG
 
 `ifdef DEBUG
 `define debug(debug_command) debug_command

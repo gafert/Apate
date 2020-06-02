@@ -131,6 +131,8 @@ VL_MODULE(Vtestbench) {
         CData/*0:0*/ testbench__DOT__uut__DOT__is_alu_reg_imm;
         CData/*0:0*/ testbench__DOT__uut__DOT__is_alu_reg_reg;
         CData/*0:0*/ testbench__DOT__uut__DOT__is_compare;
+        CData/*0:0*/ testbench__DOT__uut__DOT__dbg_next;
+        CData/*0:0*/ testbench__DOT__uut__DOT__launch_next_insn;
         CData/*7:0*/ testbench__DOT__uut__DOT__cpu_state;
         CData/*0:0*/ testbench__DOT__uut__DOT__set_mem_do_rinst;
         CData/*0:0*/ testbench__DOT__uut__DOT__set_mem_do_rdata;
@@ -164,15 +166,18 @@ VL_MODULE(Vtestbench) {
         IData/*31:0*/ testbench__DOT__mem_rdata;
         IData/*31:0*/ testbench__DOT__x32;
         IData/*31:0*/ testbench__DOT__next_x32;
-        IData/*31:0*/ testbench__DOT__uut__DOT__mem_la_wdata;
-        IData/*31:0*/ testbench__DOT__uut__DOT__pcpi_insn;
     };
     struct {
+        IData/*31:0*/ testbench__DOT__uut__DOT__mem_la_wdata;
+        IData/*31:0*/ testbench__DOT__uut__DOT__pcpi_insn;
         IData/*31:0*/ testbench__DOT__uut__DOT__reg_pc;
         IData/*31:0*/ testbench__DOT__uut__DOT__reg_next_pc;
         IData/*31:0*/ testbench__DOT__uut__DOT__reg_op1;
         IData/*31:0*/ testbench__DOT__uut__DOT__reg_op2;
         IData/*31:0*/ testbench__DOT__uut__DOT__reg_out;
+        IData/*31:0*/ testbench__DOT__uut__DOT__next_insn_opcode;
+        IData/*31:0*/ testbench__DOT__uut__DOT__dbg_insn_opcode;
+        IData/*31:0*/ testbench__DOT__uut__DOT__dbg_insn_addr;
         IData/*31:0*/ testbench__DOT__uut__DOT__next_pc;
         IData/*31:0*/ testbench__DOT__uut__DOT__timer;
         IData/*31:0*/ testbench__DOT__uut__DOT__pcpi_mul_rd;
@@ -182,12 +187,18 @@ VL_MODULE(Vtestbench) {
         IData/*31:0*/ testbench__DOT__uut__DOT__mem_rdata_latched_noshuffle;
         IData/*31:0*/ testbench__DOT__uut__DOT__decoded_imm;
         IData/*31:0*/ testbench__DOT__uut__DOT__decoded_imm_j;
+        IData/*31:0*/ testbench__DOT__uut__DOT__q_insn_opcode;
+        IData/*31:0*/ testbench__DOT__uut__DOT__cached_insn_opcode;
         IData/*31:0*/ testbench__DOT__uut__DOT__current_pc;
         IData/*31:0*/ testbench__DOT__uut__DOT__alu_out;
         IData/*31:0*/ testbench__DOT__uut__DOT__alu_out_q;
         IData/*31:0*/ testbench__DOT__uut__DOT__cpuregs_wrdata;
         IData/*31:0*/ testbench__DOT__uut__DOT__cpuregs_rs1;
         IData/*31:0*/ testbench__DOT__uut__DOT__cpuregs_rs2;
+        QData/*63:0*/ testbench__DOT__uut__DOT__new_ascii_instr;
+        QData/*63:0*/ testbench__DOT__uut__DOT__dbg_ascii_instr;
+        QData/*63:0*/ testbench__DOT__uut__DOT__q_ascii_instr;
+        QData/*63:0*/ testbench__DOT__uut__DOT__cached_ascii_instr;
         QData/*63:0*/ testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs1;
         QData/*63:0*/ testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rs2;
         QData/*63:0*/ testbench__DOT__uut__DOT__genblk2__DOT__pcpi_mul__DOT__rd;

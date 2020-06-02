@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import * as Store from 'electron-store';
 
 @Component({
@@ -6,7 +6,7 @@ import * as Store from 'electron-store';
   templateUrl: './setting.component.html',
   styleUrls: ['./setting.component.scss']
 })
-export class SettingComponent implements OnInit, AfterViewInit {
+export class SettingComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() setting: string;
   @Output() settingChange = new EventEmitter<string>();
   @Input() settingKey: string;
@@ -15,12 +15,17 @@ export class SettingComponent implements OnInit, AfterViewInit {
   private store = new Store();
 
   ngOnInit(): void {
-    if(!this.setting) {
+    if (!this.setting) {
       this.setting = this.store.get(this.settingKey, this.settingDefault);
     } else {
       // If the setting is not set set the default setting to
       this.settingChanged(this.settingDefault);
     }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.setting.currentValue)
+      this.settingChanged(changes.setting.currentValue);
   }
 
   ngAfterViewInit(): void {

@@ -36,8 +36,10 @@ void advance_simulation_with_pc() {
     while (!Verilated::gotFinish()) {
         top->clk = !top->clk;
         top->eval();
-        if (top->testbench__DOT__uut__DOT__reg_pc != pc) {
+        if (top->testbench__DOT__uut__DOT__dbg_next) {
             pc = top->testbench__DOT__uut__DOT__reg_pc;
+            top->clk = !top->clk;
+            top->eval();
             break;
         }
     }

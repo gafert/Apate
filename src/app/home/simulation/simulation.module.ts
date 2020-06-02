@@ -12,9 +12,10 @@ import {SimulationComponent} from "./simulation.component";
 import {SimulationRoutingModule} from "./simulation-routing.module";
 import {ChangingValueComponent} from "./changing-value/changing-value.component";
 import {SharedModule} from "../../components/shared/shared.module";
+import { GraphComponent } from './graph/graph.component';
 
 @NgModule({
-  declarations: [SimulationComponent, ChangingValueComponent, MemoryCellComponent, CPUComponent, MemoryComponent, AluComponent, InstructionsComponent, RegistersComponent, TerminalComponent],
+  declarations: [SimulationComponent, ChangingValueComponent, MemoryCellComponent, CPUComponent, MemoryComponent, AluComponent, InstructionsComponent, RegistersComponent, TerminalComponent, GraphComponent],
   imports: [CommonModule, SimulationRoutingModule, SharedModule]
 })
 export class SimulationModule {

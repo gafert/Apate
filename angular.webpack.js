@@ -56,6 +56,15 @@ module.exports = (config, options) => {
     {
       test: /\.node$/,
       use: 'node-loader'
+    }, {
+      test: /\.vert$/i,
+      use: 'raw-loader',
+    }, {
+      test: /\.frag$/i,
+      use: 'raw-loader',
+    }, {
+      test: /\.txt$/i,
+      use: 'raw-loader',
     }
   ];
 

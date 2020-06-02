@@ -5,6 +5,7 @@ import * as Store from "electron-store";
 import {easing, styler, tween} from "popmotion";
 import isDev from "electron-is-dev";
 import {DataService, SimLibInterfaceService} from "../../../core/services";
+import * as path from "path";
 
 class Assembly {
   opcode: string;
@@ -42,7 +43,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   private store = new Store();
   private toolchainPath = this.store.get('toolchainPath');
   private toolchainPrefix = this.store.get('toolchainPrefix');
-  private objdumpPath = `${this.toolchainPath}/${this.toolchainPrefix}objdump`;
+  private objdumpPath = path.join(this.toolchainPath, this.toolchainPrefix + 'objdump');
 
   constructor(private changeDetection: ChangeDetectorRef,
               private simLibInterfaceService: SimLibInterfaceService,

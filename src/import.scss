@@ -9,7 +9,15 @@ $greys: $grey1 $grey2 $grey3;
 
 @for $i from 1 through $greyCount {
   .grey#{$i} {
-    background-color: nth($greys, $i) ;
+    background-color: nth($greys, $i);
+  }
+}
+
+// Make variable accessible in js
+body {
+  @for $i from 1 through $greyCount {
+    // Make no spaces between or js will read them wrong
+    --grey#{$i}:#{nth($greys, $i)};
   }
 }
 
