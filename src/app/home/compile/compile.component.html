@@ -39,15 +39,13 @@
         </div>
       </div>
     </div>
-    <div class="file-area-container">
-        <div class="line-number">
-          <pre>{{lineNumbers}}</pre>
-        </div>
-        <textarea #fileTextArea wrap="off" class="file-area" [readOnly]="!fileIsSavable"
-                  (input)="fileContentEdited($event)"></textarea>
-      </div>
+    <div #fileAreaContainer class="file-area-container">
+      <ngx-monaco-editor [options]="editorOptions" (init)="editorInit($event)"></ngx-monaco-editor>
+    </div>
   </div>
 </div>
+
+
 
 <div #fileOptions class="option-menu">
   <div class="option" (click)="openFileAsHexDump()">

@@ -96,6 +96,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "5.13.0",
+    "@materia-ui/ngx-monaco-editor": "4.0.1",
     "@types/d3": "5.7.2",
     "@types/ffi-napi": "2.4.1",
     "@types/ref-napi": "1.4.0",
@@ -106,6 +107,7 @@
     "ffi-napi": "2.4.7",
     "googleapis": "39.2.0",
     "gridstack": "1.1.1",
+    "monaco-editor": "0.20.0",
     "ngraph.events": "1.2.1",
     "popmotion": "8.7.1",
     "ref-array-di": "1.2.1",

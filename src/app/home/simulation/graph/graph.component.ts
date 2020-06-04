@@ -7,6 +7,7 @@ import F_SHADER from './shader.frag';
 import V_SHADER from './shader.vert';
 import {SimLibInterfaceService} from "../../../core/services";
 import {byteToHex} from "../../../globals";
+import {readStyleProperty} from "../../../utils/helper";
 
 @Component({
   selector: 'app-graph',
@@ -87,12 +88,6 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  // Read the custom property of body section with given name:
-  readStyleProperty(name: string): string {
-    let bodyStyles = window.getComputedStyle(document.body);
-    return bodyStyles.getPropertyValue("--" + name);
-  }
-
   initiateObjects() {
     this.addPanel("Instruction Decoder", 0, 0, 0, 0, 0, 0);
   }
@@ -105,8 +100,8 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       vertexShader: V_SHADER,
       fragmentShader: F_SHADER,
       uniforms: {
-        u_backgroundColor: {type: 'vec3', value: new THREE.Color(this.readStyleProperty('grey3'))},
-        u_borderColor: {type: 'vec3', value: new THREE.Color(this.readStyleProperty('grey1'))},
+        u_backgroundColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey3'))},
+        u_borderColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey1'))},
         u_width: {type: 'f', value: panelWidth},
         u_height: {type: 'f', value: panelHeight},
         ...this.globalUniforms
@@ -131,7 +126,7 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
     this.scene.add(text);
 
     let lineBasicMaterial = new MeshLineMaterial({
-      color: new THREE.Color(this.readStyleProperty('grey1')),
+      color: new THREE.Color(readStyleProperty('grey1')),
       lineWidth: 0.005,
       sizeAttenuation: false
     });
@@ -184,8 +179,8 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       vertexShader: V_SHADER,
       fragmentShader: F_SHADER,
       uniforms: {
-        u_backgroundColor: {type: 'vec3', value: new THREE.Color(this.readStyleProperty('grey2'))},
-        u_borderColor: {type: 'vec3', value: new THREE.Color(this.readStyleProperty('grey1'))},
+        u_backgroundColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey2'))},
+        u_borderColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey1'))},
         u_width: {type: 'f', value: width},
         u_height: {type: 'f', value: height},
         ...this.globalUniforms

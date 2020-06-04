@@ -7,7 +7,6 @@ void print(const char *p) {
 
 int main(void) {
     volatile int a = 5;
-
-    const char *p = "Hello fabian\n";
+    const char *p = "Hello\n";
     print(p);
 }

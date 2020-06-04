@@ -1,24 +1,33 @@
-import {AfterContentInit, AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild} from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import {spawn} from "child_process";
 import {byteToHex} from "../../globals";
 import * as fs from "fs";
-import * as electron from "electron";
-import {DataService, ToolchainDownEnum, ToolchainDownloaderService} from "../../core/services";
+import {DataService} from "../../core/services";
 import * as path from "path";
-
-const app = electron.remote.app;
+import {MonacoStandaloneCodeEditor} from "@materia-ui/ngx-monaco-editor/lib/interfaces";
+import Timeout = NodeJS.Timeout;
+import {readStyleProperty} from "../../utils/helper";
 
 @Component({
   selector: 'app-compile',
   templateUrl: './compile.component.html',
   styleUrls: ['./compile.component.scss']
 })
-export class CompileComponent implements AfterViewInit {
+export class CompileComponent implements OnDestroy {
   @ViewChild('fileOptions') fileOptions: ElementRef<HTMLDivElement>;
-  @ViewChild('fileTextArea') fileTextArea: ElementRef<HTMLTextAreaElement>;
   @ViewChild('terminalOutputElement') terminalOutputElement: ElementRef<HTMLDivElement>;
+  @ViewChild('fileAreaContainer') fileAreaContainer: ElementRef<HTMLDivElement>;
 
   //region Variables
+
+  // Compiling
+
   /** Set by user to local path or downloaded path */
   public toolchainPath;
   /** Set by the user but loads defaults e.g. riscv64-unkown-elf- */
@@ -34,58 +43,142 @@ export class CompileComponent implements AfterViewInit {
   public objdumpFlags = "--section .text.init --section .text --section .data --full-contents --disassemble --syms --source -z";
   /** Not changed by the user */
   public readelfFlags = "-a";
-  /** True if a file with options was clicked */
-  public fileOptionsOpen = false;
   /** True currently compiling */
   public compiling = false;
+  /** Text of the terminal */
+  public terminalOutput = "";
+
+  // File handling
+
+  /** True if a file with options was clicked */
+  public fileOptionsOpen = false;
   /** True if the active file can be saved as is */
   public fileIsSavable = false;
   /** File names in the selected folder */
   public filesInFolder = [];
-  /** Text of the terminal */
-  public terminalOutput = "";
   /** The active file which is displayed */
   public activeFile;
   /** The file which is selected but its content is not yet displayed */
   public selectedFile;
 
-  public lineNumbers;
+  // Editor
+
+  /** The default settings the editor uses. Changes in these values to not affect the editor */
+  public editorOptions = {theme: 'vs-real-grey', language: 'plaintext'};
+  /** In top level to have the ability to dispose it later */
+  private editorModelChangeListener: monaco.IDisposable;
+  /** Dont save a empty editor file before the real file was loaded in */
+  private fileLoadedIntoEditor = false;
+  /** Holds the editor so settings can be changed */
+  private editor: MonacoStandaloneCodeEditor;
+
+  languages = {
+    "elf": "plaintext",
+    "cc": "cpp",
+    "cpp": "cpp",
+    "hpp": "cpp",
+    "hcc": "cpp",
+    "hxx": "cpp",
+    "c": "c",
+    "h": "c",
+    "hex": "plaintext",
+    "txt": "plaintext",
+    "ld": "plaintext",
+    "js": "javascript",
+    "ts": "typescript",
+  }
 
   //endregion
+
   constructor(private changeDetection: ChangeDetectorRef,
               private dataService: DataService) {
     // Get stored settings
     this.dataService.toolchainPath.subscribe((value) => this.toolchainPath = value);
+    this.dataService.toolchainPrefix.subscribe((value) => this.toolchainPrefix = value);
+    this.dataService.activeFile.subscribe((value) => this.activeFile = value);
+    this.dataService.activeFileIsSaveable.subscribe((value) => this.fileIsSavable = value);
     this.dataService.folderPath.subscribe((value) => {
       this.folderPath = value;
       if (this.folderPath) this.reloadFolderContents();
     });
-    this.dataService.toolchainPrefix.subscribe((value) => this.toolchainPrefix = value);
-    this.dataService.activeFile.subscribe((value) => this.activeFile = value);
 
-    this.dataService.activeFileIsSaveable.subscribe((value) => this.fileIsSavable = value);
-
+    // Close dialog if somewhere is clicked
     document.addEventListener('click', (event) => {
       if (this.fileOptionsOpen) {
         this.fileOptions.nativeElement.style.display = "none";
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.editorModelChangeListener.dispose();
+  }
+
+  //region Editor
+
+  editorInit(editor: MonacoStandaloneCodeEditor) {
+    this.editor = editor;
+    this.editorInitiated();
+  }
+
+  editorInitiated() {
+    // Change the theme to fit the apps grey
+    monaco.editor.defineTheme("vs-real-grey", {
+      base: "vs-dark", // can also be vs-dark or hc-black
+      inherit: true, // can also be false to completely replace the builtin rules
+      rules: [
+      ],
+      colors: {
+        "editor.background": readStyleProperty("grey3"),
+        // See more properties at https://stackoverflow.com/a/51360204
+      }
+    });
+    monaco.editor.setTheme('vs-real-grey');
 
     this.dataService.activeFileContent.subscribe((value) => {
-      this.setLineNumbers(this.getTextareaNumberOfLines(value));
+      /**
+       * If the file was loaded display it.
+       * Dont set the default null value of BehaviorSubject.
+       */
+      if (this.editor.getValue() !== value && value !== null) {
+        this.editor.setValue(value);
+        this.fileLoadedIntoEditor = true;
+      }
     });
+
+    this.dataService.activeFile.subscribe((value) => {
+      /**
+       * If the filename was loaded determine the language by the suffix.
+       */
+      let ending = value.split('.').pop();
+      let langId = this.languages[ending];
+
+      // If there was no file type found set the default value
+      if (!langId)
+        langId = "plaintext";
+
+      monaco.editor.setModelLanguage(this.editor.getModel(), langId);
+    });
+
+    let timeout: Timeout;
+    this.editorModelChangeListener = this.editor.getModel().onDidChangeContent(() => {
+      /**
+       * This gets called every time the value in the editor is changed.
+       * Start a timeout to save the file after 2s of inactivity.
+       */
+
+      let save = () => {
+        let value = this.editor.getValue();
+        if (value && this.fileLoadedIntoEditor)
+          this.fileContentEdited(value);
+      }
+
+      clearTimeout(timeout);
+      timeout = setTimeout(save, 2000);
+    })
   }
 
-  ngAfterViewInit(): void {
-    // Why a delay? I dont know
-    // Without the delay the text is not set into the textarea
-    // And first time takes longer? Dont ask
-    setTimeout(() => {
-      this.dataService.activeFileContent.subscribe((value) => {
-        this.setTextAreaContent(value);
-      });
-    }, 500);
-  }
+  //endregion
 
   //region Folder Management
 
@@ -223,11 +316,12 @@ export class CompileComponent implements AfterViewInit {
     }))
   }
 
-  fileContentEdited(event) {
+  fileContentEdited(code) {
+    console.log("Saving", code);
     if (this.fileIsSavable && this.activeFile && this.folderPath) {
-      fs.writeFile(path.join(this.folderPath, this.activeFile), event.target.value,
+      fs.writeFile(path.join(this.folderPath, this.activeFile), code,
         ((err) => err ? console.log(err) : null));
-      this.dataService.activeFileContent.next(event.target.value);
+      this.dataService.activeFileContent.next(code);
     }
   }
 
@@ -258,8 +352,10 @@ export class CompileComponent implements AfterViewInit {
 
   //endregion
 
+  //region Compile
+
   compile() {
-    if(!this.toolchainPath) {
+    if (!this.toolchainPath) {
       this.terminalOutput += "Toolchain folder not specified!";
       this.scrollTerminaltoBottom();
       return;
@@ -281,25 +377,7 @@ export class CompileComponent implements AfterViewInit {
     });
   }
 
-  setLineNumbers(numberOfLines) {
-    this.lineNumbers = "";
-    for (let i = 0; i < numberOfLines; i++) {
-      this.lineNumbers += "" + i + "\n";
-    }
-  }
-
-  getTextareaNumberOfLines(content) {
-    if(!content) return 0;
-    return content.split(/\r\n|\r|\n/).length;
-  }
-
-  setTextAreaContent(content) {
-    if(content) {
-      this.fileTextArea.nativeElement.value = content;
-        this.fileTextArea.nativeElement.style.height = "auto";
-      this.fileTextArea.nativeElement.style.height = (this.fileTextArea.nativeElement.scrollHeight) + 'px';
-    }
-  }
+  //endregion
 
   scrollTerminaltoBottom() {
     this.terminalOutputElement.nativeElement.scrollTop = this.terminalOutputElement.nativeElement.scrollHeight;

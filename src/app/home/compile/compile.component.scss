@@ -49,46 +49,12 @@
 
 .file-area-container {
   height: calc(100% - 3em);
-  overflow-y: scroll;
+  background: $grey3;
   display: flex;
   border-top: $border;
   border-right: $border;
   border-bottom: $border;
-
-  .line-number {
-    width: 4em;
-    height: 100%;
-    background-color: $grey2;
-    height: max-content;
-    min-height: 100%;
-    border-right: $border;
-
-    pre {
-      margin: 0;
-      font-size: 1em;
-      font-family: "Roboto Mono";
-      text-align: right;
-      padding-right: 1em;
-    }
-  }
-
-  .file-area {
-    background: $grey3;
-    border: none;
-    color: white;
-    font-size: 1em;
-    font-family: "Roboto Mono";
-    margin: 0;
-    width: 100%;
-    padding: 0 0 0 0.5em;
-    resize: none;
-
-    &:focus {
-      outline: none;
-    }
-  }
 }
-
 
 .option-menu {
   position: absolute;
