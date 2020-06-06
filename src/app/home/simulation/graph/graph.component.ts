@@ -2,12 +2,9 @@ import {AfterViewInit, Component, ElementRef, HostListener, NgZone, OnDestroy, O
 import * as THREE from 'three';
 import {MeshLine, MeshLineMaterial} from 'three.meshline'
 import panzoom from './drag.js';
-import {MeshText2D, textAlign} from 'three-text2d'
-import F_SHADER from './shader.frag';
-import V_SHADER from './shader.vert';
 import {SimLibInterfaceService} from "../../../core/services";
-import {byteToHex} from "../../../globals";
 import {readStyleProperty} from "../../../utils/helper";
+import {Panel} from './Panel';
 
 @Component({
   selector: 'app-graph',
@@ -29,6 +26,8 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
     u_time: {type: 'f', value: 0},
     u_resolution: {type: 'vec2', value: new THREE.Vector2(0, 0)}
   }
+
+  private panels: Panel[] = [];
 
   constructor(private simLibInterfaceService: SimLibInterfaceService,
               private ngZone: NgZone) {
@@ -89,150 +88,120 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
   }
 
   initiateObjects() {
-    this.addPanel("Instruction Decoder", 0, 0, 0, 0, 0, 0);
+    const panelInstantiation: any = [
+      {
+        name: "Instruction Decoder",
+        position: {x: 0, y: 0, z: 0},
+        size: {width: 0.95, height: 1.2},
+        ports: [
+          {
+            name: "Opcode",
+            position: {x: 0.05, y: 1},
+            valueSubject: "uut__DOT__dbg_insn_opcode__subject",
+            valueType: "hex"
+          },
+          {
+            name: "Instruction",
+            position: {x: 0.5, y: 1},
+            valueSubject: "uut__DOT__dbg_ascii_instr__subject",
+            valueType: "string"
+          },
+          {
+            name: "RD",
+            position: {x: 0.5, y: 0.8},
+            valueSubject: "uut__DOT__decoded_rd__subject",
+            valueType: "hex"
+          },
+          {
+            name: "Immediate",
+            position: {x: 0.5, y: 0.6},
+            valueSubject: "uut__DOT__decoded_imm__subject",
+            valueType: "hex"
+          },
+          {
+            name: "RS1",
+            position: {x: 0.5, y: 0.4},
+            valueSubject: "uut__DOT__decoded_rs1__subject",
+            valueType: "hex"
+          },
+          {
+            name: "RS2",
+            position: {x: 0.5, y: 0.2},
+            valueSubject: "uut__DOT__decoded_rs2__subject",
+            valueType: "hex"
+          }
+        ]
+      },
+      {
+        name: "Arithmetic Logic Unit",
+        position: {x: 2, y: 0, z: 0},
+        size: {width: 0.95, height: 1.2},
+        ports: [
+          {
+            name: "Instruction",
+            position: {x: 0.05, y: 1},
+            valueSubject: "uut__DOT__dbg_ascii_instr__subject",
+            valueType: "string"
+          },
+        ]
+      }
+    ]
+
+    for (const panel of panelInstantiation) {
+      let _panel = new Panel(
+        this.scene,
+        panel.position.x,
+        panel.position.y,
+        panel.position.z,
+        panel.name,
+        panel.size.width,
+        panel.size.height,
+        this.globalUniforms,
+        this.simLibInterfaceService);
+
+      for (const port of panel.ports) {
+        _panel.addPort(port.position.x, port.position.y, port.name, undefined, port.valueType, port.valueSubject)
+      }
+
+      this.panels.push(_panel);
+    }
+
+    const links = [
+      {
+        from: {
+          panel: panelInstantiation[0],
+          port: panelInstantiation[0].ports[1]
+        },
+        to: {
+          panel: panelInstantiation[1],
+          port: panelInstantiation[1].ports[0]
+        }
+      }
+    ]
+
+    for (const link of links) {
+      this.addLink(
+        link.from.panel.position.x + link.from.port.position.x,
+        link.from.panel.position.y + link.from.port.position.y,
+        link.to.panel.position.x + link.to.port.position.x,
+        link.to.panel.position.y + link.to.port.position.y)
+    }
   }
 
-  addPanel(name, x, y, z, inputs, outputs, additional) {
-    let panelWidth = 1;
-    let panelHeight = 1;
-
-    let matBorderDark = new THREE.ShaderMaterial({
-      vertexShader: V_SHADER,
-      fragmentShader: F_SHADER,
-      uniforms: {
-        u_backgroundColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey3'))},
-        u_borderColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey1'))},
-        u_width: {type: 'f', value: panelWidth},
-        u_height: {type: 'f', value: panelHeight},
-        ...this.globalUniforms
-      }
-    });
-    let geometry = new THREE.PlaneGeometry(panelWidth, panelHeight);
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(panelWidth / 2, panelHeight / 2, 0));
-    let gQuad = new THREE.Mesh(geometry, matBorderDark);
-    gQuad.position.set(x, y, z);
-    this.scene.add(gQuad);
-
-    var text = new MeshText2D(name, {
-      align: textAlign.left,
-      font: '100px Roboto',
-      fillStyle: '#ffffff',
-      antialias: true
-    })
-
-    // Scale 100 px font down
-    text.scale.set(0.0005, 0.0005, 1);
-    text.position.set(x + 0.05, y + 0.95, z + 0.001);
-    this.scene.add(text);
-
+  addLink(x0, y0, x1, y1) {
     let lineBasicMaterial = new MeshLineMaterial({
       color: new THREE.Color(readStyleProperty('grey1')),
       lineWidth: 0.005,
       sizeAttenuation: false
     });
     let points = new THREE.Geometry();
-    points.vertices.push(new THREE.Vector3(x, y + 0.85, 0));
-    points.vertices.push(new THREE.Vector3(x + panelWidth, y + 0.85, 0));
+    points.vertices.push(new THREE.Vector3(x0, y0, 0));
+    points.vertices.push(new THREE.Vector3(x1, y1, 0));
     let line = new MeshLine()
     line.setGeometry(points)
-
     let lineMesh = new THREE.Mesh(line.geometry, lineBasicMaterial);
-
+    lineMesh.renderOrder = -1;
     this.scene.add(lineMesh);
-
-    let textCallback = this.addInput(0.05, 0.8, 0, "Opcode", 3).onSetText;
-    this.simLibInterfaceService.bindings.uut__DOT__dbg_insn_opcode__subject.subscribe((instruction) => {
-      textCallback(byteToHex(instruction, 8));
-    })
-
-    let immText = this.addInput(0.5, 0.6, 0, "Immediate", 3).onSetText;
-    this.simLibInterfaceService.bindings.uut__DOT__decoded_imm__subject.subscribe((instruction) => {
-      immText(byteToHex(instruction, 8));
-    })
-
-    let rs1Text = this.addInput(0.5, 0.4, 0, "RS1", 3).onSetText;
-    this.simLibInterfaceService.bindings.uut__DOT__decoded_rs1__subject.subscribe((instruction) => {
-      rs1Text(byteToHex(instruction, 8));
-    })
-
-    let rs2Text = this.addInput(0.5, 0.2, 0, "RS2", 3).onSetText;
-    this.simLibInterfaceService.bindings.uut__DOT__decoded_rs2__subject.subscribe((instruction) => {
-      rs2Text(byteToHex(instruction, 8));
-    })
-
-    let rdText = this.addInput(0.5, 0.8, 0, "RD", 3).onSetText;
-    this.simLibInterfaceService.bindings.uut__DOT__decoded_rd__subject.subscribe((instruction) => {
-      rdText(byteToHex(instruction, 8));
-    })
-  }
-
-  addInput(x, y, z, name, value) {
-    let width = 0.4;
-    let height = 0.08;
-    let headerTextPadding = 0.03;
-
-    let headerGeometry = new THREE.PlaneGeometry(width, height, 1, 1);
-    // anchor left bottom
-    headerGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(width / 2, -height / 2, 0));
-
-    let inputMaterial = new THREE.ShaderMaterial({
-      vertexShader: V_SHADER,
-      fragmentShader: F_SHADER,
-      uniforms: {
-        u_backgroundColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey2'))},
-        u_borderColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey1'))},
-        u_width: {type: 'f', value: width},
-        u_height: {type: 'f', value: height},
-        ...this.globalUniforms
-      }
-    });
-
-    let header = new THREE.Mesh(headerGeometry, inputMaterial);
-    header.position.set(x, y, z + 0.001);
-    this.scene.add(header);
-
-    let headerText = new MeshText2D(name, {
-      align: textAlign.left,
-      font: '100px Roboto',
-      fillStyle: '#ffffff',
-      antialias: true
-    })
-
-    // Scale 100 px font down
-    headerText.scale.set(0.0005, 0.0005, 1);
-    headerText.position.set(x + headerTextPadding, y - height / 2 + 0.05 / 2, z + 0.002);
-    this.scene.add(headerText);
-
-    let valueDescText = new MeshText2D("Value:", {
-      align: textAlign.left,
-      font: '100px Roboto',
-      fillStyle: '#ffffff',
-      antialias: true
-    })
-
-    // Scale 100 px font down
-    valueDescText.scale.set(0.0005, 0.0005, 1);
-    valueDescText.position.set(x + headerTextPadding, y - height / 2 + 0.05 / 2 - height, z + 0.002);
-    this.scene.add(valueDescText);
-
-    let valueText = new MeshText2D(String(value), {
-      align: textAlign.left,
-      font: '100px Roboto',
-      fillStyle: '#ffffff',
-      antialias: true,
-    })
-
-    // Scale 100 px font down
-    valueText.scale.set(0.0005, 0.0005, 1);
-    valueText.position.set(x + headerTextPadding + 0.15, y - height / 2 + 0.05 / 2 - height, z + 0.002);
-    this.scene.add(valueText);
-
-    return {
-      onSetText: (text) => {
-        valueText.text = text;
-        valueText.updateText();
-      }
-    }
   }
 
   render() {
@@ -242,8 +211,11 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
     this.time += this.clock.getDelta();
     this.globalUniforms.u_time.value = this.time;
 
-    //this.cube.rotation.x += 0.01;
-    //this.cube.rotation.y += 0.01;
+    this.panels[0].panelMesh.position.set(Math.sin(this.time), Math.cos(this.time), Math.sin(this.time) * 2)
+    this.panels[1].panelMesh.position.set(Math.sin(this.time + 1) * 2 + 0.4, Math.cos(this.time + 2), Math.sin(this.time + 1) * 2)
+
+    this.panels[1].panelMesh.rotation.x += 0.01;
+    this.panels[0].panelMesh.rotation.y += 0.01;
 
     this.renderer.render(this.scene, this.camera);
   }
