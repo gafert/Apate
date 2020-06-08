@@ -211,12 +211,6 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
     this.time += this.clock.getDelta();
     this.globalUniforms.u_time.value = this.time;
 
-    this.panels[0].panelMesh.position.set(Math.sin(this.time), Math.cos(this.time), Math.sin(this.time) * 2)
-    this.panels[1].panelMesh.position.set(Math.sin(this.time + 1) * 2 + 0.4, Math.cos(this.time + 2), Math.sin(this.time + 1) * 2)
-
-    this.panels[1].panelMesh.rotation.x += 0.01;
-    this.panels[0].panelMesh.rotation.y += 0.01;
-
     this.renderer.render(this.scene, this.camera);
   }
 
