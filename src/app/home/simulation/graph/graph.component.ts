@@ -134,7 +134,7 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       },
       {
         name: "Arithmetic Logic Unit",
-        position: {x: 2, y: 0, z: 0},
+        position: {x: 2, y: 0.5, z: 0},
         size: {width: 0.95, height: 1.2},
         ports: [
           {
@@ -181,26 +181,41 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
 
     for (const link of links) {
       this.addLink(
-        link.from.panel.position.x + link.from.port.position.x,
-        link.from.panel.position.y + link.from.port.position.y,
+        link.from.panel.position.x + link.from.port.position.x + 0.4,
+        link.from.panel.position.y + link.from.port.position.y - 0.04,
         link.to.panel.position.x + link.to.port.position.x,
-        link.to.panel.position.y + link.to.port.position.y)
+        link.to.panel.position.y + link.to.port.position.y - 0.04)
     }
   }
 
   addLink(x0, y0, x1, y1) {
     let lineBasicMaterial = new MeshLineMaterial({
       color: new THREE.Color(readStyleProperty('grey1')),
-      lineWidth: 0.005,
-      sizeAttenuation: false
+      lineWidth: 0.1,
+      sizeAttenuation: true
     });
-    let points = new THREE.Geometry();
-    points.vertices.push(new THREE.Vector3(x0, y0, 0));
-    points.vertices.push(new THREE.Vector3(x1, y1, 0));
+
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(x0 - 0.05, y0, 0),
+      new THREE.Vector3(x0 + (x1 - x0) / 2, y0 + 0.07, 0),
+      new THREE.Vector3(x0 + (x1 - x0) / 2, y1 - 0.07, 0),
+      new THREE.Vector3(x1 + 0.05, y1, 0)], false, 'chordal');
+
+    const points = curve.getPoints(50);
+
     let line = new MeshLine()
-    line.setGeometry(points)
+    const geometry = new THREE.Geometry();
+    for (const point of points) {
+      geometry.vertices.push(point);
+    }
+
+    line.setGeometry(geometry, function (p) {
+      console.log(p);
+      return 1 - (Math.sin(p * Math.PI) / 1.5);
+    });
+
     let lineMesh = new THREE.Mesh(line.geometry, lineBasicMaterial);
-    lineMesh.renderOrder = -1;
+    lineMesh.renderOrder = 1;
     this.scene.add(lineMesh);
   }
 

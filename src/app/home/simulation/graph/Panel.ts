@@ -50,7 +50,7 @@ export class Panel {
       antialias: true
     })
     // Scale 100 px font down
-    this._headerText.scale.set(0.0005, 0.0005, 1);
+    this._headerText.scale.set(0.0005, 0.0005, 0);
 
     this._headerText.position.set(0.05, this._height - 0.05, 0);
     this._headerText.renderOrder = 1;
@@ -132,7 +132,7 @@ export class Port {
 
     let header = new THREE.Mesh(headerGeometry, inputMaterial);
     header.position.set(this._x, this._y, this._z);
-    header.renderOrder = 1;
+    header.renderOrder = 50;
     this.meshGroup.add(header);
 
     let headerText = new MeshText2D(this._name, {
@@ -143,12 +143,12 @@ export class Port {
     })
 
     // Scale 100 px font down
-    headerText.scale.set(0.0005, 0.0005, 1);
+    headerText.scale.set(0.0005, 0.0005, 0);
     headerText.position.set(
       this._x + headerTextPadding,
       this._y - height / 2 + 0.05 / 2,
       this._z);
-    headerText.renderOrder = 232;
+    headerText.renderOrder = 100;
     this.meshGroup.add(headerText);
 
     let valueDescText = new MeshText2D("Value:", {
@@ -159,7 +159,7 @@ export class Port {
     })
 
     // Scale 100 px font down
-    valueDescText.scale.set(0.0005, 0.0005, 1);
+    valueDescText.scale.set(0.0005, 0.0005, 0);
     valueDescText.position.set(
       this._x + headerTextPadding,
       this._y - height / 2 + 0.05 / 2 - height,
@@ -175,7 +175,7 @@ export class Port {
     })
 
     // Scale 100 px font down
-    this._valueText.scale.set(0.0005, 0.0005, 1);
+    this._valueText.scale.set(0.0005, 0.0005, 0);
     this._valueText.position.set(
       this._x + headerTextPadding + 0.15,
       this._y - height / 2 + 0.05 / 2 - height,
