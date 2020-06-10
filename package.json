@@ -115,7 +115,6 @@
     "tar-fs": "2.0.1",
     "three": "0.116.1",
     "three-text2d": "0.6.0",
-    "three.meshline": "1.2.0",
     "unzipper": "0.10.11"
   }
 }

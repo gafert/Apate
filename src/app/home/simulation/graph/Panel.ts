@@ -4,7 +4,7 @@ import {MeshText2D, textAlign} from "three-text2d";
 import {byteToHex} from "../../../globals";
 import F_SHADER from './shader.frag';
 import V_SHADER from './shader.vert';
-import {MeshLine, MeshLineMaterial} from 'three.meshline'
+import {MeshLine, MeshLineMaterial} from '../../../utils/three.meshline'
 import {SimLibInterfaceService} from "../../../core/services";
 import {Object3D} from "three";
 

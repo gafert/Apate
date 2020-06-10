@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as THREE from 'three';
-import {MeshLine, MeshLineMaterial} from 'three.meshline'
+import {MeshLine, MeshLineMaterial} from '../../../utils/three.meshline'
 import panzoom from './drag.js';
 import {SimLibInterfaceService} from "../../../core/services";
 import {readStyleProperty} from "../../../utils/helper";
@@ -189,34 +189,61 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
   }
 
   addLink(x0, y0, x1, y1) {
-    let lineBasicMaterial = new MeshLineMaterial({
-      color: new THREE.Color(readStyleProperty('grey1')),
-      lineWidth: 0.1,
-      sizeAttenuation: true
+    const loader = new THREE.TextureLoader();
+    let strokeTexture: THREE.Texture;
+    loader.load('assets/Arrow.png', function (texture) {
+      strokeTexture = texture;
+      strokeTexture.wrapS = strokeTexture.wrapT = THREE.RepeatWrapping;
+      init();
     });
 
-    const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(x0 - 0.05, y0, 0),
-      new THREE.Vector3(x0 + (x1 - x0) / 2, y0 + 0.07, 0),
-      new THREE.Vector3(x0 + (x1 - x0) / 2, y1 - 0.07, 0),
-      new THREE.Vector3(x1 + 0.05, y1, 0)], false, 'chordal');
+    const init = () => {
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(x0 - 0.05, y0, 0),
+        new THREE.Vector3(x0 + (x1 - x0) / 2 - 0.2, y0 + 0.05, 0),
+        new THREE.Vector3(x0 + (x1 - x0) / 2 + 0.2, y1 - 0.05, 0),
+        new THREE.Vector3(x1 + 0.05, y1, 0)], false, 'chordal');
 
-    const points = curve.getPoints(50);
+      const points = curve.getPoints(50);
 
-    let line = new MeshLine()
-    const geometry = new THREE.Geometry();
-    for (const point of points) {
-      geometry.vertices.push(point);
+      let length = 0;
+      for (let i = 1; i < points.length; i++) {
+        length += Math.sqrt(Math.pow((points[i].y - points[i - 1].y), 2) + Math.pow((points[i].x - points[i - 1].x), 2));
+      }
+
+      let lineBasicMaterial = new MeshLineMaterial({
+        // color: new THREE.Color(readStyleProperty('grey1')),
+        lineWidth: 0.08,
+        sizeAttenuation: true,
+        useMap: true,
+        map: strokeTexture,
+        repeat: new THREE.Vector2( length * 10,1 ),
+        offset: new THREE.Vector2(0.5 ,0 ),
+      });
+
+      const offset = () => {
+        setTimeout(() => {
+          lineBasicMaterial.offset.add(new THREE.Vector2(0.05 ,0 ));
+          offset();
+        }, 10);
+      }
+
+      offset();
+
+      let line = new MeshLine()
+      const geometry = new THREE.Geometry();
+      for (const point of points) {
+        geometry.vertices.push(point);
+      }
+
+      line.setGeometry(geometry, function (p) {
+        return 1 - (Math.sin(p * Math.PI) / 2.5);
+      });
+
+      let lineMesh = new THREE.Mesh(line.geometry, lineBasicMaterial);
+      lineMesh.renderOrder = 1;
+      this.scene.add(lineMesh);
     }
-
-    line.setGeometry(geometry, function (p) {
-      console.log(p);
-      return 1 - (Math.sin(p * Math.PI) / 1.5);
-    });
-
-    let lineMesh = new THREE.Mesh(line.geometry, lineBasicMaterial);
-    lineMesh.renderOrder = 1;
-    this.scene.add(lineMesh);
   }
 
   render() {
@@ -234,5 +261,4 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
       cancelAnimationFrame(this.frameId);
     }
   }
-
 }
