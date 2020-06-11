@@ -12,8 +12,34 @@ matrix:
     services: docker
     language: node_js
     node_js: '12'
+  - os: windows
+    services: docker
+    language: node_js
+    node_js: '12'
 before_script:
 - export DISPLAY=:99.0
+before_install:
+  - |-
+    case $TRAVIS_OS_NAME in
+      windows)
+        [[ ! -f C:/tools/msys64/msys2_shell.cmd ]] && rm -rf C:/tools/msys64
+        choco uninstall -y mingw
+        choco install make
+        choco upgrade --no-progress -y msys2
+        export msys2='cmd //C RefreshEnv.cmd '
+        export msys2+='& set MSYS=winsymlinks:nativestrict '
+        export msys2+='& C:\\tools\\msys64\\msys2_shell.cmd -defterm -no-start'
+        export mingw64="$msys2 -mingw64 -full-path -here -c "\"\$@"\" --"
+        export msys2+=" -msys2 -c "\"\$@"\" --"
+        $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-toolchain
+        ## Install more MSYS2 packages from https://packages.msys2.org/base here
+        taskkill //IM gpg-agent.exe //F  # https://travis-ci.community/t/4967
+        export PATH=/C/tools/msys64/mingw64/bin:$PATH
+        export C=/C/tools/msys64/mingw64/bin/gcc.exe
+        export CXX=/C/tools/msys64/mingw64/bin/g++.exe
+        echo $(make)
+        ;;
+    esac
 install:
 - npm set progress=false
 - |
@@ -26,38 +52,34 @@ script:
 - |
   if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     npm run build:simlib:linux_docker
-    npm run build:simlib:windows_docker
-    ENVS=`env | grep -iE '^(DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_)([A-Z]|_)*=' | sed -n '/^[^\t]/s/=.*//p' | sed '/^$/d' | sed 's/^/-e /g' | tr '\n' ' '`
-    docker run $ENVS --rm \
-      -v ${PWD}:/project \
-      -v ~/.cache/electron:/root/.cache/electron \
-      -v ~/.cache/electron-builder:/root/.cache/electron-builder \
-      electronuserland/builder:wine \
-      /bin/bash -c "npm run electron:win_lin"
-  else
+    npm run electron:linux
+  elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
     npm run build:simlib:local
     npm run electron:mac
+  else
+    echo $(make)
+    echo $($CXX)
+    npm run build:simlib:local
+    npm run electron:windows
   fi
+before_cache:
+  - rm -rf $HOME/.cache/electron-builder/wine
+  - |-
+    case $TRAVIS_OS_NAME in
+      windows)
+        # https://unix.stackexchange.com/a/137322/107554
+        $msys2 pacman --sync --clean --noconfirm
+        ;;
+    esac
 cache:
   directories:
   - node_modules
   - "$HOME/.cache/electron"
   - "$HOME/.cache/electron-builder"
-before_cache:
-  - rm -rf $HOME/.cache/electron-builder/wine
+  - $HOME/AppData/Local/Temp/chocolatey
+  - /C/tools/msys64
 branches:
   except:
     - /^untagged/
     - /^v\\d+\\.\\d+\\.\\d+$/
-deploy:
-  provider: releases
-  api_key:
-    secure: fiJqEtqQ+yJwGzDHHANL7kmseliRn4tdT+91uZDOHx0gArxMmW/bUNUArpQEPGswd4yyZ5llGE2sdB63JKUHq/TDNfD20zgsZktshj44FvE/TKe1l2//QfoQT6x1Lc7JOcn2mPNIZarnntwY4ysxD6h+BAoRTtPIfw5ImdltIeTNhU+QnnqZVkO0CJxOw6T4GG7g+18UNufOX/HeCG1rSJgExJTEe5PoNU3xiPUBL7UzaYXehbeMHG6YjNDG27K5tTRownhx8NEUU3NWcNUQe710FDrOGs0I8bWpB4NXzfuiYplnHRaBpttGpYOa5PCvzY1d7SB+3xFl7HkwID4dV88HeWc5HAP5baoe7tQPnK8hTu10vS/yCSIQe1Io3OXmvQvjpbEdNnpG9MsBTsQxYJSQe1IersaEtrvtQuwHbc3W5YfLQv3lEZjRx14yez+/8SPTZip7KCuyh08PN15FOK0gfgUBpYszxfdfRUWWBV+66bA0QDwlRT+uVKCA1XNuLWS1T+5Ak6VvQfGN2/osgnDlUXRDp9q+S6O72Lf5bXhMiy0nW5bVOjDYtRvkxkm7g0/BWwZldZuL7JGxbRjtnXkFCs2Be0g9/p48KXbB2xXeei4zy34S7e3i2ljnFbZhyKLgyroZdKG+3B+V7BsJKMvpMF4pk3PtbtUjm3LQTw8=
-  file_glob: true
-  file:
-    - "release/*.dmg"
-    - "release/*.AppImage"
-    - "release/*.exe"
-  on:
-    repo: gafert/RISC-V-Simulation
-  skip_cleanup: 'true'
+    - /^*-v[0-9]/

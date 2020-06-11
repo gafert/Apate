@@ -1,6 +1,6 @@
 {
   "name": "riscv-sim",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CPU Visualisation based on a risc-v processor in verilog",
   "author": {
     "name": "Michael Gafert",
