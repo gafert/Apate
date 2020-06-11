@@ -239,7 +239,7 @@ for variable in variables:
         line = line + get_c_datatype_from_string(variable.vartype)
     line = line + ' */\n'
     line = line + get_c_datatype_from_string(variable.vartype) + ' *' + function_pre_def + variable.name + '() { '
-    line = line + 'return ' + (
+    line = line + 'return (' + get_c_datatype_from_string(variable.vartype) + '*) ' + (
         '&' if not variable.isarray else '') + 'top->' + top_name + '__DOT__' + variable.name + '; }\n\n'
     cc_out_file.write(line)
 

@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as THREE from 'three';
-import {MeshLine, MeshLineMaterial} from '../../../utils/three.meshline'
+import {MeshLine, MeshLineMaterial} from '../../../utils/THREE.MeshLine'
 import panzoom from './drag.js';
 import {SimLibInterfaceService} from "../../../core/services";
 import {readStyleProperty} from "../../../utils/helper";
