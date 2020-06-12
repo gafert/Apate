@@ -63,7 +63,8 @@ script:
     npm run electron:windows
   fi
 before_cache:
-  - rm -rf $HOME/.cache/electron-builder/wine
+  - rm -rf $HOME/.cache/electron-builder/win
+  - rm -rf ./node_modules/ffi-napi/build/Release
   - |-
     case $TRAVIS_OS_NAME in
       windows)
@@ -81,5 +82,5 @@ cache:
 branches:
   except:
     - /^untagged/
-    - /^v\\d+\\.\\d+\\.\\d+$/
+    - /^v?\d+\.\d+(\.\d+)?(-\S*)?$/
     - /^*-v[0-9]/
