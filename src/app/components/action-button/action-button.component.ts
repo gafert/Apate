@@ -90,7 +90,7 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
 
     function checkAnimation() {
       setTimeout(() => {
-        if (!thiz.buttonTweens[0].isActive()) {
+        if (!thiz.buttonTweens[0]?.isActive()) {
           thiz.stopOtherTweens();
           thiz.buttonTweens.push(tween({
             from: {scale: style.get('scale')},

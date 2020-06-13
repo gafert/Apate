@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import {authorize} from "../../utils/google-drive-auth";
 import https from "https";
 import * as fs from "fs";
@@ -48,18 +48,18 @@ export class ToolchainDownloaderService {
   public state: BehaviorSubject<ToolchainDownState> =
     new BehaviorSubject<ToolchainDownState>(new ToolchainDownState(ToolchainDownEnum.NOT_DOWNLOADED, ""));
 
-  constructor(private dataService: DataService) {
+  constructor(private dataService: DataService, private ngZone: NgZone) {
     this.downloadPath = path.join(app.getPath('userData'), 'downloads');
 
     // Make new directory if it does not exist
     fs.mkdir(this.downloadPath, null, () => null);
 
     this.toolchainDownloadZipFile = path.join(this.downloadPath, "riscv.tar.gz");
-    this.toolchainDownloadPath =  path.join(this.downloadPath, this.toolchainFolder, "bin");
+    this.toolchainDownloadPath = path.join(this.downloadPath, this.toolchainFolder, "bin");
 
     dataService.toolchainDownloaded.subscribe((value) => {
       if (value === true) {
-        this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADED, "Already Downloaded"))
+        this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADED, this.toolchainDownloadPath))
       }
     });
   }
@@ -83,64 +83,72 @@ export class ToolchainDownloaderService {
 
     this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADING, 0));
     authorize().then((jwtClient => {
-      new Promise<any>((resolveGetId, rejectGetId) => {
-        https.request(`https://www.googleapis.com/drive/v3/files?q=${query}`,
-          {headers: {'Authorization': 'Bearer ' + jwtClient.credentials.access_token}}, (res => {
-            let json = '';
-            res.on('data', (chunk) => json += chunk);
-            res.on('end', () => resolveGetId(JSON.parse(json)));
-          })).on("error", (error) => {
-          this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, error.message));
-          rejectGetId(error.message);
-        }).end();
-      }).then((list) => {
-        console.log("Files matching query", query, list);
-        new Promise((resolve, reject) => {
-          https.request(`https://www.googleapis.com/drive/v3/files/${list.files[0].id}?alt=media`,
-            {headers: {'Authorization': 'Bearer ' + jwtClient.credentials.access_token,}}, (res => {
-              const writeStream = fs.createWriteStream(this.toolchainDownloadZipFile);
-              const len = parseInt(res.headers['content-length'], 10);
-              let downloaded = 0;
-              res.on('data', (chunk) => {
-                downloaded += chunk.length;
-                this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADING,
-                  Number((downloaded / len * 100).toFixed(0))));
-                writeStream.write(chunk);
-              });
-              res.on('end', () => resolve());
+      this.ngZone.run(() => {
+        new Promise<any>((resolveGetId, rejectGetId) => {
+          https.request(`https://www.googleapis.com/drive/v3/files?q=${query}`,
+            {headers: {'Authorization': 'Bearer ' + jwtClient.credentials.access_token}}, (res => {
+              let json = '';
+              res.on('data', (chunk) => json += chunk);
+              res.on('end', () => resolveGetId(JSON.parse(json)));
             })).on("error", (error) => {
-            console.log("Error downloading file", error.message);
-            reject(error.message);
+            this.ngZone.run(() => {
+              this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, error.message));
+              rejectGetId(error.message);
+            })
           }).end();
-        }).then(() => {
-          this.state.next(new ToolchainDownState(ToolchainDownEnum.UNZIPPING, ""));
+        }).then((list) => {
+          console.log("Files matching query", query, list);
+          new Promise((resolve, reject) => {
+            https.request(`https://www.googleapis.com/drive/v3/files/${list.files[0].id}?alt=media`,
+              {headers: {'Authorization': 'Bearer ' + jwtClient.credentials.access_token,}}, (res => {
+                const writeStream = fs.createWriteStream(this.toolchainDownloadZipFile);
+                const len = parseInt(res.headers['content-length'], 10);
+                let downloaded = 0;
+                res.on('data', (chunk) => {
+                  this.ngZone.run(() => {
+                    downloaded += chunk.length;
+                    this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADING,
+                      Number((downloaded / len * 100).toFixed(0))));
+                    writeStream.write(chunk);
+                  })
+                });
+                res.on('end', () => resolve());
+              })).on("error", (error) => {
+              console.log("Error downloading file", error.message);
+              reject(error.message);
+            }).end();
+          }).then(() => {
+            this.state.next(new ToolchainDownState(ToolchainDownEnum.UNZIPPING, ""));
 
-          fs.createReadStream(this.toolchainDownloadZipFile).pipe(zlib.createGunzip()).pipe(tar.extract(this.downloadPath)).on('finish', (err) => {
-            if (err) {
-              this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, err));
-              return;
-            }
+            fs.createReadStream(this.toolchainDownloadZipFile).pipe(zlib.createGunzip()).pipe(tar.extract(this.downloadPath)).on('finish', (err) => {
+              this.ngZone.run(() => {
+                if (err) {
+                  this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, err));
+                  return;
+                }
+                // Delete downloaded zip after it was unpacked
+                fs.unlink(this.toolchainDownloadZipFile, () => null);
 
-            // Delete downloaded zip after it was unpacked
-            fs.unlink(this.toolchainDownloadZipFile, () => null);
-
-            this.dataService.toolchainDownloaded.next(true)
-            this.dataService.toolchainPath.next(this.toolchainDownloadPath)
-            this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADED, ""));
-          });
+                this.dataService.toolchainDownloaded.next(true)
+                this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADED, this.toolchainDownloadPath));
+              });
+            });
+          }).catch((reason => {
+            this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, reason));
+          }))
         }).catch((reason => {
           this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, reason));
         }))
-      }).catch((reason => {
-        this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, reason));
-      }))
+      });
     }))
   }
 
   public removeToolchain() {
     this.deleteFolderRecursive(path.join(this.downloadPath, this.toolchainFolder)).then(() => {
-      this.state.next(new ToolchainDownState(ToolchainDownEnum.NOT_DOWNLOADED, "Removed Toolchain from " + this.downloadPath + "/" + this.toolchainFolder));
-      this.dataService.toolchainDownloaded.next(false);
+      this.ngZone.run(() => {
+        this.state.next(new ToolchainDownState(ToolchainDownEnum.NOT_DOWNLOADED, "Removed Toolchain from " + this.downloadPath + "/" + this.toolchainFolder));
+        this.dataService.toolchainDownloaded.next(false);
+      });
     });
   }
 

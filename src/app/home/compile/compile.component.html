@@ -5,7 +5,7 @@
   <div style="margin-left: 1em">GCC FLAGS</div>
   <app-setting [(setting)]="gccFlags" [settingDefault]="gccFlagsDefault" settingKey="gccFlags"
                style="margin-left: 1em"></app-setting>
-  <app-action-button (activate)="compile()" [disabled]="compiling" iconClass="fas fa-play"
+  <app-action-button style="margin-left: 1em" (activate)="compile()" [disabled]="compiling" iconClass="fas fa-play"
                      text="Compile"></app-action-button>
 </div>
 
@@ -40,7 +40,10 @@
       </div>
     </div>
     <div #fileAreaContainer class="file-area-container">
-      <ngx-monaco-editor [options]="editorOptions" (init)="editorInit($event)"></ngx-monaco-editor>
+      <ngx-monaco-editor
+        [options]="editorOptions"
+        (init)="editorInit($event)"
+        [(ngModel)]="fileContent"></ngx-monaco-editor>
     </div>
   </div>
 </div>

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {DataService, ToolchainDownEnum, ToolchainDownloaderService} from "../core/services";
 import * as electron from "electron";
 
@@ -7,12 +7,12 @@ import * as electron from "electron";
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, AfterViewInit {
   @ViewChild('toolchainPathOptions') toolchainPathOptions: ElementRef<HTMLDivElement>;
 
   /** Set by user to local path or downloaded path */
   public toolchainPath;
-  /** Set by the user but loads defaults e.g. riscv64-unkown-elf- */
+  /** Set by the user but loads defaults e.g. riscv64-unknown-elf- */
   public toolchainPrefix;
   public toolchainPrefixDefault = "riscv64-unknown-elf-";
 
@@ -22,37 +22,34 @@ export class SettingsComponent implements OnInit {
 
   private toolchainPathOptionsOpen = false;
 
-  constructor(private toolchainDownloaderService: ToolchainDownloaderService, private dataService: DataService, private changeDetection: ChangeDetectorRef) {
-    this.dataService.toolchainPath.subscribe((value) => {
-      let oldPath = this.toolchainPath;
-      this.toolchainPath = value;
-      if (oldPath !== value && oldPath) {
-        this.changeDetection.detectChanges();
-      }
-    });
-
-    this.toolchainDownloaderService.state.subscribe((state) => {
-      switch (state.state) {
-        case ToolchainDownEnum.DOWNLOADING:
-          this.toolchainPercentDownloaded = state.reason as number;
-          this.changeDetection.detectChanges();
-      }
-
-      let oldState = this.toolchainDownloaderState;
-      this.toolchainDownloaderState = state.state;
-
-      if (state.state !== oldState && oldState) {
-        this.changeDetection.detectChanges();
-      }
-
-      console.log("New toolchainDownloaderState", state)
-    });
+  constructor(private toolchainDownloaderService: ToolchainDownloaderService,
+              private dataService: DataService,
+              private changeDetection: ChangeDetectorRef) {
 
     document.addEventListener('click', (event) => {
       if (this.toolchainPathOptionsOpen) {
         this.toolchainPathOptions.nativeElement.style.display = "none";
       }
     })
+  }
+
+  ngAfterViewInit() {
+    this.toolchainDownloaderService.state.subscribe((state) => {
+      switch (state.state) {
+        case ToolchainDownEnum.DOWNLOADING:
+          this.toolchainPercentDownloaded = state.reason as number;
+          this.toolchainDownloaderState = state.state;
+          break;
+        case ToolchainDownEnum.DOWNLOADED:
+          // Save toolchain path and set it in the vis
+          this.dataService.toolchainPath.next(state.reason as string);
+          this.toolchainPath = state.reason as string;
+          this.toolchainDownloaderState = state.state;
+          break;
+        default:
+          this.toolchainDownloaderState = state.state;
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -67,7 +64,7 @@ export class SettingsComponent implements OnInit {
     event.stopPropagation();
   }
 
-  openToolchainPathDialog() {
+  openToolchainPathExplorerDialog() {
     electron.remote.dialog.showOpenDialog({
       properties: ['openDirectory']
     }).then((result) => {
@@ -89,9 +86,17 @@ export class SettingsComponent implements OnInit {
 
   removeToolchain() {
     this.toolchainDownloaderService.removeToolchain();
+    this.toolchainPath = "";
+    this.dataService.toolchainPath.next("");
   }
 
   closeWindow() {
     electron.remote.getCurrentWindow().close();
+  }
+
+  clearSettingsAndRestart() {
+    this.dataService.clearSettingsFile();
+    electron.remote.app.relaunch();
+    electron.remote.app.exit(0);
   }
 }

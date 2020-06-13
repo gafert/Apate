@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from "rxjs";
 import * as Store from 'electron-store';
+import fs from "fs";
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,18 @@ export class DataService {
   activeFileIsSaveable: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(undefined);
   toolchainPrefix: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
 
-  public loadFile() {
+  constructor() {
+    this.loadSettings();
+    this.subscribeToSetting(this.toolchainPrefix, 'toolchainPrefix');
+    this.subscribeToSetting(this.toolchainPath, 'toolchainPath');
+    this.subscribeToSetting(this.folderPath, 'folderPath');
+    this.subscribeToSetting(this.toolchainDownloaded, 'toolchainDownloaded');
+    this.subscribeToSetting(this.activeFile, 'activeFile');
+    this.subscribeToSetting(this.activeFileContent, 'activeFileContent');
+    this.subscribeToSetting(this.activeFileIsSaveable, 'activeFileIsSaveable');
+  }
+
+  public loadSettings() {
     this.toolchainPath.next(this.store.get('toolchainPath'));
     this.folderPath.next(this.store.get('folderPath'));
     this.toolchainDownloaded.next(this.store.get('toolchainDownloaded'));
@@ -29,46 +41,18 @@ export class DataService {
     this.toolchainPrefix.next(this.store.get('toolchainPrefix'));
   }
 
-  constructor() {
-    this.loadFile();
-    this.toolchainPrefix.subscribe((newValue) => {
-      console.log("Saving toolchainPrefix", newValue);
-      if (newValue !== undefined)
-        this.store.set('toolchainPrefix', newValue)
+  public clearSettingsFile() {
+    fs.unlink(this.store.path, () => null);
+  }
+
+  private subscribeToSetting(setting, settingString) {
+    if(!oldValue) var oldValue = this.store.get(settingString);
+    setting.subscribe((newValue) => {
+      if (newValue !== undefined && oldValue !== newValue) {
+        console.log("Saving " + settingString);
+        this.store.set(settingString, newValue)
+      }
+      oldValue = newValue;
     });
-    this.toolchainPath.subscribe((newValue) => {
-      console.log("Saving toolchainPath", newValue);
-      if (newValue !== undefined)
-        this.store.set('toolchainPath', newValue)
-    });
-    this.folderPath.subscribe((newValue) => {
-      console.log("Saving folderPath", newValue);
-      if (newValue !== undefined)
-        this.store.set('folderPath', newValue);
-    });
-    this.toolchainDownloaded.subscribe((newValue) => {
-      console.log("Saving toolchainDownloaded", newValue);
-      if(newValue !== undefined)
-        this.store.set('toolchainDownloaded', newValue);
-      }
-    );
-    this.activeFile.subscribe((newValue) => {
-        console.log("Saving activeFile", newValue);
-        if(newValue !== undefined)
-          this.store.set('activeFile', newValue);
-      }
-    );
-    this.activeFileContent.subscribe((newValue) => {
-        console.log("Saving activeFileContent");
-        if(newValue !== undefined)
-          this.store.set('activeFileContent', newValue);
-      }
-    );
-    this.activeFileIsSaveable.subscribe((newValue) => {
-        console.log("Saving activeFileIsSaveable", newValue);
-        if(newValue !== undefined)
-          this.store.set('activeFileIsSaveable', newValue);
-      }
-    );
   }
 }

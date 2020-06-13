@@ -65,7 +65,7 @@ export class HomeComponent {
       child.show();
     });
     child.once('close', () => {
-      this.dataService.loadFile();
+      this.dataService.loadSettings();
     })
   }
 }

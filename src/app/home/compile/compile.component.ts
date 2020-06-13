@@ -1,4 +1,6 @@
 import {
+  AfterContentInit,
+  AfterViewInit,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -13,13 +15,14 @@ import * as path from "path";
 import {MonacoStandaloneCodeEditor} from "@materia-ui/ngx-monaco-editor/lib/interfaces";
 import Timeout = NodeJS.Timeout;
 import {readStyleProperty} from "../../utils/helper";
+import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-compile',
   templateUrl: './compile.component.html',
   styleUrls: ['./compile.component.scss']
 })
-export class CompileComponent implements OnDestroy {
+export class CompileComponent implements OnDestroy, AfterContentInit {
   @ViewChild('fileOptions') fileOptions: ElementRef<HTMLDivElement>;
   @ViewChild('terminalOutputElement') terminalOutputElement: ElementRef<HTMLDivElement>;
   @ViewChild('fileAreaContainer') fileAreaContainer: ElementRef<HTMLDivElement>;
@@ -71,6 +74,8 @@ export class CompileComponent implements OnDestroy {
   private fileLoadedIntoEditor = false;
   /** Holds the editor so settings can be changed */
   private editor: MonacoStandaloneCodeEditor;
+  public fileContent = "";
+  private viewInitiated: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   languages = {
     "elf": "plaintext",
@@ -96,7 +101,10 @@ export class CompileComponent implements OnDestroy {
     this.dataService.toolchainPath.subscribe((value) => this.toolchainPath = value);
     this.dataService.toolchainPrefix.subscribe((value) => this.toolchainPrefix = value);
     this.dataService.activeFile.subscribe((value) => this.activeFile = value);
-    this.dataService.activeFileIsSaveable.subscribe((value) => this.fileIsSavable = value);
+    this.dataService.activeFileIsSaveable.subscribe((value) => {
+      this.fileIsSavable = value;
+      if (this.editor) this.editor.updateOptions({readOnly: !value})
+    });
     this.dataService.folderPath.subscribe((value) => {
       this.folderPath = value;
       if (this.folderPath) this.reloadFolderContents();
@@ -114,6 +122,10 @@ export class CompileComponent implements OnDestroy {
     this.editorModelChangeListener.dispose();
   }
 
+  ngAfterContentInit() {
+    setTimeout(() => this.viewInitiated.next(true), 0);
+  }
+
   //region Editor
 
   editorInit(editor: MonacoStandaloneCodeEditor) {
@@ -122,59 +134,57 @@ export class CompileComponent implements OnDestroy {
   }
 
   editorInitiated() {
-    // Change the theme to fit the apps grey
-    monaco.editor.defineTheme("vs-real-grey", {
-      base: "vs-dark", // can also be vs-dark or hc-black
-      inherit: true, // can also be false to completely replace the builtin rules
-      rules: [
-      ],
-      colors: {
-        "editor.background": readStyleProperty("grey3"),
-        // See more properties at https://stackoverflow.com/a/51360204
+    this.viewInitiated.subscribe((initiated) => {
+      if (initiated) {
+        // Change the theme to fit the apps grey
+        monaco.editor.defineTheme("vs-real-grey", {
+          base: "vs-dark", inherit: true, rules: [],
+          colors: {
+            "editor.background": readStyleProperty("grey3"),
+            // See more properties at https://stackoverflow.com/a/51360204
+          }
+        });
+        monaco.editor.setTheme('vs-real-grey');
+
+        this.editor.updateOptions({readOnly: !this.fileIsSavable})
+
+        this.dataService.activeFileContent.subscribe((value) => {
+          if (this.fileContent !== value && value !== null) {
+            this.fileContent = value;
+            this.fileLoadedIntoEditor = true;
+          }
+        });
+
+        this.dataService.activeFile.subscribe((value) => {
+          if(this.activeFile) {
+            /**
+             * If the filename was loaded determine the language by the suffix.
+             */
+            let ending = value.split('.').pop();
+            let langId = this.languages[ending];
+
+            // If there was no file type found set the default value
+            if (!langId) langId = "plaintext";
+
+            monaco.editor.setModelLanguage(this.editor.getModel(), langId);
+          }
+        });
+
+        let timeout: Timeout;
+        this.editorModelChangeListener = this.editor.getModel().onDidChangeContent(() => {
+          /**
+           * This gets called every time the value in the editor is changed.
+           * Start a timeout to save the file after 2s of inactivity.
+           */
+
+          let save = () => {
+            this.fileContentEdited(this.fileContent);
+          }
+
+          clearTimeout(timeout);
+          timeout = setTimeout(save, 200);
+        })
       }
-    });
-    monaco.editor.setTheme('vs-real-grey');
-
-    this.dataService.activeFileContent.subscribe((value) => {
-      /**
-       * If the file was loaded display it.
-       * Dont set the default null value of BehaviorSubject.
-       */
-      if (this.editor.getValue() !== value && value !== null) {
-        this.editor.setValue(value);
-        this.fileLoadedIntoEditor = true;
-      }
-    });
-
-    this.dataService.activeFile.subscribe((value) => {
-      /**
-       * If the filename was loaded determine the language by the suffix.
-       */
-      let ending = value.split('.').pop();
-      let langId = this.languages[ending];
-
-      // If there was no file type found set the default value
-      if (!langId)
-        langId = "plaintext";
-
-      monaco.editor.setModelLanguage(this.editor.getModel(), langId);
-    });
-
-    let timeout: Timeout;
-    this.editorModelChangeListener = this.editor.getModel().onDidChangeContent(() => {
-      /**
-       * This gets called every time the value in the editor is changed.
-       * Start a timeout to save the file after 2s of inactivity.
-       */
-
-      let save = () => {
-        let value = this.editor.getValue();
-        if (value && this.fileLoadedIntoEditor)
-          this.fileContentEdited(value);
-      }
-
-      clearTimeout(timeout);
-      timeout = setTimeout(save, 2000);
     })
   }
 
@@ -317,7 +327,6 @@ export class CompileComponent implements OnDestroy {
   }
 
   fileContentEdited(code) {
-    console.log("Saving", code);
     if (this.fileIsSavable && this.activeFile && this.folderPath) {
       fs.writeFile(path.join(this.folderPath, this.activeFile), code,
         ((err) => err ? console.log(err) : null));

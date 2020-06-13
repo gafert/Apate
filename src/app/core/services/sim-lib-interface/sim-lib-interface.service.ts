@@ -40,7 +40,6 @@ export class SimLibInterfaceService {
     }
 
     this.libraryPath = path.join(process.resourcesPath, 'binaries', 'libVtestbench.' + extension);
-    console.log(this.libraryPath);
     if (isDev) {
       this.libraryPath = path.join(electron.remote.app.getAppPath(), 'binaries', 'libVtestbench.' + extension);
     }

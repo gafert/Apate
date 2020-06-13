@@ -1,6 +1,6 @@
 {
   "name": "riscv-sim",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CPU Visualisation based on a risc-v processor in verilog",
   "author": {
     "name": "Michael Gafert",
@@ -25,7 +25,7 @@
     "ng:serve": "ng serve",
     "ng:serve:web": "ng serve -c web -o",
     "electron:serve-tsc": "tsc -p tsconfig-serve.json",
-    "electron:serve": "wait-on http-get://localhost:4200/ && npm run electron:serve-tsc && electron . --serve --remote-debugging-port=9222",
+    "electron:serve": "wait-on http-get://localhost:4200/ && npm run electron:serve-tsc && electron . --serve --remote-debugging-port=9222 --enable-logging",
 
     "?build:simlib_binding:local": "echo Generates ts, cpp bindings between electron and the simulation_library. Requires cmake and python3.",
     "build:simlib_binding:local": "cd ./simulation_library && cmake . -G\"Unix Makefiles\" && make GenerateBinding && cd ..",

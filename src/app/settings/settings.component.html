@@ -4,6 +4,10 @@
     <button (click)="closeWindow()"><i class="fas fa-times" style="font-size: 1.5em;"></i></button>
   </div>
 
+  <div class="setting-box">
+    Settings will be saved automatically
+  </div>
+
   <div (click)="clickToolchainPath($event)" class="setting-box">
     <div class="title">RISC-V Toolchain</div>
     <div class="toolchain-path" contenteditable="false">
@@ -15,7 +19,7 @@
       </div>
       <div
         *ngIf="toolchainDownloaderState === ToolchainDownEnum.NOT_DOWNLOADED || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
-        style="margin-right: 2em; overflow-x: scroll">{{toolchainPath ? toolchainPath : 'unset'}}
+        style="margin-right: 2em; overflow-x: scroll">{{toolchainPath ? toolchainPath : 'Click to set'}}
       </div>
     </div>
   </div>
@@ -25,11 +29,15 @@
                  settingKey="toolchainPrefix"></app-setting>
   </div>
 
+  <div class="setting-box">
+    <app-action-button text="Clear settings and restart" (activate)="clearSettingsAndRestart()"></app-action-button>
+  </div>
+
 </div>
 
 
 <div #toolchainPathOptions class="option-menu">
-  <div (click)="openToolchainPathDialog()" class="option">
+  <div (click)="openToolchainPathExplorerDialog()" class="option">
     Set local...
   </div>
   <div (click)="useDownloadedToolchain()" *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"

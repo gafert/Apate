@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from '@angular/core';
 import * as d3 from "d3";
 import * as fs from "fs";
 import * as path from "path";
@@ -36,7 +36,8 @@ export class SimulationComponent implements OnInit, AfterViewInit {
 
   constructor(public simLibInterfaceService: SimLibInterfaceService,
               private changeDetection: ChangeDetectorRef,
-              private dataService: DataService) {
+              private dataService: DataService,
+              private ngZone: NgZone) {
   }
 
   ngOnInit(): void {
@@ -46,7 +47,11 @@ export class SimulationComponent implements OnInit, AfterViewInit {
         fs.readdir(value, (err, files) => {
           for (let file of files) {
             if (file.split('.').pop().indexOf("elf") >= 0) {
-              this.simulationElfPath = path.join(value, file);
+              // Possible fix for elf not beeing loaded
+              this.ngZone.run(() => {
+                this.simulationElfPath = path.join(value, file);
+              })
+              break;
             }
           }
         });
@@ -68,10 +73,8 @@ export class SimulationComponent implements OnInit, AfterViewInit {
   setSizeOfGrid() {
     this.grid.cellHeight((d3.select('#simulation-container').node() as HTMLElement)
       .getBoundingClientRect().height / 14);
-
     const width = (d3.select('#simulation-container').node() as HTMLElement).getBoundingClientRect().width;
     this.grid.column(Number((width / 140).toFixed(0)));
-    console.log(Number((width / 140).toFixed(0)));
   }
 
   initiateSimulation() {
@@ -79,7 +82,7 @@ export class SimulationComponent implements OnInit, AfterViewInit {
       if (this.simulationElfPath.indexOf('.elf') > 0) {
         this.simLibInterfaceService.initSimulation(this.simulationElfPath);
         // Wait for program counter to be 0 before reloading
-        setTimeout( () => {
+        setTimeout(() => {
           this.instructionsComponent.reload();
         }, 100);
       }

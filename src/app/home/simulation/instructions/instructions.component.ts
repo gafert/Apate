@@ -41,8 +41,8 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   public byteToHex = byteToHex;
   private objdumpWorker = new Worker('./static/objdump.worker.js');
   private store = new Store();
-  private toolchainPath = this.store.get('toolchainPath');
-  private toolchainPrefix = this.store.get('toolchainPrefix');
+  private toolchainPath = this.store.get('toolchainPath', "");
+  private toolchainPrefix = this.store.get('toolchainPrefix', "");
   private objdumpPath = path.join(this.toolchainPath, this.toolchainPrefix + 'objdump');
 
   constructor(private changeDetection: ChangeDetectorRef,
