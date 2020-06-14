@@ -119,7 +119,7 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
   }
 
   ngOnDestroy() {
-    this.editorModelChangeListener.dispose();
+    if(this.editorModelChangeListener) this.editorModelChangeListener.dispose();
   }
 
   ngAfterContentInit() {

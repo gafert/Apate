@@ -64,7 +64,7 @@ script:
   fi
 before_cache:
   - rm -rf $HOME/.cache/electron-builder/win
-  - rm -rf ./node_modules/ffi-napi/build/Release
+  - rm -rf ./node_modules/ffi-napi/build
   - |-
     case $TRAVIS_OS_NAME in
       windows)

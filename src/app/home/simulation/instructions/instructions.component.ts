@@ -1,4 +1,13 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges
+} from '@angular/core';
 import {byteToHex} from "../../../globals";
 import * as d3 from "d3";
 import * as Store from "electron-store";
@@ -34,7 +43,7 @@ class Section {
   templateUrl: './instructions.component.html',
   styleUrls: ['./instructions.component.scss']
 })
-export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
+export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() private programCounter;
   @Input() private elfPath;
   public sections: Section[] = [];
@@ -116,4 +125,9 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
     d3.select('#assembly-code-div-hex-' + newPC).style('background', "#007400");
     d3.select('#assembly-code-div-hex-' + newPC).style('border-color', "transparent");
   }
+
+  ngOnDestroy() {
+    this.objdumpWorker.terminate();
+  }
+
 }

@@ -1,6 +1,6 @@
 {
   "name": "riscv-sim",
-  "version": "0.2.0",
+  "version": "0.1.2",
   "description": "CPU Visualisation based on a risc-v processor in verilog",
   "author": {
     "name": "Michael Gafert",
@@ -19,40 +19,31 @@
   "private": true,
   "scripts": {
     "info": "npm-scripts-info",
-
     "?start": "echo Start electron locally with angular beeing served and watched",
     "start": "npm-run-all -p electron:serve ng:serve",
     "ng:serve": "ng serve",
     "ng:serve:web": "ng serve -c web -o",
     "electron:serve-tsc": "tsc -p tsconfig-serve.json",
-    "electron:serve": "wait-on http-get://localhost:4200/ && npm run electron:serve-tsc && electron . --serve --remote-debugging-port=9222 --enable-logging",
-
+    "electron:serve": "wait-on http-get://localhost:4200/ && npm run electron:serve-tsc && electron . --serve --enable-logging --verbose",
     "?build:simlib_binding:local": "echo Generates ts, cpp bindings between electron and the simulation_library. Requires cmake and python3.",
     "build:simlib_binding:local": "cd ./simulation_library && cmake . -G\"Unix Makefiles\" && make GenerateBinding && cd ..",
-
     "?build:simlib:local": "echo Compile the simlib simulation_library. Requires cmake and gcc to be installed.",
     "build:simlib:local": "npm run build:simlib:clean && cmake -S./simulation_library -G\"Unix Makefiles\" -B./simulation_library && make -C ./simulation_library Vtestbench",
-
     "?build:simlib:windows_docker": "echo Compile the simlib simulation_library for windows with a docker image. Requires docker.",
     "build:simlib:windows_docker": "npm run build:simlib:clean && docker run --rm dockcross/windows-static-x64 > ./dockcross-windows-static-x64 && chmod +x ./dockcross-windows-static-x64 && ./dockcross-windows-static-x64 cmake -S./simulation_library -G\"Unix Makefiles\" -B./simulation_library && ./dockcross-windows-static-x64 make -C ./simulation_library Vtestbench",
-
     "?build:simlib:linux_docker": "echo Compile the simlib simulation_library for linux with a docker image. Requires docker.",
     "build:simlib:linux_docker": "npm run build:simlib:clean && docker run --rm dockcross/linux-x64 > ./dockcross-linux-x64 && chmod +x ./dockcross-linux-x64 && ./dockcross-linux-x64 cmake -S./simulation_library -G\"Unix Makefiles\" -B./simulation_library && ./dockcross-linux-x64 make -C ./simulation_library Vtestbench ",
-
     "?build:simlib:clean": "echo Clean the CMakeFiles of the simulation_library.",
     "build:simlib:clean": "rm -rf ./simulation_library/CMakeFiles ||: && rm ./simulation_library/Makefile ||: && rm ./simulation_library/CMakeCache.txt ||: && rm ./simulation_library/cmake_install.cmake ||:",
-
     "?electron:all": "Build windows, macOS and linux production builds.",
     "electron:all": "npm run build:prod && electron-builder build -lwm",
     "electron:win_lin": "npm run build:prod && electron-builder build --win --linux",
     "electron:linux": "npm run build:prod && electron-builder build --linux",
     "electron:windows": "npm run build:prod && electron-builder build --win",
     "electron:mac": "npm run build:prod && electron-builder build --mac",
-
     "build": "npm run electron:serve-tsc && ng build --base-href ./",
     "build:dev": "npm run build -- -c dev",
     "build:prod": "npm run build -- -c production",
-
     "postinstall": "electron-builder install-app-deps",
     "ng": "ng",
     "test": "ng test",
@@ -86,7 +77,7 @@
     "conventional-changelog-cli": "2.0.32",
     "core-js": "3.1.4",
     "cross-env": "7.0.0",
-    "electron": "8.0.1",
+    "electron": "9.0.4",
     "electron-builder": "22.3.2",
     "electron-rebuild": "1.10.1",
     "electron-reload": "1.5.0",
@@ -134,7 +125,7 @@
     "ref-array-di": "1.2.1",
     "ref-napi": "1.4.3",
     "tar-fs": "2.0.1",
-    "three": "0.116.1",
+    "three": "0.117.1",
     "three-text2d": "0.6.0",
     "unzipper": "0.10.11"
   }
