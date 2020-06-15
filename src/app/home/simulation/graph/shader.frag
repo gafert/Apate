@@ -1,7 +1,6 @@
 precision highp float;
 
 varying vec2 vUv;
-varying vec3 vPos;
 varying float vPixelRatio;
 varying float vAspectRatio;
 varying float vPixelSizeRatio;

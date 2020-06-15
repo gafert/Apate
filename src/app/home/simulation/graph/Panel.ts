@@ -28,10 +28,10 @@ export class Panel {
       vertexShader: V_SHADER,
       fragmentShader: F_SHADER,
       uniforms: {
-        u_backgroundColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey3'))},
-        u_borderColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey1'))},
-        u_width: {type: 'f', value: this._width},
-        u_height: {type: 'f', value: this._height},
+        u_backgroundColor: {value: new THREE.Color(readStyleProperty('grey3'))},
+        u_borderColor: {value: new THREE.Color(readStyleProperty('grey1'))},
+        u_width: {value: this._width},
+        u_height: {value: this._height},
         ...this._globalUniforms
       }
     });
@@ -122,10 +122,10 @@ export class Port {
       vertexShader: V_SHADER,
       fragmentShader: F_SHADER,
       uniforms: {
-        u_backgroundColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey2'))},
-        u_borderColor: {type: 'vec3', value: new THREE.Color(readStyleProperty('grey1'))},
-        u_width: {type: 'f', value: width},
-        u_height: {type: 'f', value: height},
+        u_backgroundColor: {value: new THREE.Color(readStyleProperty('grey2'))},
+        u_borderColor: {value: new THREE.Color(readStyleProperty('grey1'))},
+        u_width: {value: width},
+        u_height: {value: height},
         ...this._globalUniforms
       }
     });
