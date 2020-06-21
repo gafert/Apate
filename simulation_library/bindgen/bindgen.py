@@ -295,7 +295,7 @@ ffi_out_file.write("const ArrayType = require('ref-array-di')(ref);\n\n")
 ffi_out_file.write("export class Bindings {\n")
 
 for function in functions:
-    line = "  private " + camelize(function.name, False) + "Callbacks = [];\n"
+    line = "  public " + camelize(function.name, False) + "Callbacks = [];\n"
     ffi_out_file.write(line)
 
     line = "  private " + camelize(function.name, False) + "Callback = Callback('" + get_ffi_datatype_from_string(

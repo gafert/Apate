@@ -1,18 +1,21 @@
-import {AfterViewInit, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as d3 from "d3";
 import * as fs from "fs";
 import * as path from "path";
 import {byteToHex, range} from "../../globals";
 import {DataService, SimLibInterfaceService} from "../../core/services";
 import {InstructionsComponent} from "./instructions/instructions.component";
+import {takeUntil} from "rxjs/operators";
+import {Subject} from "rxjs";
 
 @Component({
   selector: 'app-simulation',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.scss']
 })
-export class SimulationComponent implements OnInit, AfterViewInit {
+export class SimulationComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
+  private ngUnsubscribe = new Subject();
 
   public byteToHex = byteToHex;
   public range = range;
@@ -41,7 +44,7 @@ export class SimulationComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.dataService.folderPath.subscribe(value => {
+    this.dataService.folderPath.pipe(takeUntil(this.ngUnsubscribe)).subscribe(value => {
       if (value) {
         // Search for .elf in project
         fs.readdir(value, (err, files) => {
@@ -67,7 +70,7 @@ export class SimulationComponent implements OnInit, AfterViewInit {
       disableOneColumnMode: true
     });
     this.setSizeOfGrid();
-    window.addEventListener('resize', () => this.setSizeOfGrid());
+    window.addEventListener('resize', this.setSizeOfGrid);
   }
 
   setSizeOfGrid() {
@@ -95,5 +98,12 @@ export class SimulationComponent implements OnInit, AfterViewInit {
     } else {
       this.simLibInterfaceService.advanceSimulationPc();
     }
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('resize', this.setSizeOfGrid);
+    this.grid.destroy();
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }

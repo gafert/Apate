@@ -1,6 +1,5 @@
 import {
   AfterContentInit,
-  AfterViewInit,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -14,8 +13,9 @@ import {DataService} from "../../core/services";
 import * as path from "path";
 import {MonacoStandaloneCodeEditor} from "@materia-ui/ngx-monaco-editor/lib/interfaces";
 import Timeout = NodeJS.Timeout;
+import {BehaviorSubject, Subject} from "rxjs";
+import {takeUntil} from "rxjs/operators";
 import {readStyleProperty} from "../../utils/helper";
-import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-compile',
@@ -26,6 +26,7 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
   @ViewChild('fileOptions') fileOptions: ElementRef<HTMLDivElement>;
   @ViewChild('terminalOutputElement') terminalOutputElement: ElementRef<HTMLDivElement>;
   @ViewChild('fileAreaContainer') fileAreaContainer: ElementRef<HTMLDivElement>;
+  private ngUnsubscribe = new Subject();
 
   //region Variables
 
@@ -98,14 +99,14 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
   constructor(private changeDetection: ChangeDetectorRef,
               private dataService: DataService) {
     // Get stored settings
-    this.dataService.toolchainPath.subscribe((value) => this.toolchainPath = value);
-    this.dataService.toolchainPrefix.subscribe((value) => this.toolchainPrefix = value);
-    this.dataService.activeFile.subscribe((value) => this.activeFile = value);
-    this.dataService.activeFileIsSaveable.subscribe((value) => {
+    this.dataService.toolchainPath.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => this.toolchainPath = value);
+    this.dataService.toolchainPrefix.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => this.toolchainPrefix = value);
+    this.dataService.activeFile.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => this.activeFile = value);
+    this.dataService.activeFileIsSaveable.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.fileIsSavable = value;
       if (this.editor) this.editor.updateOptions({readOnly: !value})
     });
-    this.dataService.folderPath.subscribe((value) => {
+    this.dataService.folderPath.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.folderPath = value;
       if (this.folderPath) this.reloadFolderContents();
     });
@@ -119,7 +120,8 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
   }
 
   ngOnDestroy() {
-    if(this.editorModelChangeListener) this.editorModelChangeListener.dispose();
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 
   ngAfterContentInit() {
@@ -134,7 +136,7 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
   }
 
   editorInitiated() {
-    this.viewInitiated.subscribe((initiated) => {
+    this.viewInitiated.pipe(takeUntil(this.ngUnsubscribe)).subscribe((initiated) => {
       if (initiated) {
         // Change the theme to fit the apps grey
         monaco.editor.defineTheme("vs-real-grey", {
@@ -148,14 +150,14 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
 
         this.editor.updateOptions({readOnly: !this.fileIsSavable})
 
-        this.dataService.activeFileContent.subscribe((value) => {
+        this.dataService.activeFileContent.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
           if (this.fileContent !== value && value !== null) {
             this.fileContent = value;
             this.fileLoadedIntoEditor = true;
           }
         });
 
-        this.dataService.activeFile.subscribe((value) => {
+        this.dataService.activeFile.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
           if(this.activeFile) {
             /**
              * If the filename was loaded determine the language by the suffix.

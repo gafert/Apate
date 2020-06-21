@@ -15,6 +15,7 @@ import {easing, styler, tween} from "popmotion";
 import isDev from "electron-is-dev";
 import {DataService, SimLibInterfaceService} from "../../../core/services";
 import * as path from "path";
+import {ObjdumpService} from "./objdump.service";
 
 class Assembly {
   opcode: string;
@@ -48,7 +49,6 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
   @Input() private elfPath;
   public sections: Section[] = [];
   public byteToHex = byteToHex;
-  private objdumpWorker = new Worker('./static/objdump.worker.js');
   private store = new Store();
   private toolchainPath = this.store.get('toolchainPath', "");
   private toolchainPrefix = this.store.get('toolchainPrefix', "");
@@ -56,7 +56,8 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
 
   constructor(private changeDetection: ChangeDetectorRef,
               private simLibInterfaceService: SimLibInterfaceService,
-              private dataService: DataService) {
+              private dataService: DataService,
+              private objdumpService: ObjdumpService) {
   }
 
   ngOnInit(): void {
@@ -65,7 +66,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
       this.sections = this.dataService.instructionsSections;
     }
 
-    this.objdumpWorker.onmessage = e => {
+    this.objdumpService.objdumpWorker.onmessage = e => {
       // Emitted when the elf changed and instructions needed to be renewed
       this.sections = e.data;
       // Save instructions
@@ -90,7 +91,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
 
   public reload() {
     if (this.elfPath.indexOf('.elf') > 0) {
-      this.objdumpWorker.postMessage({file: this.elfPath, isDev: isDev, objdumpPath: this.objdumpPath});
+      this.objdumpService.objdumpWorker.postMessage({file: this.elfPath, isDev: isDev, objdumpPath: this.objdumpPath});
     }
   }
 
@@ -127,7 +128,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   ngOnDestroy() {
-    this.objdumpWorker.terminate();
+    this.objdumpService.objdumpWorker.terminate();
   }
 
 }

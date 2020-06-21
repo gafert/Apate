@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {AfterViewInit, Component} from '@angular/core';
 import {DataService} from "../core/services";
 import {byteToHex} from "../globals";
 import electron from "electron";
@@ -11,7 +11,7 @@ import isDev from "electron-is-dev";
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
+export class HomeComponent implements AfterViewInit {
   public byteToHex = byteToHex;
   public folderPath: string;
 
@@ -67,5 +67,25 @@ export class HomeComponent {
     child.once('close', () => {
       this.dataService.loadSettings();
     })
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      // this.clickCompileTab();
+    }, 2000);
+  }
+
+  clickCompileTab() {
+    document.getElementById('button-tab-compile').click();
+    setTimeout(() => {
+      this.clickSimulateTab();
+    }, 500);
+  }
+
+  clickSimulateTab() {
+    document.getElementById('button-tab-simulate').click();
+    setTimeout(() => {
+      this.clickCompileTab();
+    }, 500);
   }
 }

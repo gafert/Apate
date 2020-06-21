@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {BehaviorSubject} from "rxjs";
 import * as Store from 'electron-store';
 import fs from "fs";
+import SparkMD5 from "spark-md5";
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,9 @@ export class DataService {
   activeFileContent: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
   activeFileIsSaveable: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(undefined);
   toolchainPrefix: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
+
+  /** Only save to file if the hash of the element which should be saved changed */
+  hashList = [];
 
   constructor() {
     this.loadSettings();
@@ -46,13 +50,15 @@ export class DataService {
   }
 
   private subscribeToSetting(setting, settingString) {
-    if(!oldValue) var oldValue = this.store.get(settingString);
+    if(this.hashList[settingString] === undefined) {
+      this.hashList[settingString] = SparkMD5.hash(String(this.store.get(settingString, "")));
+    }
     setting.subscribe((newValue) => {
-      if (newValue !== undefined && oldValue !== newValue) {
+      if (newValue && this.hashList[settingString] !== SparkMD5.hash(String(newValue))) {
         console.log("Saving " + settingString);
         this.store.set(settingString, newValue)
+        this.hashList[settingString] = SparkMD5.hash(String(this.store.get(settingString, "")));
       }
-      oldValue = newValue;
     });
   }
 }

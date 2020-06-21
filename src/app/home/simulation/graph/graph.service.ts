@@ -51,7 +51,6 @@ export class GraphService {
       this.render();
       panzoom(this.camera, domElement);
     } else {
-
       let width = domElement.clientWidth;
       let height = domElement.clientHeight;
 
@@ -82,14 +81,9 @@ export class GraphService {
         if (document.readyState !== 'loading') {
           this.render();
         } else {
-          window.addEventListener('DOMContentLoaded', () => {
-            this.render();
-          });
+          window.addEventListener('DOMContentLoaded', this.render);
         }
-
-        window.addEventListener('resize', () => {
-          this.resize();
-        });
+        window.addEventListener('resize', this.resize);
       });
 
       this.initiated = true;

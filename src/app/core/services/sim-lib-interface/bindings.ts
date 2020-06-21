@@ -23,7 +23,7 @@ import {BehaviorSubject} from "rxjs";
 const ArrayType = require('ref-array-di')(ref);
 
 export class Bindings {
-  private bufferWriteCallbacks = [];
+  public bufferWriteCallbacks = [];
   private bufferWriteCallback = Callback('void', ['int'], (character) => this.callBufferWriteCallbacks(character));
   private callBufferWriteCallbacks(character) {
     for (let callback of this.bufferWriteCallbacks) {
