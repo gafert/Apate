@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {SimLibInterfaceService} from "../../../core/services";
 
 @Component({
@@ -6,11 +6,14 @@ import {SimLibInterfaceService} from "../../../core/services";
   templateUrl: './terminal.component.html',
   styleUrls: ['./terminal.component.css']
 })
-export class TerminalComponent implements OnInit, OnDestroy {
+export class TerminalComponent implements OnInit, OnDestroy, AfterViewInit {
   public terminal = "";
 
-  constructor(public SimLib: SimLibInterfaceService) {
-    SimLib.bindings.addBufferWriteCallback(this.printBuffer)
+  constructor(private SimLib: SimLibInterfaceService) {
+  }
+
+  ngAfterViewInit() {
+    this.SimLib.bindings.addBufferWriteCallback((c) => this.printBuffer(c));
   }
 
   printBuffer(character) {
@@ -22,11 +25,8 @@ export class TerminalComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    const index = this.SimLib.bindings.bufferWriteCallbacks.indexOf(this.printBuffer);
-    console.log("Removing: ", index);
-    if (index > -1) {
-      this.SimLib.bindings.bufferWriteCallbacks.splice(index, 1);
-    }
+    // TODO: Find a way to remove a callback from a list
+    this.SimLib.bindings.bufferWriteCallbacks = [];
   }
 
 }
