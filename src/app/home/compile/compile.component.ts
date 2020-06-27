@@ -1,31 +1,27 @@
-import {
-  AfterContentInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  OnDestroy,
-  ViewChild
-} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import {spawn} from "child_process";
 import {byteToHex} from "../../globals";
 import * as fs from "fs";
 import {DataService} from "../../core/services";
 import * as path from "path";
-import {MonacoStandaloneCodeEditor} from "@materia-ui/ngx-monaco-editor/lib/interfaces";
-import Timeout = NodeJS.Timeout;
-import {BehaviorSubject, Subject} from "rxjs";
+import {Subject} from "rxjs";
 import {takeUntil} from "rxjs/operators";
-import {readStyleProperty} from "../../utils/helper";
+import Timeout = NodeJS.Timeout;
+import {CodemirrorComponent} from "@ctrl/ngx-codemirror";
+
+declare var CodeMirror: any;
 
 @Component({
   selector: 'app-compile',
   templateUrl: './compile.component.html',
   styleUrls: ['./compile.component.scss']
 })
-export class CompileComponent implements OnDestroy, AfterContentInit {
+export class CompileComponent implements OnDestroy, AfterViewInit {
   @ViewChild('fileOptions') fileOptions: ElementRef<HTMLDivElement>;
   @ViewChild('terminalOutputElement') terminalOutputElement: ElementRef<HTMLDivElement>;
   @ViewChild('fileAreaContainer') fileAreaContainer: ElementRef<HTMLDivElement>;
+  @ViewChild('codemirrorComponent') codemirrorComponent: CodemirrorComponent;
+
   private ngUnsubscribe = new Subject();
 
   //region Variables
@@ -68,15 +64,16 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
   // Editor
 
   /** The default settings the editor uses. Changes in these values to not affect the editor */
-  public editorOptions = {theme: 'vs-real-grey', language: 'plaintext'};
-  /** In top level to have the ability to dispose it later */
-  private editorModelChangeListener: monaco.IDisposable;
+  public editorOptions = {
+    lineNumbers: true,
+    theme: 'dracula',
+    mode: 'clike',
+    readOnly: false
+  };
   /** Dont save a empty editor file before the real file was loaded in */
   private fileLoadedIntoEditor = false;
   /** Holds the editor so settings can be changed */
-  private editor: MonacoStandaloneCodeEditor;
   public fileContent = "";
-  private viewInitiated: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   languages = {
     "elf": "plaintext",
@@ -104,7 +101,7 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
     this.dataService.activeFile.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => this.activeFile = value);
     this.dataService.activeFileIsSaveable.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.fileIsSavable = value;
-      if (this.editor) this.editor.updateOptions({readOnly: !value})
+      this.editorOptions.readOnly = !value;
     });
     this.dataService.folderPath.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.folderPath = value;
@@ -117,77 +114,48 @@ export class CompileComponent implements OnDestroy, AfterContentInit {
         this.fileOptions.nativeElement.style.display = "none";
       }
     });
+
+    this.dataService.activeFileContent.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+      if (this.fileContent !== value && value !== null) {
+        this.fileContent = value;
+        this.fileLoadedIntoEditor = true;
+      }
+    });
   }
 
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
+    clearTimeout(this.timeout);
   }
 
-  ngAfterContentInit() {
-    setTimeout(() => this.viewInitiated.next(true), 0);
+  ngAfterViewInit() {
+    this.dataService.activeFile.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+      if (this.activeFile) {
+        let modeObj = this.codemirrorComponent.codeMirrorGlobal.findModeByFileName(value);
+        let mode = modeObj ? modeObj.mode : null
+        console.log(mode);
+        this.editorOptions.mode = mode;
+      }
+    });
   }
 
   //region Editor
 
-  editorInit(editor: MonacoStandaloneCodeEditor) {
-    this.editor = editor;
-    this.editorInitiated();
-  }
+  private timeout: Timeout;
 
-  editorInitiated() {
-    this.viewInitiated.pipe(takeUntil(this.ngUnsubscribe)).subscribe((initiated) => {
-      if (initiated) {
-        // Change the theme to fit the apps grey
-        monaco.editor.defineTheme("vs-real-grey", {
-          base: "vs-dark", inherit: true, rules: [],
-          colors: {
-            "editor.background": readStyleProperty("grey3"),
-            // See more properties at https://stackoverflow.com/a/51360204
-          }
-        });
-        monaco.editor.setTheme('vs-real-grey');
+  fileContentChanged(event) {
+    /**
+     * This gets called every time the value in the editor is changed.
+     * Start a timeout to save the file after 2s of inactivity.
+     */
 
-        this.editor.updateOptions({readOnly: !this.fileIsSavable})
+    let save = () => {
+      this.fileContentEdited(this.fileContent);
+    }
 
-        this.dataService.activeFileContent.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
-          if (this.fileContent !== value && value !== null) {
-            this.fileContent = value;
-            this.fileLoadedIntoEditor = true;
-          }
-        });
-
-        this.dataService.activeFile.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
-          if(this.activeFile) {
-            /**
-             * If the filename was loaded determine the language by the suffix.
-             */
-            let ending = value.split('.').pop();
-            let langId = this.languages[ending];
-
-            // If there was no file type found set the default value
-            if (!langId) langId = "plaintext";
-
-            monaco.editor.setModelLanguage(this.editor.getModel(), langId);
-          }
-        });
-
-        let timeout: Timeout;
-        this.editorModelChangeListener = this.editor.getModel().onDidChangeContent(() => {
-          /**
-           * This gets called every time the value in the editor is changed.
-           * Start a timeout to save the file after 2s of inactivity.
-           */
-
-          let save = () => {
-            this.fileContentEdited(this.fileContent);
-          }
-
-          clearTimeout(timeout);
-          timeout = setTimeout(save, 200);
-        })
-      }
-    })
+    clearTimeout(this.timeout);
+    this.timeout = setTimeout(save, 200);
   }
 
   //endregion

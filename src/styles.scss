@@ -1,9 +1,26 @@
 /* You can add global styles to this file, and also import other style filesInFolder */
 @import "import";
-@import "../node_modules/@fortawesome/fontawesome-free/css/all.css";
+@import "~@fortawesome/fontawesome-free/css/all.css";
+@import "~codemirror/lib/codemirror";
+@import "~codemirror/theme/dracula";
 
+.cm-s-dracula.CodeMirror {
+  height: 100%;
+}
+
+.cm-s-dracula.CodeMirror, .cm-s-dracula .CodeMirror-gutters {
+  background-color: rgba(0, 0, 0, 0) !important;
+  color: #f8f8f2 !important;
+  border: none;
+}
+
+.cm-s-dracula .CodeMirror-gutters {
+  background-color: $grey3 !important;
+}
+
+/* Gridstack custom setting */
 $gridstack-columns: 30;
-@import "../node_modules/gridstack/dist/src/gridstack-extra";
+@import "~gridstack/dist/src/gridstack-extra";
 
 /* apply a natural box layout model to all elements, but allowing components to change */
 html {

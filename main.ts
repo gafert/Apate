@@ -38,6 +38,11 @@ function createWindow(): BrowserWindow {
     }));
   }
 
+  /*win.webContents.on('crashed', () => {
+    win.destroy();
+    createWindow();
+  });*/
+
   if (serve) {
     win.webContents.openDevTools();
   }

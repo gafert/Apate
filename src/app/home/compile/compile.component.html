@@ -25,7 +25,8 @@
       <div class="box--header">
         Terminal Output
       </div>
-      <div #terminalOutputElement class="text-box" style="white-space: pre-wrap; font-family: 'Roboto Mono'">{{terminalOutput}}</div>
+      <div #terminalOutputElement class="text-box"
+           style="white-space: pre-wrap; font-family: 'Roboto Mono'">{{terminalOutput}}</div>
     </div>
   </div>
 
@@ -40,14 +41,15 @@
       </div>
     </div>
     <div #fileAreaContainer class="file-area-container">
-      <ngx-monaco-editor
-        [options]="editorOptions"
-        (init)="editorInit($event)"
-        [(ngModel)]="fileContent"></ngx-monaco-editor>
+      <ngx-codemirror style="width: 100%; height: 100%"
+                      [(ngModel)]="fileContent"
+                      (ngModelChange)="fileContentChanged($event)"
+                      [options]="editorOptions"
+                      #codemirrorComponent
+      ></ngx-codemirror>
     </div>
   </div>
 </div>
-
 
 
 <div #fileOptions class="option-menu">

@@ -11,7 +11,6 @@ import {AppComponent} from './app.component';
 import {SettingsComponent} from './settings/settings.component';
 import {CompileModule} from "./home/compile/compile.module";
 import {SharedModule} from "./components/shared/shared.module";
-import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 
 @NgModule({
   declarations: [AppComponent, SettingsComponent],
@@ -22,9 +21,8 @@ import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
     CoreModule,
     AppRoutingModule,
     CompileModule,
-    SharedModule,
-    MonacoEditorModule
-],
+    SharedModule
+  ],
   providers: [],
   bootstrap: [AppComponent]
 })
