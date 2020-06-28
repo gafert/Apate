@@ -17,6 +17,8 @@ function createWindow(): BrowserWindow {
     y: 0,
     width: size.width,
     height: size.height,
+    minWidth: 800,
+    minHeight: 600,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
@@ -38,13 +40,17 @@ function createWindow(): BrowserWindow {
     }));
   }
 
-  /*win.webContents.on('crashed', () => {
-    win.destroy();
-    createWindow();
-  });*/
+  if (!serve) {
+    // Fail operational
+    // Reload window if the render error crashes in production build
+    win.webContents.on('crashed', () => {
+      win.destroy();
+      createWindow();
+    });
+  }
 
   if (serve) {
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
   }
 
   // Emitted when the window is closed.
