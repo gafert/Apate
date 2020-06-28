@@ -29,6 +29,7 @@ export class SimLibInterfaceService {
   private objcopyFlags = "-O verilog";
 
   constructor(private dataService: DataService) {
+    console.log("Constructed sim-lib-interface.service");
     let extension;
     if (this.isMac) {
       extension = "dylib";
@@ -49,29 +50,35 @@ export class SimLibInterfaceService {
   }
 
   initSimulation(pathToElf: string) {
+    if (!this.elfIsLoaded) {
+      // Only load once in the service
+      this.SimLib = new Library(this.libraryPath,
+        {
+          'advance_simulation_with_statechange': ['void', []],
+          'advance_simulation_with_pc': ['void', []],
+          'advance_simulation_with_clock': ['void', []],
+          'init_simulation': ['void', ['string']],
+          ...bindings.function_definitions
+        });
+    }
+
     this.generateHexFromElf(pathToElf).then((hexPath) => {
-      if (!this.elfIsLoaded)
-        this.SimLib = new Library(this.libraryPath,
-          {
-            'advance_simulation_with_statechange': ['void', []],
-            'advance_simulation_with_pc': ['void', []],
-            'advance_simulation_with_clock': ['void', []],
-            'init_simulation': ['void', ['string']],
-            ...bindings.function_definitions
-          });
-
       this.SimLib.init_simulation(hexPath);
-      this.elfIsLoaded = true;
-      this.currentlyLoadedElf = pathToElf;
-
-      bindings.setPointers(this.SimLib);
 
       for (let i = 0; i < 100; i++) {
         this.SimLib.advance_simulation_with_clock();
       }
-    })
 
-    this.bindings.detectValueChanged();
+      this.bindings.setPointers(this.SimLib);
+
+      if (!this.elfIsLoaded) {
+        // Only start timer once
+        this.bindings.detectValueChanged();
+      }
+
+      this.elfIsLoaded = true;
+      this.currentlyLoadedElf = pathToElf;
+    })
   }
 
   advanceSimulationClock() {
