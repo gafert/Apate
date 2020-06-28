@@ -81,9 +81,9 @@ export class GraphService {
         if (document.readyState !== 'loading') {
           this.render();
         } else {
-          window.addEventListener('DOMContentLoaded', this.render);
+          window.addEventListener('DOMContentLoaded', this.render.bind(this));
         }
-        window.addEventListener('resize', this.resize);
+        window.addEventListener('resize', this.resize.bind(this));
       });
 
       this.initiated = true;

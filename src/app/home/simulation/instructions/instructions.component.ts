@@ -2,7 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  Input,
+  Input, NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -15,7 +15,6 @@ import {easing, styler, tween} from "popmotion";
 import isDev from "electron-is-dev";
 import {DataService, SimLibInterfaceService} from "../../../core/services";
 import * as path from "path";
-import {ObjdumpService} from "./objdump.service";
 
 class Assembly {
   opcode: string;
@@ -57,7 +56,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
   constructor(private changeDetection: ChangeDetectorRef,
               private simLibInterfaceService: SimLibInterfaceService,
               private dataService: DataService,
-              private objdumpService: ObjdumpService) {
+              private ngZone: NgZone) {
   }
 
   ngOnInit(): void {
@@ -65,15 +64,6 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
     if (this.dataService.instructionsSections) {
       this.sections = this.dataService.instructionsSections;
     }
-
-    this.objdumpService.objdumpWorker.onmessage = e => {
-      // Emitted when the elf changed and instructions needed to be renewed
-      this.sections = e.data;
-      // Save instructions
-      this.dataService.instructionsSections = this.sections;
-      this.changeDetection.detectChanges();
-      this.setInstructionColor(0, this.programCounter);
-    };
   }
 
   ngAfterViewInit(): void {
@@ -89,9 +79,28 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
       }
   }
 
+  private isRunning = false;
+
   public reload() {
     if (this.elfPath.indexOf('.elf') > 0) {
-      this.objdumpService.objdumpWorker.postMessage({file: this.elfPath, isDev: isDev, objdumpPath: this.objdumpPath});
+      if (!this.isRunning) {
+        this.isRunning = true;
+        let objdumpWorker = new Worker('./static/objdump.worker.js');
+        objdumpWorker.onmessage = e => {
+          this.ngZone.run(() => {
+            // Emitted when the elf changed and instructions needed to be renewed
+            this.sections = e.data;
+            // Save instructions
+            this.dataService.instructionsSections = this.sections;
+            setTimeout(() => {
+              this.setInstructionColor(0, this.programCounter);
+            }, 100)
+            objdumpWorker.terminate();
+            this.isRunning = false;
+          });
+        };
+        objdumpWorker.postMessage({file: this.elfPath, isDev: isDev, objdumpPath: this.objdumpPath});
+      }
     }
   }
 
@@ -128,7 +137,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   ngOnDestroy() {
-    this.objdumpService.objdumpWorker.terminate();
+
   }
 
 }

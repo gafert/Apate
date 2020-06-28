@@ -70,7 +70,7 @@ export class SimulationComponent implements OnInit, AfterViewInit, OnDestroy {
       disableOneColumnMode: true
     });
     this.setSizeOfGrid();
-    window.addEventListener('resize', this.setSizeOfGrid);
+    window.addEventListener('resize', this.setSizeOfGrid.bind(this));
   }
 
   setSizeOfGrid() {
@@ -101,7 +101,7 @@ export class SimulationComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    window.removeEventListener('resize', this.setSizeOfGrid);
+    window.removeEventListener('resize', this.setSizeOfGrid.bind(this));
     this.grid.destroy();
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();

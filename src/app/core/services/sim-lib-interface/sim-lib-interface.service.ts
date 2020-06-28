@@ -28,8 +28,7 @@ export class SimLibInterfaceService {
   private toolchainPrefix;
   private objcopyFlags = "-O verilog";
 
-  constructor(private dataService: DataService,
-              private zone: NgZone) {
+  constructor(private dataService: DataService) {
     let extension;
     if (this.isMac) {
       extension = "dylib";
@@ -51,14 +50,15 @@ export class SimLibInterfaceService {
 
   initSimulation(pathToElf: string) {
     this.generateHexFromElf(pathToElf).then((hexPath) => {
-      this.SimLib = new Library(this.libraryPath,
-        {
-          'advance_simulation_with_statechange': ['void', []],
-          'advance_simulation_with_pc': ['void', []],
-          'advance_simulation_with_clock': ['void', []],
-          'init_simulation': ['void', ['string']],
-          ...bindings.function_definitions
-        });
+      if (!this.elfIsLoaded)
+        this.SimLib = new Library(this.libraryPath,
+          {
+            'advance_simulation_with_statechange': ['void', []],
+            'advance_simulation_with_pc': ['void', []],
+            'advance_simulation_with_clock': ['void', []],
+            'init_simulation': ['void', ['string']],
+            ...bindings.function_definitions
+          });
 
       this.SimLib.init_simulation(hexPath);
       this.elfIsLoaded = true;
