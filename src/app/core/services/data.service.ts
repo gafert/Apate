@@ -54,9 +54,13 @@ export class DataService {
       this.hashList[settingString] = SparkMD5.hash(String(this.store.get(settingString, "")));
     }
     setting.subscribe((newValue) => {
-      if (newValue && this.hashList[settingString] !== SparkMD5.hash(String(newValue))) {
+      if (this.hashList[settingString] !== SparkMD5.hash(String(newValue))) {
         console.log("Saving " + settingString);
-        this.store.set(settingString, newValue)
+        if(newValue) {
+          this.store.set(settingString, newValue);
+        } else {
+          this.store.delete(settingString);
+        }
         this.hashList[settingString] = SparkMD5.hash(String(this.store.get(settingString, "")));
       }
     });

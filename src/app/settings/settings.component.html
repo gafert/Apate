@@ -8,9 +8,11 @@
     Settings will be saved automatically
   </div>
 
-  <div (click)="clickToolchainPath($event)" class="setting-box">
+  <div class="setting-box">
     <div class="title">RISC-V Toolchain</div>
-    <div class="toolchain-path" contenteditable="false">
+    <div
+      *ngIf="!toolchainPath || toolchainDownloaderState === ToolchainDownEnum.UNZIPPING || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING; else toolchainPathSetting"
+      class="toolchain-path" contenteditable="false">
       <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING"
            style="margin-right: 2em; overflow-x: scroll">Downloading... {{toolchainPercentDownloaded}} %
       </div>
@@ -18,10 +20,18 @@
            style="margin-right: 2em; overflow-x: scroll">Unzipping...
       </div>
       <div
-        *ngIf="toolchainDownloaderState === ToolchainDownEnum.NOT_DOWNLOADED || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
-        style="margin-right: 2em; overflow-x: scroll">{{toolchainPath ? toolchainPath : 'Click to set'}}
+        *ngIf="!toolchainPath
+        && (toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED
+        || toolchainDownloaderState === ToolchainDownEnum.NOT_DOWNLOADED
+        || toolchainDownloaderState === ToolchainDownEnum.WAS_DOWNLOADED)"
+        style="margin-right: 2em; overflow-x: scroll">Path is not set
       </div>
     </div>
+    <ng-template #toolchainPathSetting>
+      <app-setting
+        [(setting)]="toolchainPath" settingKey="toolchainPath"></app-setting>
+    </ng-template>
+    <i (click)="clickToolchainPath($event)" class="fas fa-chevron-down" style="top: 2em;"></i>
   </div>
   <div class="setting-box">
     <div class="title">Prefix</div>
@@ -40,11 +50,15 @@
   <div (click)="openToolchainPathExplorerDialog()" class="option">
     Set local...
   </div>
-  <div (click)="useDownloadedToolchain()" *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
+  <div (click)="useDownloadedToolchain()" *ngIf="
+  toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED
+  || toolchainDownloaderState === ToolchainDownEnum.WAS_DOWNLOADED"
        class="option">
     Use downloaded toolchain
   </div>
-  <div (click)="removeToolchain()" *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED"
+  <div (click)="removeToolchain()" *ngIf="
+  toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED
+  || toolchainDownloaderState === ToolchainDownEnum.WAS_DOWNLOADED"
        class="option">
     Remove downloaded toolchain
   </div>

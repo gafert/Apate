@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, OnInit, ViewChild} from '@angular/core';
 import {DataService, ToolchainDownEnum, ToolchainDownloaderService} from "../core/services";
 import * as electron from "electron";
 
@@ -23,25 +23,24 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   private toolchainPathOptionsOpen = false;
 
   constructor(private toolchainDownloaderService: ToolchainDownloaderService,
-              private dataService: DataService,
-              private changeDetection: ChangeDetectorRef) {
+              private dataService: DataService) {
 
     document.addEventListener('click', (event) => {
       if (this.toolchainPathOptionsOpen) {
         this.toolchainPathOptions.nativeElement.style.display = "none";
       }
-    })
-  }
+    });
 
-  ngAfterViewInit() {
     this.toolchainDownloaderService.state.subscribe((state) => {
       switch (state.state) {
         case ToolchainDownEnum.DOWNLOADING:
+          // TODO: State is not updated in layout in first call
           this.toolchainPercentDownloaded = state.reason as number;
           this.toolchainDownloaderState = state.state;
           break;
         case ToolchainDownEnum.DOWNLOADED:
           // Save toolchain path and set it in the vis
+          // Only set the path if the path was empty
           this.dataService.toolchainPath.next(state.reason as string);
           this.toolchainPath = state.reason as string;
           this.toolchainDownloaderState = state.state;
@@ -50,6 +49,14 @@ export class SettingsComponent implements OnInit, AfterViewInit {
           this.toolchainDownloaderState = state.state;
       }
     });
+
+    this.dataService.toolchainPath.subscribe((value) => {
+      this.toolchainPath = value;
+    });
+  }
+
+  ngAfterViewInit() {
+
   }
 
   ngOnInit(): void {
@@ -59,7 +66,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   clickToolchainPath(event) {
     this.toolchainPathOptions.nativeElement.style.display = "block";
     this.toolchainPathOptions.nativeElement.style.top = event.y + "px";
-    this.toolchainPathOptions.nativeElement.style.left = event.x + "px";
+    this.toolchainPathOptions.nativeElement.style.left = event.x - 170 + "px";
     this.toolchainPathOptionsOpen = true;
     event.stopPropagation();
   }
@@ -76,6 +83,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   }
 
   downloadToolchain() {
+    this.toolchainPath = "";
     this.toolchainDownloaderService.downloadToolchain();
   }
 
@@ -87,7 +95,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   removeToolchain() {
     this.toolchainDownloaderService.removeToolchain();
     this.toolchainPath = "";
-    this.dataService.toolchainPath.next("");
+    this.dataService.toolchainPath.next(this.toolchainPath);
   }
 
   closeWindow() {

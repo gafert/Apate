@@ -17,6 +17,7 @@ export enum ToolchainDownEnum {
   DOWNLOADING,
   UNZIPPING,
   DOWNLOADED,
+  WAS_DOWNLOADED,
   ERROR,
   NOT_DOWNLOADED
 }
@@ -59,12 +60,14 @@ export class ToolchainDownloaderService {
 
     dataService.toolchainDownloaded.subscribe((value) => {
       if (value === true) {
-        this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADED, this.toolchainDownloadPath))
+        this.state.next(new ToolchainDownState(ToolchainDownEnum.WAS_DOWNLOADED, this.toolchainDownloadPath))
       }
     });
   }
 
   public downloadToolchain() {
+    this.removeToolchain();
+
     let platform;
     if (this.isMac) {
       platform = "mac";
@@ -74,14 +77,16 @@ export class ToolchainDownloaderService {
       platform = "win";
     }
 
-    if (!platform) {
-      this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, "Unsupported platform"));
-      return;
-    }
+    this.ngZone.run(() => {
+      if (!platform) {
+        this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, "Unsupported platform"));
+        return;
+      }
+      this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADING, 0));
+    });
 
     const query = "name contains 'riscv64-toolchain-" + platform + "'";
 
-    this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADING, 0));
     authorize().then((jwtClient => {
       this.ngZone.run(() => {
         new Promise<any>((resolveGetId, rejectGetId) => {
@@ -119,11 +124,11 @@ export class ToolchainDownloaderService {
             }).end();
           }).then(() => {
             this.state.next(new ToolchainDownState(ToolchainDownEnum.UNZIPPING, ""));
-
             fs.createReadStream(this.toolchainDownloadZipFile).pipe(zlib.createGunzip()).pipe(tar.extract(this.downloadPath)).on('finish', (err) => {
               this.ngZone.run(() => {
                 if (err) {
                   this.state.next(new ToolchainDownState(ToolchainDownEnum.ERROR, err));
+                  console.log(err);
                   return;
                 }
                 // Delete downloaded zip after it was unpacked
@@ -146,6 +151,7 @@ export class ToolchainDownloaderService {
   public removeToolchain() {
     this.deleteFolderRecursive(path.join(this.downloadPath, this.toolchainFolder)).then(() => {
       this.ngZone.run(() => {
+        console.log("Removed toolchain " + this.downloadPath + "/" + this.toolchainFolder)
         this.state.next(new ToolchainDownState(ToolchainDownEnum.NOT_DOWNLOADED, "Removed Toolchain from " + this.downloadPath + "/" + this.toolchainFolder));
         this.dataService.toolchainDownloaded.next(false);
       });
