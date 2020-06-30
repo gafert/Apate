@@ -1,17 +1,35 @@
-<div style="overflow: scroll" class="shadow-container">
-  <div>Memory</div>
-  <div style="display: flex">Addr: <app-memory-cell [cellValue]="mem_addr"></app-memory-cell></div>
-  <div style="display: flex">RData: <app-memory-cell [cellValue]="mem_rdata"></app-memory-cell></div>
-  <div style="display: flex">WData: <app-memory-cell [cellValue]="mem_wdata"></app-memory-cell></div>
-  <div style="display: flex">Valid: <app-memory-cell [cellValue]="mem_valid"></app-memory-cell></div>
-
-  <table style="font-size: 1em; font-family: 'Roboto Mono'; border-spacing: 0">
-    <tr style="display: flex" *ngFor="let i of range(0, 512-1, 32);">
-      <td style="padding-right: 1em; width: 3em"> {{byteToHex(i, 2)}}</td>
-      <td style="display: flex; padding-left: 0.4em" *ngFor="let r of range(0, 32-1, 4)">
-        <app-memory-cell style="margin-left: 0.2em" *ngFor="let a of range(0, 4-1, 1)"
-                         [cellIndex]="r + i + a" [cellValue]="memory[r + i + a]"></app-memory-cell>
-      </td>
-    </tr>
-  </table>
+<div class="grid-container">
+  <div class="grid-container--header" style="display: flex; justify-content: left">
+    <div>Memory</div>
+    <div style="display: flex; margin-left: 1em; align-items: center">Addr:
+      <app-memory-cell [cellValue]="mem_addr" style="margin-left: 1em"></app-memory-cell>
+    </div>
+    <div style="display: flex; margin-left: 1em; align-items: center">RData:
+      <app-memory-cell [cellValue]="mem_rdata"  style="margin-left: 1em"></app-memory-cell>
+    </div>
+    <div style="display: flex; margin-left: 1em; align-items: center">WData:
+      <app-memory-cell [cellValue]="mem_wdata"  style="margin-left: 1em"></app-memory-cell>
+    </div>
+    <div style="display: flex; margin-left: 1em; align-items: center">Valid:
+      <app-memory-cell [cellValue]="mem_valid"  style="margin-left: 1em"></app-memory-cell>
+    </div>
+  </div>
+  <div class="grid-container--content">
+    <div style="overflow: scroll; margin: 0.5em">
+      <table style="font-size: 1em; font-family: 'Roboto Mono'; border-spacing: 0" *ngIf="memory; else noloadedmemory">
+        <tr style="display: flex" *ngFor="let i of range(0, 512-1, 32);">
+          <td style="padding-right: 1em; width: 3em"> {{byteToHex(i, 2)}}</td>
+          <td style="display: flex; padding-left: 0.4em" *ngFor="let r of range(0, 32-1, 4)">
+            <app-memory-cell style="margin-left: 0.2em" *ngFor="let a of range(0, 4-1, 1)"
+                             [cellIndex]="r + i + a" [cellValue]="memory[r + i + a]"></app-memory-cell>
+          </td>
+        </tr>
+      </table>
+      <ng-template #noloadedmemory>
+        <div style="text-align: center; width: 100%; margin-top: 1em">
+          Memory not loaded. Initiate the simulation.
+        </div>
+      </ng-template>
+    </div>
+  </div>
 </div>

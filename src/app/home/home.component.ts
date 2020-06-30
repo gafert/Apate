@@ -1,22 +1,26 @@
-import {AfterViewInit, Component} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy} from '@angular/core';
 import {DataService} from "../core/services";
 import {byteToHex} from "../globals";
 import electron from "electron";
 import {Router} from "@angular/router";
 import * as url from "url";
 import isDev from "electron-is-dev";
+import {Subject} from "rxjs";
+import {takeUntil} from "rxjs/operators";
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements AfterViewInit {
+export class HomeComponent implements AfterViewInit, OnDestroy {
   public byteToHex = byteToHex;
   public folderPath: string;
 
+  private ngUnsubscribe = new Subject();
+
   constructor(private dataService: DataService, private router: Router) {
-    dataService.folderPath.subscribe((value) => {
+    dataService.folderPath.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.folderPath = value;
     });
   }
@@ -87,5 +91,10 @@ export class HomeComponent implements AfterViewInit {
     setTimeout(() => {
       this.clickCompileTab();
     }, 500);
+  }
+
+  ngOnDestroy() {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 }
