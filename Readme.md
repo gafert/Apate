@@ -1,4 +1,8 @@
+[![Build Status](https://travis-ci.com/gafert/RISC-V-Simulation.svg?branch=master)](https://travis-ci.com/gafert/RISC-V-Simulation)
+
 # RISC-V Simulation
+
+Download the latest [release](https://github.com/gafert/RISC-V-Simulation/releases).
 
 ## Folder Structure
 
