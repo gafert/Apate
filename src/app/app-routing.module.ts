@@ -1,7 +1,5 @@
 import {NgModule} from '@angular/core';
 import {Routes, RouterModule} from '@angular/router';
-import {SimulationModule} from "./home/simulation/simulation.module";
-import {HomeModule} from "./home/home.module";
 import {SettingsComponent} from "./settings/settings.component";
 
 const routes: Routes = [
@@ -10,9 +8,8 @@ const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full'
   },
-  {path: 'home', loadChildren: () => HomeModule},
+  {path: 'home', loadChildren: () => import("./home/home.module").then(m => m.HomeModule) },
   {path: 'settings', component: SettingsComponent},
-
 ];
 
 @NgModule({

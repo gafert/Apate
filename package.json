@@ -118,7 +118,6 @@
     "electron-store": "5.1.1",
     "ffi-napi": "2.4.7",
     "googleapis": "39.2.0",
-    "gridstack": "1.1.1",
     "ngraph.events": "1.2.1",
     "npm-scripts-info": "0.3.9",
     "popmotion": "8.7.1",

@@ -10,8 +10,7 @@
   },
   "files": [
     "test.ts",
-    "polyfills-test.ts",
-    "../node_modules/gridstack/dist/gridstack.d.ts"
+    "polyfills-test.ts"
   ],
   "include": [
     "**/*.spec.ts",

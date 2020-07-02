@@ -18,10 +18,6 @@
   background-color: $grey3 !important;
 }
 
-/* Gridstack custom setting */
-$gridstack-columns: 30;
-@import "~gridstack/dist/src/gridstack-extra";
-
 /* apply a natural box layout model to all elements, but allowing components to change */
 html {
   box-sizing: border-box;
@@ -42,12 +38,6 @@ html {
 @font-face {
   font-family: 'Roboto Mono';
   src: url('assets/Roboto_Mono/RobotoMono-Regular.ttf');
-}
-
-.grid-stack-item .grid-stack-item-content,
-.grid-stack-item .placeholder-content {
-  left: 0px !important;
-  right: 0px !important;
 }
 
 html, body {

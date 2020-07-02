@@ -1,5 +1,8 @@
 @import "../../../import";
 
+$gridWidth: 10em;
+$gridHeight: 5em;
+
 #simulation-container {
   position: relative;
   top: -1px;
@@ -7,4 +10,36 @@
 
 .grid-stack-item {
   pointer-events: all;
+}
+
+.simulation-item-content {
+  position: absolute;
+}
+
+.app-instruction {
+  width: $gridWidth * 2;
+  bottom: 0;
+  top: 0;
+  left: 0;
+}
+
+.app-memory {
+  height: $gridHeight * 2;
+  bottom: 0;
+  left: $gridWidth * 2;
+  right: $gridWidth * 2;
+}
+
+.app-registers {
+  width: $gridWidth * 2;
+  height: calc(100% - (#{$gridHeight} * 2));
+  right: 0;
+  bottom: 0;
+}
+
+.app-terminal {
+  width: $gridWidth * 2;
+  height: $gridHeight * 2;
+  top: 0;
+  right: 0;
 }

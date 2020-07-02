@@ -11,6 +11,5 @@
     "**/*.worker.ts"
   ],
   "files": [
-    "../node_modules/gridstack/dist/gridstack.d.ts"
   ]
 }

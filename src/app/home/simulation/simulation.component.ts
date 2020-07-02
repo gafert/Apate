@@ -21,7 +21,6 @@ export class SimulationComponent implements OnInit, AfterViewInit, OnDestroy {
   public range = range;
   public showRegisters = true;
   public showInstructions = true;
-  private grid;
 
   /** Is set by loading settings input */
   public simulationElfPath;
@@ -41,6 +40,7 @@ export class SimulationComponent implements OnInit, AfterViewInit, OnDestroy {
               private changeDetection: ChangeDetectorRef,
               private dataService: DataService,
               private ngZone: NgZone) {
+    console.log("Dasd");
   }
 
   ngOnInit(): void {
@@ -63,21 +63,11 @@ export class SimulationComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Needs timeout so grid is rendered before it is initiated
-    this.grid = window.GridStack.init({
-      float: true,
-      verticalMargin: 0,
-      disableOneColumnMode: true
-    });
-    this.setSizeOfGrid();
-    window.addEventListener('resize', this.setSizeOfGrid.bind(this));
+
   }
 
   setSizeOfGrid() {
-    this.grid.cellHeight((d3.select('#simulation-container').node() as HTMLElement)
-      .getBoundingClientRect().height / 14);
-    const width = (d3.select('#simulation-container').node() as HTMLElement).getBoundingClientRect().width;
-    this.grid.column(Number((width / 140).toFixed(0)));
+    document.getElementById('simulation-container').getBoundingClientRect().height;
   }
 
   initiateSimulation() {
@@ -101,8 +91,6 @@ export class SimulationComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    window.removeEventListener('resize', this.setSizeOfGrid.bind(this));
-    this.grid.destroy();
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }

@@ -1,21 +1,14 @@
 import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
 import {Routes, RouterModule} from '@angular/router';
 import {HomeComponent} from './home.component';
-import {SimulationModule} from "./simulation/simulation.module";
-import {CompileModule} from "./compile/compile.module";
 
 const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
     children: [
-      {
-        path: 'simulation', loadChildren: () => SimulationModule
-      },
-      {
-        path: 'compile', loadChildren: () => CompileModule
-      },
+      {path: 'simulation', loadChildren: () => import("./simulation/simulation.module").then(m => m.SimulationModule)},
+      {path: 'compile', loadChildren: () => import("./compile/compile.module").then(m => m.CompileModule)},
       {
         path: '**',
         redirectTo: 'compile'

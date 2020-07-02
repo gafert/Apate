@@ -9,7 +9,6 @@ import {CoreModule} from './core/core.module';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {SettingsComponent} from './settings/settings.component';
-import {CompileModule} from "./home/compile/compile.module";
 import {SharedModule} from "./components/shared/shared.module";
 
 @NgModule({
@@ -20,7 +19,6 @@ import {SharedModule} from "./components/shared/shared.module";
     HttpClientModule,
     CoreModule,
     AppRoutingModule,
-    CompileModule,
     SharedModule
   ],
   providers: [],
