@@ -10,19 +10,14 @@ import 'codemirror/mode/cmake/cmake';
 import 'codemirror/mode/meta';
 
 if (AppConfig.production) {
-  enableProdMode();
+	enableProdMode();
 }
 
 platformBrowserDynamic()
-  .bootstrapModule(AppModule, {
-    preserveWhitespaces: false
-  })
-  .then(ref => {
-    // Ensure Angular destroys itself on hot reloads.
-    if (window['ngRef']) {
-      window['ngRef'].destroy();
-    }
-    window['ngRef'] = ref;
-
-    // Otherwise, log the boot error
-  }).catch(err => console.error(err));
+	.bootstrapModule(AppModule, {
+		preserveWhitespaces: false,
+	})
+	.then((ref) => {
+		// Otherwise, log the boot error
+	})
+	.catch((err) => console.error(err));

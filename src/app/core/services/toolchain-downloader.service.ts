@@ -1,17 +1,14 @@
 import {Injectable, NgZone} from '@angular/core';
-import {authorize} from "../../utils/google-drive-auth";
+import {BehaviorSubject} from "rxjs";
 import https from "https";
+import {DataService} from "./data.service";
+import {authorize} from "../../utils/google-drive-auth";
 import * as fs from "fs";
 import * as zlib from "zlib";
 import * as path from "path";
 import * as tar from 'tar-fs';
 import * as electron from "electron";
-
 const app = electron.remote.app;
-import {BehaviorSubject} from "rxjs";
-import {DataService} from "./data.service";
-import isDev from "electron-is-dev";
-import {PathLike} from "fs";
 
 export enum ToolchainDownEnum {
   DOWNLOADING,
@@ -173,5 +170,5 @@ export class ToolchainDownloaderService {
       }
       resolve();
     });
-  };
+  }
 }

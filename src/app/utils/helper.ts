@@ -3,6 +3,6 @@
  * @property name The element to read. E.g. "grey" to read --grey.
  */
 export function readStyleProperty(name: string): string {
-  let bodyStyles = window.getComputedStyle(document.body);
-  return bodyStyles.getPropertyValue("--" + name);
+	const bodyStyles = window.getComputedStyle(document.body);
+	return bodyStyles.getPropertyValue('--' + name);
 }

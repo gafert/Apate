@@ -5,8 +5,8 @@ import {byteToHex} from "../../../globals";
 import F_SHADER from './shader.frag';
 import V_SHADER from './shader.vert';
 import {MeshLine, MeshLineMaterial} from '../../../utils/THREE.MeshLine'
-import {SimLibInterfaceService} from "../../../core/services";
 import {Object3D} from "three";
+import {SimLibInterfaceService} from "../../../core/services/sim-lib-interface/sim-lib-interface.service";
 
 export class Panel {
   private _panelMesh: THREE.Mesh;
