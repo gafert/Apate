@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { MeshLine, MeshLineMaterial } from '../../../utils/THREE.MeshLine';
 import panzoom from './drag.js';
 import { Panel } from './Panel';
+import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 
 @Injectable()
 export class GraphService {
@@ -24,7 +25,7 @@ export class GraphService {
 
   private panels: Panel[] = [];
 
-  constructor(private ngZone: NgZone) {
+  constructor(private ngZone: NgZone, private simLibInterfaceService: SimLibInterfaceService) {
     process.on('exit', () => {
       console.log('Exit GraphService');
       this.stopRender();
@@ -161,7 +162,8 @@ export class GraphService {
         panel.name,
         panel.size.width,
         panel.size.height,
-        this.globalUniforms
+        this.globalUniforms,
+        this.simLibInterfaceService
       );
 
       for (const port of panel.ports) {

@@ -4,6 +4,8 @@ import { MeshText2D, textAlign } from 'three-text2d';
 import F_SHADER from './shader.frag';
 import V_SHADER from './shader.vert';
 import { MeshLine, MeshLineMaterial } from '../../../utils/THREE.MeshLine';
+import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { byteToHex } from '../../../globals';
 
 export class Panel {
   public ports: Port[] = [];
@@ -20,7 +22,8 @@ export class Panel {
     private _name: string,
     private _width: number,
     private _height: number,
-    private _globalUniforms: object
+    private _globalUniforms: object,
+    private _simLibInterfaceService: SimLibInterfaceService
   ) {
     this._panelMaterial = new THREE.ShaderMaterial({
       vertexShader: V_SHADER,
@@ -80,19 +83,19 @@ export class Panel {
     this._panelMesh.add(port.meshGroup);
     this.ports.push(port);
 
-    // this._simLibInterfaceService.bindings[valueSubject].subscribe((value) => {
-    //   switch (valueType) {
-    //     case "hex":
-    //       port.setValue(byteToHex(value, 8));
-    //       break;
-    //     case "string":
-    //       port.setValue(new Buffer(byteToHex(value, 0), 'hex'));
-    //       break;
-    //     case "dec":
-    //     default:
-    //       port.setValue(value);
-    //   }
-    // });
+    this._simLibInterfaceService.bindings[valueSubject].subscribe((value) => {
+      switch (valueType) {
+        case 'hex':
+          port.setValue(byteToHex(value, 8));
+          break;
+        case 'string':
+          port.setValue(new Buffer(byteToHex(value, 0), 'hex'));
+          break;
+        case 'dec':
+        default:
+          port.setValue(value);
+      }
+    });
   }
 }
 
