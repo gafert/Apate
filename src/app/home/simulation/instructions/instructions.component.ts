@@ -1,14 +1,4 @@
-import {
-	AfterViewInit,
-	ChangeDetectorRef,
-	Component,
-	Input,
-	NgZone,
-	OnChanges,
-	OnDestroy,
-	OnInit,
-	SimpleChanges,
-} from '@angular/core';
+import { AfterViewInit, Component, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { byteToHex } from '../../../globals';
 import * as d3 from 'd3';
 import * as Store from 'electron-store';
@@ -57,7 +47,6 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
 	private isRunning = false;
 
 	constructor(
-		private changeDetection: ChangeDetectorRef,
 		private simLibInterfaceService: SimLibInterfaceService,
 		private dataService: DataService,
 		private ngZone: NgZone

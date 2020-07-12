@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { Bindings } from '../../../core/services/sim-lib-interface/bindings';
+import Bindings from '../../../core/services/sim-lib-interface/bindings';
 import 'assets/alu.svg';
 import * as d3 from 'd3';
 import { byteToHex } from '../../../globals';

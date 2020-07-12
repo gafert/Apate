@@ -7,61 +7,65 @@ const args = process.argv.slice(1),
 	serve = args.some((val) => val === '--serve');
 
 function createWindow(): BrowserWindow {
-	const size = screen.getPrimaryDisplay().workAreaSize;
+  const size = screen.getPrimaryDisplay().workAreaSize;
 
-	// Create the browser window.
-	win = new BrowserWindow({
-		x: 0,
-		y: 0,
-		width: size.width,
-		height: size.height,
-		minWidth: 800,
-		minHeight: 600,
-		autoHideMenuBar: true,
-		webPreferences: {
-			nodeIntegration: true,
-			nodeIntegrationInWorker: true,
-			allowRunningInsecureContent: serve ? true : false,
-		},
-	});
+  // Create the browser window.
+  win = new BrowserWindow({
+    x: 0,
+    y: 0,
+    width: size.width,
+    height: size.height,
+    minWidth: 800,
+    minHeight: 600,
+    autoHideMenuBar: true,
+    webPreferences: {
+      nodeIntegration: true,
+      nodeIntegrationInWorker: true,
+      allowRunningInsecureContent: serve ? true : false
+    }
+  });
 
-	if (serve) {
-		require('electron-reload')(__dirname, {
-			electron: require(`${__dirname}/node_modules/electron`),
+  if (serve) {
+    require('electron-reload')(__dirname, {
+      electron: require(`${__dirname}/node_modules/electron`)
 		});
 		win.loadURL('http://localhost:4200');
-	} else {
-		win.loadURL(
-			url.format({
-				pathname: path.join(__dirname, 'dist/index.html'),
-				protocol: 'file:',
-				slashes: true,
-			})
-		);
-	}
+  } else {
+    win.loadURL(
+      url.format({
+        pathname: path.join(__dirname, 'dist/index.html'),
+        protocol: 'file:',
+        slashes: true
+      })
+    );
+  }
 
-	if (!serve) {
-		// Fail operational
-		// Reload window if the render error crashes in production build
-		win.webContents.on('crashed', () => {
-			win.destroy();
-			createWindow();
-		});
-	}
+  if (!serve) {
+    // Fail operational
+    // Reload window if the render error crashes in production build
+    win.webContents.on('crashed', () => {
+      win.destroy();
+      createWindow();
+    });
+  }
 
-	if (serve) {
-		// win.webContents.openDevTools();
-	}
+  win.webContents.on('did-navigate-in-page', () => {
+    console.log(win.webContents.getURL());
+  });
 
-	// Emitted when the window is closed.
-	win.on('closed', () => {
-		// Dereference the window object, usually you would store window
-		// in an array if your app supports multi windows, this is the time
-		// when you should delete the corresponding element.
-		win = null;
-	});
+  if (serve) {
+    // win.webContents.openDevTools();
+  }
 
-	return win;
+  // Emitted when the window is closed.
+  win.on('closed', () => {
+    // Dereference the window object, usually you would store window
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    win = null;
+  });
+
+  return win;
 }
 
 try {

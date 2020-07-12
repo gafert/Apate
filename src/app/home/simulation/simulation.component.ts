@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import { byteToHex, range } from '../../globals';
@@ -36,12 +36,12 @@ export class SimulationComponent implements OnInit, OnDestroy {
 		},
 	};
 
-	constructor(
-		public simLibInterfaceService: SimLibInterfaceService,
-		private changeDetection: ChangeDetectorRef,
-		private dataService: DataService,
-		private ngZone: NgZone
-	) {}
+  constructor(
+    public simLibInterfaceService: SimLibInterfaceService,
+    private dataService: DataService,
+    private ngZone: NgZone
+  ) {
+  }
 
 	ngOnInit(): void {
 		this.dataService.folderPath.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {

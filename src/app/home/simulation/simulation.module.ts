@@ -2,9 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MemoryCellComponent } from './memory-cell/memory-cell.component';
-import { CPUComponent } from './cpu/cpu.component';
 import { MemoryComponent } from './memory/memory.component';
-import { AluComponent } from './alu/alu.component';
 import { InstructionsComponent } from './instructions/instructions.component';
 import { RegistersComponent } from './registers/registers.component';
 import { TerminalComponent } from './terminal/terminal.component';
@@ -20,9 +18,7 @@ import { SimLibInterfaceService } from '../../core/services/sim-lib-interface/si
 		SimulationComponent,
 		ChangingValueComponent,
 		MemoryCellComponent,
-		CPUComponent,
 		MemoryComponent,
-		AluComponent,
 		InstructionsComponent,
 		RegistersComponent,
 		TerminalComponent,

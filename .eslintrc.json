@@ -9,13 +9,16 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "prettier"
+    "prettier",
+    "prettier/@typescript-eslint"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "tsconfigRootDir": ".",
-    "project": "tsconfig.json"
+    "project": "src/tsconfig.app.json",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "modules": true
+    }
   },
   "plugins": [
     "@typescript-eslint"

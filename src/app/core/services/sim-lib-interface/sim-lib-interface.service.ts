@@ -1,34 +1,34 @@
-import { Injectable } from '@angular/core';
-import { Library } from 'ffi-napi';
+import { Injectable, OnDestroy } from '@angular/core';
 import { spawn } from 'child_process';
-import bindings from './bindings';
 import * as path from 'path';
 import * as isDev from 'electron-is-dev';
 import * as electron from 'electron';
 import { DataService } from '../data.service';
+import Bindings from './bindings';
 
 @Injectable({
-	providedIn: 'root',
+  providedIn: 'root'
 })
-export class SimLibInterfaceService {
-	public bindings = bindings;
-	public elfIsLoaded = false;
-	public currentlyLoadedElf: string;
-	private SimLib;
-	private isWin = process.platform === 'win32';
-	private isMac = process.platform === 'darwin';
-	private isLinux = process.platform === 'linux';
-	private libraryPath;
+export class SimLibInterfaceService implements OnDestroy {
+  public bindings = new Bindings();
+  public elfIsLoaded = false;
+  public currentlyLoadedElf: string;
+  private ffi = require('ffi-napi');
+  private SimLib;
+  private isWin = process.platform === 'win32';
+  private isMac = process.platform === 'darwin';
+  private isLinux = process.platform === 'linux';
+  private libraryPath;
 
-	private folderPath;
-	private toolchainPath;
-	private toolchainPrefix;
-	private objcopyFlags = '-O verilog';
+  private folderPath;
+  private toolchainPath;
+  private toolchainPrefix;
+  private objcopyFlags = '-O verilog';
 
-	constructor(private dataService: DataService) {
-		console.log('Constructed sim-lib-interface.service');
-		let extension;
-		if (this.isMac) {
+  constructor(private dataService: DataService) {
+    console.log('Constructed sim-lib-interface.service');
+    let extension;
+    if (this.isMac) {
 			extension = 'dylib';
 		} else if (this.isLinux) {
 			extension = 'so';
@@ -48,52 +48,62 @@ export class SimLibInterfaceService {
 
 	initSimulation(pathToElf: string) {
 		if (!this.elfIsLoaded) {
-			// Only load once in the service
-			this.SimLib = new Library(this.libraryPath, {
-				advance_simulation_with_statechange: ['void', []],
-				advance_simulation_with_pc: ['void', []],
-				advance_simulation_with_clock: ['void', []],
-				init_simulation: ['void', ['string']],
-				...bindings.function_definitions,
-			});
-		}
+      // Only load once in the service
+      this.SimLib = new this.ffi.Library(this.libraryPath, {
+        advance_simulation_with_statechange: ['void', []],
+        advance_simulation_with_pc: ['void', []],
+        advance_simulation_with_clock: ['void', []],
+        init_simulation: ['void', ['string']],
+        ...this.bindings.function_definitions
+      });
+    }
 
 		this.generateHexFromElf(pathToElf).then((hexPath) => {
-			this.SimLib.init_simulation(hexPath);
+      this.SimLib.init_simulation.async(hexPath, (error, result) => {
+        console.log(`asynchronously got ${result}`);
 
-			for (let i = 0; i < 100; i++) {
-				this.SimLib.advance_simulation_with_clock();
-			}
+        for (let i = 0; i < 100; i++) {
+          this.SimLib.advance_simulation_with_clock.async(() => {
+          });
+        }
 
-			this.bindings.setPointers(this.SimLib);
+        this.bindings.setPointers(this.SimLib);
 
-			if (!this.elfIsLoaded) {
-				// Only start timer once
-				this.bindings.detectValueChanged();
-			}
+        if (!this.elfIsLoaded) {
+          // Only start timer once
+          this.bindings.detectValueChanged();
+        }
 
-			this.elfIsLoaded = true;
-			this.currentlyLoadedElf = pathToElf;
-		});
-	}
+        this.elfIsLoaded = true;
+        this.currentlyLoadedElf = pathToElf;
+      });
+    });
+  }
 
-	advanceSimulationClock() {
-		this.SimLib.advance_simulation_with_clock();
-	}
+  ngOnDestroy(): void {
+    this.SimLib = null;
+    this.bindings = null;
+  }
 
-	advanceSimulationPc() {
-		this.SimLib.advance_simulation_with_pc();
-	}
+  advanceSimulationClock() {
+    this.SimLib.advance_simulation_with_clock.async(() => {
+    });
+  }
 
-	generateHexFromElf(elfPath) {
-		return new Promise((resolve, reject) => {
-			const gcc = spawn(path.join(this.toolchainPath, this.toolchainPrefix + 'objcopy'), [
-				...`${this.objcopyFlags} ${elfPath} ${path.join(this.folderPath, 'program.hex')}`.split(' '),
-			]);
-			gcc.on('error', (err) => {
-				console.error('Failed to start gcc', err);
-				reject();
-			});
+  advanceSimulationPc() {
+    this.SimLib.advance_simulation_with_pc.async(() => {
+    });
+  }
+
+  generateHexFromElf(elfPath) {
+    return new Promise((resolve, reject) => {
+      const gcc = spawn(path.join(this.toolchainPath, this.toolchainPrefix + 'objcopy'), [
+        ...`${this.objcopyFlags} ${elfPath} ${path.join(this.folderPath, 'program.hex')}`.split(' ')
+      ]);
+      gcc.on('error', (err) => {
+        console.error('Failed to start gcc', err);
+        reject();
+      });
 			gcc.on('close', (code) => {
 				console.log('Exited objcopy with code', code);
 				if (code === 0) {
