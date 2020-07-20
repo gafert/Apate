@@ -21,8 +21,20 @@ void print_bits(size_t const size, void const *const ptr) {
     }
 }
 
+int gotFinish() {
+  if(top == nullptr) {
+    printf("Verilator pointer is null\n");
+    return 1;
+  }
+  if(Verilated::gotFinish()) {
+    printf("Verilator finished\n");
+    return 1;
+  }
+  return 0;
+}
+
 void advance_simulation_with_statechange() {
-    while (!Verilated::gotFinish()) {
+    while (!gotFinish()) {
         top->clk = !top->clk;
         top->eval();
         if (top->testbench__DOT__uut__DOT__cpu_state != cpu_state) {
@@ -33,7 +45,7 @@ void advance_simulation_with_statechange() {
 }
 
 void advance_simulation_with_pc() {
-    while (!Verilated::gotFinish()) {
+    while (!gotFinish()) {
         top->clk = !top->clk;
         top->eval();
         if (top->testbench__DOT__uut__DOT__dbg_next) {
@@ -46,7 +58,7 @@ void advance_simulation_with_pc() {
 }
 
 void advance_simulation_with_clock() {
-    if (!Verilated::gotFinish()) {
+    if (!gotFinish()) {
         top->clk = !top->clk;
         top->eval();
         top->clk = !top->clk;
@@ -56,6 +68,9 @@ void advance_simulation_with_clock() {
 
 void init_simulation(char *path_to_hex) {
     delete top;
+    pc = 0;
+    cpu_state = 0;
+
     Verilated::gotFinish(false);
     Verilated::commandArgs(0, (char **) "");
     top = new Vtestbench;

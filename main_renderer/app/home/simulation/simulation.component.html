@@ -1,0 +1,32 @@
+<div class="main-tab-header">
+  <div style="display: flex; align-items: center">
+    <div style="margin-left: 1em; margin-right: 1em">Elf Path</div>
+    <app-setting [settingDefault]="'Enter Manually'" settingKey="elfPath" [(setting)]="simulationElfPath"></app-setting>
+  </div>
+
+  <app-action-button style="margin-left: 1em" (activate)="initiateSimulation()" text="Initiate"></app-action-button>
+  <app-action-button style="margin-left: 1em" (activate)="stepSimulation()"
+                     [disabled]="!simLibInterfaceService.elfIsLoaded"
+                     text="Step"></app-action-button>
+
+  <app-selecto-option [(options)]="stepOptions"></app-selecto-option>
+
+  <div style="display: flex; align-items: center">
+    <div style="margin-left: 1em; margin-right: 1em">Program Counter</div>
+    <div>{{simLibInterfaceService.bindings.uut__DOT__reg_pc__subject  | async}}</div>
+  </div>
+</div>
+
+<div class="main-tab-container" id="simulation-container">
+  <app-graph style="width: 100%; height: 100%; position: absolute"></app-graph>
+  <app-instructions #instructionsComponent
+                    [elfPath]="simulationElfPath"
+                    [programCounter]="simLibInterfaceService.bindings.uut__DOT__reg_pc__subject | async"
+                    class="simulation-item-content app-instruction"></app-instructions>
+  <app-registers
+    class="simulation-item-content app-registers"
+    [registers]="simLibInterfaceService.bindings.uut__DOT__cpuregs__subject | async"></app-registers>
+
+  <app-terminal class="simulation-item-content app-terminal"></app-terminal>
+  <app-memory class="simulation-item-content app-memory"></app-memory>
+</div>

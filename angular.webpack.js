@@ -9,7 +9,7 @@ module.exports = (config, options) => {
     config.target = options.customWebpackConfig.target;
   } else if (options.fileReplacements) {
     for (let fileReplacement of options.fileReplacements) {
-      if (fileReplacement.replace !== 'src/environments/environment.ts') {
+      if (fileReplacement.replace !== 'main_renderer/environments/environment.ts') {
         continue;
       }
 

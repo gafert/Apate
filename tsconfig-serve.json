@@ -16,12 +16,11 @@
       "dom"
     ]
   },
-  "include": [
+  "files": [
     "main.ts"
   ],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts",
-    "binaries"
+    "**/*.spec.ts"
   ]
 }

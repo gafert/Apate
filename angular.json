@@ -5,28 +5,28 @@
   "projects": {
     "angular-electron": {
       "root": "",
-      "sourceRoot": "src",
+      "sourceRoot": "main_renderer",
       "projectType": "application",
       "architect": {
         "build": {
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
-            "outputPath": "dist",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "tsConfig": "src/tsconfig.app.json",
-            "polyfills": "src/polyfills.ts",
+            "outputPath": "dist/main_renderer",
+            "index": "main_renderer/index.html",
+            "main": "main_renderer/main.ts",
+            "tsConfig": "main_renderer/tsconfig.app.json",
+            "polyfills": "main_renderer/polyfills.ts",
             "assets": [
-              "src/assets",
-              "src/favicon.ico",
-              "src/favicon.png",
-              "src/favicon.icns",
-              "src/favicon.256x256.png",
-              "src/favicon.512x512.png",
-              "src/static"
+              "main_renderer/assets",
+              "main_renderer/favicon.ico",
+              "main_renderer/favicon.png",
+              "main_renderer/favicon.icns",
+              "main_renderer/favicon.256x256.png",
+              "main_renderer/favicon.512x512.png",
+              "main_renderer/static"
             ],
             "styles": [
-              "src/styles.scss"
+              "main_renderer/styles.scss"
             ],
             "scripts": [
 
@@ -34,6 +34,7 @@
             "customWebpackConfig": {
               "path": "./angular.webpack.js"
             }
+
           },
           "configurations": {
             "dev": {
@@ -48,8 +49,8 @@
               "buildOptimizer": false,
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.dev.ts"
+                  "replace": "main_renderer/environments/environment.ts",
+                  "with": "main_renderer/environments/environment.dev.ts"
                 }
               ]
             },
@@ -65,8 +66,8 @@
               "buildOptimizer": false,
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.web.ts"
+                  "replace": "main_renderer/environments/environment.ts",
+                  "with": "main_renderer/environments/environment.web.ts"
                 }
               ]
             },
@@ -82,8 +83,8 @@
               "buildOptimizer": true,
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "replace": "main_renderer/environments/environment.ts",
+                  "with": "main_renderer/environments/environment.prod.ts"
                 }
               ]
             }
@@ -112,56 +113,13 @@
             "browserTarget": "angular-electron:build"
           }
         },
-        "test": {
-          "builder": "@angular-builders/custom-webpack:karma",
-          "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills-test.ts",
-            "tsConfig": "src/tsconfig.spec.json",
-            "karmaConfig": "src/karma.conf.js",
-            "scripts": [],
-            "styles": [
-              "src/styles.scss"
-            ],
-            "assets": [
-              "src/assets",
-              "src/favicon.ico",
-              "src/favicon.png",
-              "src/favicon.icns",
-              "src/favicon.256x256.png",
-              "src/favicon.512x512.png"
-            ],
-            "customWebpackConfig": {
-              "path": "./angular.webpack.js",
-              "target": "electron-renderer"
-            }
-          }
-        },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "eslintConfig": "src/eslintrc.config.json",
+            "eslintConfig": ".eslintrc.json",
             "tsConfig": [
-              "src/tsconfig.app.json",
-              "src/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
-      }
-    },
-    "angular-electron-e2e": {
-      "root": "e2e",
-      "projectType": "application",
-      "architect": {
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "eslintConfig": "e2e/eslintrc.e2e.json",
-            "tsConfig": [
-              "e2e/tsconfig.e2e.json"
+              "main_renderer/tsconfig.app.json",
+              "main_renderer/tsconfig.spec.json"
             ],
             "exclude": [
               "**/node_modules/**"

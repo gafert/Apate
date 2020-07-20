@@ -7,8 +7,7 @@
 /app-builds
 /release
 main.js
-src/**/*.js
-!src/karma.conf.js
+!main_renderer/karma.conf.js
 *.js.map
 
 # dependencies
@@ -50,12 +49,11 @@ package-lock.json
 Thumbs.db
 
 # App specific
-/downloads/
-/simulation_library/CMakeFiles/
+/downloads
+/simulation_library/CMakeFiles
 /simulation_library/cmake_install.cmake
 /simulation_library/CMakeCache.txt
 /simulation_library/Makefile
 /simulation_library/SimulationLibrary.cbp
-/simulation_library/.idea/
-
+/simulation_library/.idea
 /risc_test_executable/*
