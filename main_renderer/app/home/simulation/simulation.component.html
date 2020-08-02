@@ -15,6 +15,11 @@
     <div style="margin-left: 1em; margin-right: 1em">Program Counter</div>
     <div>{{simLibInterfaceService.bindings.uut__DOT__reg_pc__subject  | async}}</div>
   </div>
+
+  <div style="display: flex; align-items: center">
+    <div style="margin-left: 1em; margin-right: 1em">CPU State</div>
+    <div>{{cpuStateToString(simLibInterfaceService.bindings.uut__DOT__cpu_state__subject  | async)}}</div>
+  </div>
 </div>
 
 <div class="main-tab-container" id="simulation-container">

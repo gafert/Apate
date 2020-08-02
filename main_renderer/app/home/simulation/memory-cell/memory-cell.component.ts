@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { byteToHex } from '../../../globals';
 import { easing, styler, tween } from 'popmotion';
+import { readStyleProperty } from '../../../utils/helper';
 
 @Component({
   selector: 'app-memory-cell',
@@ -69,7 +70,7 @@ export class MemoryCellComponent implements OnInit, OnChanges {
       if (this.memoryCell) {
         const memoryCellStyler = styler(this.memoryCell.nativeElement);
         tween({
-          from: { backgroundColor: '#00ff00', color: '#ffffff' },
+          from: { backgroundColor: readStyleProperty('accent'), color: '#ffffff' },
           to: { backgroundColor: 'rgba(0,0,0,0)', color: '#ffffff' },
           ease: easing.easeOut,
           duration: 5000,

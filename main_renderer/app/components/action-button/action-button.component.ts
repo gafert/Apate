@@ -11,6 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { easing, styler, tween } from 'popmotion';
+import { readStyleProperty } from '../../utils/helper';
 
 @Component({
   selector: 'app-action-button',
@@ -135,7 +136,7 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
     const style = styler(button);
     tween({
       from: { backgroundColor: style.get('background-color'), scale: currentScale },
-      to: { backgroundColor: '#009400', scale: 1 },
+      to: { backgroundColor: readStyleProperty('accent'), scale: 1 },
       ease: easing.linear,
       duration: 50,
     }).start((v) => style.set(v));

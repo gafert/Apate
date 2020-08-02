@@ -7,6 +7,7 @@ import * as isDev from 'electron-is-dev';
 import * as path from 'path';
 import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 import { DataService } from '../../../core/services/data.service';
+import { readStyleProperty } from '../../../utils/helper';
 
 class Assembly {
   opcode: string;
@@ -103,7 +104,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
     if (oldAssemblyDiv) {
       tween({
         from: { backgroundColor: oldAssemblyDiv.style.backgroundColor },
-        to: { backgroundColor: 'rgb(0,38,0)' },
+        to: { backgroundColor: readStyleProperty('accent-dark') },
         ease: easing.easeOut,
         duration: 500,
       }).start((v) => styler(oldAssemblyDiv).set(v));
@@ -113,7 +114,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
     if (oldAssemblyPcDiv && oldAssemblyHexDiv) {
       tween({
         from: { backgroundColor: oldAssemblyPcDiv.style.backgroundColor },
-        to: { backgroundColor: 'rgb(0,83,0)' },
+        to: { backgroundColor: readStyleProperty('accent') },
         ease: easing.easeOut,
         duration: 500,
       }).start((v) => {
@@ -121,11 +122,11 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
         styler(oldAssemblyHexDiv).set(v);
       });
     }
-    d3.select('#assembly-code-div-' + newPC).style('background', '#009000');
+    d3.select('#assembly-code-div-' + newPC).style('background', readStyleProperty('accent'));
     d3.select('#assembly-code-div-' + newPC).style('border-color', 'transparent');
-    d3.select('#assembly-code-div-pc-' + newPC).style('background', '#007400');
+    d3.select('#assembly-code-div-pc-' + newPC).style('background', readStyleProperty('accent-dark'));
     d3.select('#assembly-code-div-pc-' + newPC).style('border-color', 'transparent');
-    d3.select('#assembly-code-div-hex-' + newPC).style('background', '#007400');
+    d3.select('#assembly-code-div-hex-' + newPC).style('background', readStyleProperty('accent-dark'));
     d3.select('#assembly-code-div-hex-' + newPC).style('border-color', 'transparent');
   }
 }

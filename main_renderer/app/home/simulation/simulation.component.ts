@@ -11,7 +11,7 @@ import { DataService } from '../../core/services/data.service';
 @Component({
   selector: 'app-simulation',
   templateUrl: './simulation.component.html',
-  styleUrls: ['./simulation.component.scss'],
+  styleUrls: ['./simulation.component.scss']
 })
 export class SimulationComponent implements OnInit, OnDestroy {
   @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
@@ -28,12 +28,12 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public stepOptions = {
     clock: {
       name: 'Clock',
-      selected: false,
+      selected: false
     },
     pc: {
       name: 'Program Counter',
-      selected: true,
-    },
+      selected: true
+    }
   };
 
   constructor(
@@ -85,5 +85,26 @@ export class SimulationComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
+  }
+
+  cpuStateToString(cpuState) {
+    switch (cpuState) {
+      case 0b10000000:
+        return 'trap';
+      case 0b01000000:
+        return 'fetch';
+      case 0b00100000:
+        return 'ld_rs1';
+      case 0b00010000:
+        return 'ld_rs2';
+      case 0b00001000:
+        return 'exec';
+      case 0b00000100:
+        return 'shift';
+      case 0b00000010:
+        return 'stmem';
+      case 0b00000001:
+        return 'ldmem';
+    }
   }
 }

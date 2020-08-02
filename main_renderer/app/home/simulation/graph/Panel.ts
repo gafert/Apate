@@ -6,12 +6,109 @@ import V_SHADER from './shader.vert';
 import { MeshLine, MeshLineMaterial } from '../../../utils/THREE.MeshLine';
 import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 import { byteToHex } from '../../../globals';
+import { easing, styler, tween } from 'popmotion';
+
+export class Port {
+  public meshGroup: THREE.Object3D;
+  private _valueText: MeshText2D;
+  private descriptorMesh: THREE.Mesh;
+
+  constructor(
+    private _x: number,
+    private _y: number,
+    private _z: number,
+    private _name: string,
+    private _value: any,
+    private _globalUniforms: object
+  ) {
+    this.meshGroup = new THREE.Object3D();
+
+    const width = 0.4;
+    const height = 0.08;
+    const headerTextPadding = 0.02;
+
+    const headerGeometry = new THREE.PlaneGeometry(width, height, 1, 1);
+    // anchor left bottom
+    headerGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(width / 2, -height / 2, this._z));
+
+    const inputMaterial = new THREE.ShaderMaterial({
+      vertexShader: V_SHADER,
+      fragmentShader: F_SHADER,
+      uniforms: {
+        u_backgroundColor: { value: new THREE.Color(readStyleProperty('grey2')) },
+        u_borderColor: { value: new THREE.Color(readStyleProperty('grey1')) },
+        u_width: { value: width },
+        u_height: { value: height },
+        ...this._globalUniforms
+      }
+    });
+
+    this.descriptorMesh = new THREE.Mesh(headerGeometry, inputMaterial);
+    this.descriptorMesh.position.set(this._x, this._y, this._z);
+    this.descriptorMesh.renderOrder = 50;
+    this.meshGroup.add(this.descriptorMesh);
+
+    const headerText = new MeshText2D(this._name, {
+      align: textAlign.left,
+      font: '100px Roboto',
+      fillStyle: '#ffffff',
+      antialias: true
+    });
+
+    // Scale 100 px font down
+    headerText.scale.set(0.0005, 0.0005, 0);
+    headerText.position.set(this._x + headerTextPadding, this._y - height / 2 + 0.05 / 2, this._z);
+    headerText.renderOrder = 100;
+    this.meshGroup.add(headerText);
+
+    // const valueDescText = new MeshText2D('Value:', {
+    //   align: textAlign.left,
+    //   font: '100px Roboto',
+    //   fillStyle: '#ffffff',
+    //   antialias: true
+    // });
+    //
+    // // Scale 100 px font down
+    // valueDescText.scale.set(0.0005, 0.0005, 0);
+    // valueDescText.position.set(this._x + headerTextPadding, this._y - height / 2 + 0.05 / 2 - height, this._z);
+    // valueDescText.renderOrder = 1;
+    // this.meshGroup.add(valueDescText);
+
+    this._valueText = new MeshText2D(String(this._value), {
+      align: textAlign.left,
+      font: '100px Roboto',
+      fillStyle: '#ffffff',
+      antialias: true
+    });
+
+    // Scale 100 px font down
+    this._valueText.scale.set(0.0005, 0.0005, 0);
+    this._valueText.position.set(this._x + headerTextPadding + 0.15, this._y - height / 2 + 0.05 / 2 - height, this._z);
+    this.meshGroup.add(this._valueText);
+  }
+
+  setValue(value) {
+    this._valueText.text = value;
+    this._valueText.updateText();
+  }
+
+  setBorderColor(color: THREE.Color) {
+    // @ts-ignore
+    this.descriptorMesh.material.uniforms.u_borderColor.value = color;
+  }
+
+  setBackgroundColor(color: THREE.Color) {
+    // @ts-ignore
+    this.descriptorMesh.material.uniforms.u_backgroundColor.value = color;
+  }
+}
+
 
 export class Panel {
   public ports: Port[] = [];
   private _headerLine: THREE.Mesh;
   private _headerText: MeshText2D;
-  private _panelMaterial: THREE.Material;
+  private _panelMaterial: THREE.ShaderMaterial;
   private _panelMesh: THREE.Mesh;
 
   constructor(
@@ -74,112 +171,55 @@ export class Panel {
     this._panelMesh.add(this._headerLine);
   }
 
+  changeBorderColor(color: THREE.Color) {
+    // @ts-ignore
+    this._panelMesh.material.uniforms.u_borderColor.value = color;
+    // @ts-ignore
+    this._headerLine.material.color = color;
+  }
+
   get panelMesh(): THREE.Mesh {
     return this._panelMesh;
   }
 
-  addPort(x, y, name, value, valueType, valueSubject) {
+  /**
+   * Add a port to the panel. Starting 0,0 at left,top
+   * @param x
+   * @param y
+   * @param name The name of the port
+   * @param value Value to set
+   * @param valueType hex, string, dec (representation of the subjects value)
+   * @param valueSubject Subject to subscribe to for the value if changed
+   */
+  addPort(x, y, name, value, valueType, valueSubject?) {
     const port = new Port(x, y, 0, name, value, this._globalUniforms);
     this._panelMesh.add(port.meshGroup);
     this.ports.push(port);
 
-    this._simLibInterfaceService.bindings[valueSubject].subscribe((value) => {
-      switch (valueType) {
-        case 'hex':
-          port.setValue(byteToHex(value, 8));
-          break;
-        case 'string':
-          port.setValue(new Buffer(byteToHex(value, 0), 'hex'));
-          break;
-        case 'dec':
-        default:
-          port.setValue(value);
-      }
-    });
+    // If a subject is set subscribe to it
+    if (valueSubject) {
+      this._simLibInterfaceService.bindings[valueSubject].subscribe((value) => {
+        tween({
+          from: readStyleProperty('accent'),
+          to: readStyleProperty('grey1'),
+          ease: easing.easeOut,
+          duration: 5000,
+        }).start((v) => port.setBorderColor(new THREE.Color(v)));
+        console.log("Called this");
+
+        switch (valueType) {
+          case 'hex':
+            port.setValue(byteToHex(value, 8));
+            break;
+          case 'string':
+            port.setValue(new Buffer(byteToHex(value, 0), 'hex'));
+            break;
+          case 'dec':
+          default:
+            port.setValue(value);
+        }
+      });
+    }
   }
 }
 
-export class Port {
-  public meshGroup: THREE.Object3D;
-  private _valueText: MeshText2D;
-
-  constructor(
-    private _x: number,
-    private _y: number,
-    private _z: number,
-    private _name: string,
-    private _value: any,
-    private _globalUniforms: object
-  ) {
-    this.meshGroup = new THREE.Object3D();
-
-    const width = 0.4;
-    const height = 0.08;
-    const headerTextPadding = 0.02;
-
-    const headerGeometry = new THREE.PlaneGeometry(width, height, 1, 1);
-    // anchor left bottom
-    headerGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(width / 2, -height / 2, this._z));
-
-    const inputMaterial = new THREE.ShaderMaterial({
-      vertexShader: V_SHADER,
-      fragmentShader: F_SHADER,
-      uniforms: {
-        u_backgroundColor: { value: new THREE.Color(readStyleProperty('grey2')) },
-        u_borderColor: { value: new THREE.Color(readStyleProperty('grey1')) },
-        u_width: { value: width },
-        u_height: { value: height },
-        ...this._globalUniforms
-      }
-    });
-
-    const header = new THREE.Mesh(headerGeometry, inputMaterial);
-    header.position.set(this._x, this._y, this._z);
-    header.renderOrder = 50;
-    this.meshGroup.add(header);
-
-    const headerText = new MeshText2D(this._name, {
-      align: textAlign.left,
-      font: '100px Roboto',
-      fillStyle: '#ffffff',
-      antialias: true
-    });
-
-    // Scale 100 px font down
-    headerText.scale.set(0.0005, 0.0005, 0);
-    headerText.position.set(this._x + headerTextPadding, this._y - height / 2 + 0.05 / 2, this._z);
-    headerText.renderOrder = 100;
-    this.meshGroup.add(headerText);
-
-    const valueDescText = new MeshText2D('Value:', {
-      align: textAlign.left,
-      font: '100px Roboto',
-      fillStyle: '#ffffff',
-      antialias: true
-    });
-
-    // Scale 100 px font down
-    valueDescText.scale.set(0.0005, 0.0005, 0);
-    valueDescText.position.set(this._x + headerTextPadding, this._y - height / 2 + 0.05 / 2 - height, this._z);
-    valueDescText.renderOrder = 1;
-    this.meshGroup.add(valueDescText);
-
-    this._valueText = new MeshText2D(String(this._value), {
-      align: textAlign.left,
-      font: '100px Roboto',
-      fillStyle: '#ffffff',
-      antialias: true
-    });
-
-    // Scale 100 px font down
-    this._valueText.scale.set(0.0005, 0.0005, 0);
-    this._valueText.position.set(this._x + headerTextPadding + 0.15, this._y - height / 2 + 0.05 / 2 - height, this._z);
-    valueDescText.renderOrder = 1;
-    this.meshGroup.add(this._valueText);
-  }
-
-  setValue(value) {
-    this._valueText.text = value;
-    this._valueText.updateText();
-  }
-}

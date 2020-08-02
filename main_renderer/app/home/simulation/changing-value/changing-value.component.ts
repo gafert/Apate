@@ -1,5 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import { easing, styler, tween } from 'popmotion';
+import { readStyleProperty } from '../../../utils/helper';
 
 @Component({
   selector: 'app-changing-value',
@@ -17,7 +18,7 @@ export class ChangingValueComponent implements OnChanges {
       if (this.changingValue) {
         const memoryCellStyler = styler(this.changingValue.nativeElement);
         tween({
-          from: { backgroundColor: '#00ff00', color: '#ffffff' },
+          from: { backgroundColor: readStyleProperty('accent'), color: '#ffffff' },
           to: { backgroundColor: 'rgba(0,0,0,0)', color: '#ffffff' },
           ease: easing.easeOut,
           duration: 5000,

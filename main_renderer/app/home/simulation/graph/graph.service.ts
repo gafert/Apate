@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import * as THREE from 'three';
 import { MeshLine, MeshLineMaterial } from '../../../utils/THREE.MeshLine';
-import panzoom from './drag.js';
+import panzoom from '../../../utils/drag.js';
 import { Panel } from './Panel';
 import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 
@@ -25,6 +25,11 @@ export class GraphService {
 
   private panels: Panel[] = [];
 
+  private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
+  runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
+    this.renderLoopFunctions.push(func);
+  }
+
   constructor(private ngZone: NgZone, private simLibInterfaceService: SimLibInterfaceService) {
     process.on('exit', () => {
       console.log('Exit GraphService');
@@ -35,6 +40,12 @@ export class GraphService {
       this.scene = null;
       this.clock = null;
     });
+
+    // this.runInRenderLoop((time, deltaTime) => {
+    //   this.panels.forEach((panel, index) => {
+    //     panel.changeBorderColor(new THREE.Color(Math.sin(time + index), Math.sin(time * 2.3 + index), Math.sin(time * 5.2 + index)))
+    //   });
+    // })
   }
 
   resize() {
@@ -63,7 +74,7 @@ export class GraphService {
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.sortObjects = true;
-        this.renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+        this.renderer.setPixelRatio(2);
         domElement.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
@@ -102,37 +113,37 @@ export class GraphService {
         ports: [
           {
             name: 'Opcode',
-            position: { x: 0.05, y: 1 },
+            position: { x: 0.05, y: 0 },
             valueSubject: 'uut__DOT__dbg_insn_opcode__subject',
             valueType: 'hex',
           },
           {
             name: 'Instruction',
-            position: { x: 0.5, y: 1 },
+            position: { x: 0.5, y: 0 },
             valueSubject: 'uut__DOT__dbg_ascii_instr__subject',
             valueType: 'string',
           },
           {
             name: 'RD',
-            position: { x: 0.5, y: 0.8 },
+            position: { x: 0.5, y: 0.2 },
             valueSubject: 'uut__DOT__decoded_rd__subject',
             valueType: 'hex',
           },
           {
             name: 'Immediate',
-            position: { x: 0.5, y: 0.6 },
+            position: { x: 0.5, y: 0.4 },
             valueSubject: 'uut__DOT__decoded_imm__subject',
             valueType: 'hex',
           },
           {
             name: 'RS1',
-            position: { x: 0.5, y: 0.4 },
+            position: { x: 0.5, y: 0.6 },
             valueSubject: 'uut__DOT__decoded_rs1__subject',
             valueType: 'hex',
           },
           {
             name: 'RS2',
-            position: { x: 0.5, y: 0.2 },
+            position: { x: 0.5, y: 0.8 },
             valueSubject: 'uut__DOT__decoded_rs2__subject',
             valueType: 'hex',
           },
@@ -145,10 +156,71 @@ export class GraphService {
         ports: [
           {
             name: 'Instruction',
-            position: { x: 0.05, y: 1 },
+            position: { x: 0.05, y: 0 },
             valueSubject: 'uut__DOT__dbg_ascii_instr__subject',
             valueType: 'string',
           },
+          {
+            name: 'Operator 1',
+            position: { x: 0.05, y: 0.2 },
+            valueSubject: 'uut__DOT__reg_op1__subject',
+            valueType: 'hex',
+          },
+          {
+            name: 'Operator 2',
+            position: { x: 0.05, y: 0.4 },
+            valueSubject: 'uut__DOT__reg_op2__subject',
+            valueType: 'hex',
+          },
+          {
+            name: 'Reg out',
+            position: { x: 0.05, y: 0.6 },
+            valueSubject: 'uut__DOT__reg_out__subject',
+            valueType: 'hex',
+          },
+          {
+            name: 'ALU out',
+            position: { x: 0.05, y: 0.8 },
+            valueSubject: 'uut__DOT__alu_out__subject',
+            valueType: 'hex',
+          },
+        ],
+      },
+      {
+        name: 'Registers',
+        position: { x: 1, y: 2, z: 0 },
+        size: { width: 0.95, height: 1.4 },
+        ports: [
+          {
+            name: 'Writing Data',
+            position: { x: 0.05, y: 0 },
+            valueSubject: 'uut__DOT__cpuregs_write__subject',
+            valueType: 'hex',
+          },
+          {
+            name: 'Address (RD)',
+            position: { x: 0.05, y: 0.2 },
+            valueSubject: 'uut__DOT__decoded_rd__subject',
+            valueType: 'hex',
+          },
+          {
+            name: 'Data to write',
+            position: { x: 0.05, y: 0.4 },
+            valueSubject: 'uut__DOT__cpuregs_wrdata__subject',
+            valueType: 'hex',
+          },
+          {
+            name: 'Read register at address (RS 1)',
+            position: { x: 0.5, y: 0 },
+            valueSubject: 'uut__DOT__cpuregs_rs1__subject',
+            valueType: 'hex',
+          },
+          {
+            name: 'RS 2 (only in dual port)',
+            position: { x: 0.5, y: 0.2 },
+            valueSubject: 'uut__DOT__cpuregs_rs2__subject',
+            valueType: 'hex',
+          }
         ],
       },
     ];
@@ -167,7 +239,7 @@ export class GraphService {
       );
 
       for (const port of panel.ports) {
-        _panel.addPort(port.position.x, port.position.y, port.name, undefined, port.valueType, port.valueSubject);
+        _panel.addPort(port.position.x  , panel.size.height - port.position.y - 0.2, port.name, undefined, port.valueType, port.valueSubject);
       }
 
       this.panels.push(_panel);
@@ -186,24 +258,20 @@ export class GraphService {
       },
     ];
 
-    for (const link of links) {
-      this.addLink(
-        link.from.panel.position.x + link.from.port.position.x + 0.4,
-        link.from.panel.position.y + link.from.port.position.y - 0.04,
-        link.to.panel.position.x + link.to.port.position.x,
-        link.to.panel.position.y + link.to.port.position.y - 0.04
-      );
-    }
+    // for (const link of links) {
+    //   this.addLink(
+    //     link.from.panel.position.x + link.from.port.position.x + 0.4,
+    //     link.from.panel.position.y + link.from.port.position.y - 0.04,
+    //     link.to.panel.position.x + link.to.port.position.x,
+    //     link.to.panel.position.y + link.to.port.position.y - 0.04
+    //   );
+    // }
   }
 
+
+
   addLink(x0, y0, x1, y1) {
-    const loader = new THREE.TextureLoader();
     let strokeTexture: THREE.Texture;
-    loader.load('assets/Arrow.png', function (texture) {
-      strokeTexture = texture;
-      strokeTexture.wrapS = strokeTexture.wrapT = THREE.RepeatWrapping;
-      init();
-    });
 
     const init = () => {
       const curve = new THREE.CatmullRomCurve3(
@@ -234,14 +302,7 @@ export class GraphService {
         offset: new THREE.Vector2(0.5, 0)
       });
 
-      const offset = () => {
-        setTimeout(() => {
-          lineBasicMaterial.offset.add(new THREE.Vector2(0.05, 0));
-          offset();
-        }, 10);
-      };
-
-      offset();
+      this.runInRenderLoop((time, deltaTime) => lineBasicMaterial.offset.add(new THREE.Vector2(3 * deltaTime, 0)));
 
       const line = new MeshLine();
       const geometry = new THREE.Geometry();
@@ -257,13 +318,24 @@ export class GraphService {
       lineMesh.renderOrder = 1;
       this.scene.add(lineMesh);
     };
+
+    const loader = new THREE.TextureLoader();
+    loader.load('assets/Arrow.png', function (texture) {
+      strokeTexture = texture;
+      strokeTexture.wrapS = strokeTexture.wrapT = THREE.RepeatWrapping;
+      init();
+    });
   }
 
   render() {
     this.ngZone.runOutsideAngular(() => {
       this.frameId = requestAnimationFrame(this.render.bind(this));
       // update time
-      this.time += this.clock.getDelta();
+      const deltaTime = this.clock.getDelta();
+      this.time += deltaTime;
+      for (const func of this.renderLoopFunctions) {
+        func(this.time, deltaTime);
+      }
       this.globalUniforms.u_time.value = this.time;
       this.renderer.render(this.scene, this.camera);
     });

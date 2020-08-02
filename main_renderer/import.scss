@@ -13,12 +13,18 @@ $greys: $grey1 $grey2 $grey3;
   }
 }
 
+$accent: #ee1535;
+$accentDark: #77001d;
+
 // Make variable accessible in js
 body {
   @for $i from 1 through $greyCount {
     // Make no spaces between or js will read them wrong
     --grey#{$i}:#{nth($greys, $i)};
   }
+
+  --accent:#{$accent};
+  --accent-dark:#{$accentDark};
 }
 
 // FONTS
