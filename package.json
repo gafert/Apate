@@ -86,7 +86,8 @@
     "wait-on": "5.0.1",
     "webpack-cli": "3.3.12",
     "webpack-dev-server": "3.11.0",
-    "zone.js": "0.10.3"
+    "zone.js": "0.10.3",
+    "js-yaml-loader": "1.2.2"
   },
   "engines": {
     "node": ">=10.13.0"

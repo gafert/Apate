@@ -1,5 +1,5 @@
 /* SystemJS module definition */
-declare var nodeModule: NodeModule;
+declare let nodeModule: NodeModule;
 interface NodeModule {
   id: string;
 }
@@ -21,5 +21,15 @@ declare module "*.vert" {
 
 declare module "*.txt" {
   const value: string;
+  export default value;
+}
+
+declare module "*.yaml" {
+  const value: any;
+  export default value;
+}
+
+declare module "*.yml" {
+  const value: any;
   export default value;
 }

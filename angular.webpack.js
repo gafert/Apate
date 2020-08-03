@@ -51,6 +51,7 @@ module.exports = (config, options) => {
     'ref-napi': "require('ref-napi')"
   };
 
+  // yaml unsafe to load js functions from yaml
   config.module.rules = [
     ...config.module.rules,
     {
@@ -65,6 +66,14 @@ module.exports = (config, options) => {
     }, {
       test: /\.txt$/i,
       use: 'raw-loader',
+    }, {
+      test: /\.ya?ml$/i,
+      use: [{
+        loader: 'js-yaml-loader',
+        options: {
+          safe: false
+        }
+      }]
     }
   ];
 

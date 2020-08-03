@@ -57,7 +57,8 @@ export class Port {
 
     // Scale 100 px font down
     headerText.scale.set(0.0005, 0.0005, 0);
-    headerText.position.set(this._x + headerTextPadding, this._y - height / 2 + 0.05 / 2, this._z);
+    // Z Because of render order issues
+    headerText.position.set(this._x + headerTextPadding, this._y - height / 2 + 0.05 / 2, this._z + 0.01);
     headerText.renderOrder = 100;
     this.meshGroup.add(headerText);
 
@@ -277,7 +278,8 @@ export class Panel {
    * @param valueSubject Subject to subscribe to for the value if changed
    */
   addPort(x, y, name, value, valueType, valueSubject?) {
-    const port = new Port(x, y, 0, name, value, this._globalUniforms);
+    // Needs to be a little bit higher so the transparent items can be in between panel and port
+    const port = new Port(x, y, 0.001, name, value, this._globalUniforms);
     this.panelMesh.add(port.meshGroup);
     this.ports.push(port);
 

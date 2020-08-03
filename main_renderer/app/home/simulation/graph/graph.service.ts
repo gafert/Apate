@@ -4,6 +4,10 @@ import { MeshLine, MeshLineMaterial } from '../../../utils/THREE.MeshLine';
 import panzoom from '../../../utils/drag.js';
 import { Panel } from './Panel';
 import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import links from './links.yml';
+import panels from './panels.yml';
+import { easing, tween } from 'popmotion';
+import { readStyleProperty } from '../../../utils/helper';
 
 @Injectable()
 export class GraphService {
@@ -74,7 +78,6 @@ export class GraphService {
 
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
-        this.renderer.sortObjects = true;
         this.renderer.setPixelRatio(2);
         domElement.appendChild(this.renderer.domElement);
 
@@ -106,198 +109,8 @@ export class GraphService {
   }
 
   initiateObjects() {
-    const panelInstantiation = [
-      {
-        name: 'Instruction Decoder',
-        id: 'instr_dec',
-        position: { x: 0, y: 0, z: 0 },
-        size: { width: 0.95, height: 1.2 },
-        ports: [
-          {
-            name: 'Opcode',
-            id: 'opcode',
-            position: { x: 0.05, y: 0 },
-            valueSubject: 'uut__DOT__next_insn_opcode__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'Instruction',
-            position: { x: 0.5, y: 0 },
-            valueSubject: 'uut__DOT__dbg_ascii_instr__subject',
-            valueType: 'string'
-          },
-          {
-            name: 'RD',
-            id: 'rd',
-            position: { x: 0.5, y: 0.2 },
-            valueSubject: 'uut__DOT__decoded_rd__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'Immediate',
-            id: 'imm',
-            position: { x: 0.5, y: 0.4 },
-            valueSubject: 'uut__DOT__decoded_imm__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'RS1',
-            id: 'rs1',
-            position: { x: 0.5, y: 0.6 },
-            valueSubject: 'uut__DOT__decoded_rs1__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'RS2',
-            id: 'rs2',
-            position: { x: 0.5, y: 0.8 },
-            valueSubject: 'uut__DOT__decoded_rs2__subject',
-            valueType: 'hex'
-          }
-        ]
-      },
-      {
-        name: 'Arithmetic Logic Unit',
-        id: 'alu',
-        position: { x: 2, y: 0, z: 0 },
-        size: { width: 0.95, height: 1.2 },
-        ports: [
-          {
-            name: 'Instruction',
-            position: { x: 0.05, y: 0 },
-            valueSubject: 'uut__DOT__dbg_ascii_instr__subject',
-            valueType: 'string'
-          },
-          {
-            name: 'Operator 1',
-            id: 'op1',
-            position: { x: 0.05, y: 0.2 },
-            valueSubject: 'uut__DOT__reg_op1__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'Operator 2',
-            id: 'op2',
-            position: { x: 0.05, y: 0.4 },
-            valueSubject: 'uut__DOT__reg_op2__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'Reg out',
-            id: 'reg',
-            position: { x: 0.05, y: 0.6 },
-            valueSubject: 'uut__DOT__reg_out__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'ALU out',
-            id: 'out',
-            position: { x: 0.5, y: 0 },
-            valueSubject: 'uut__DOT__alu_out__subject',
-            valueType: 'hex'
-          }
-        ]
-      },
-      {
-        name: 'Registers',
-        id: 'reg',
-        position: { x: 1, y: 2, z: 0 },
-        size: { width: 0.95, height: 0.6 },
-        ports: [
-          {
-            name: 'Address (RD)',
-            id: 'rd',
-            position: { x: 0.05, y: 0 },
-            valueSubject: 'uut__DOT__decoded_rd__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'Write data',
-            id: 'wdata',
-            position: { x: 0.05, y: 0.2 },
-            valueSubject: 'uut__DOT__cpuregs_wrdata__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'Read data',
-            id: 'rdata',
-            position: { x: 0.5, y: 0.2 },
-            valueSubject: 'uut__DOT__cpuregs_rs1__subject',
-            valueType: 'hex'
-          }
-        ],
-        icons: [
-          {
-            name: 'Write',
-            position: { x: 0.5, y: 0 },
-            valueSubject: 'uut__DOT__cpuregs_write__subject',
-            compare: 1
-          }
-        ]
-      },
-      {
-        name: 'Memory',
-        id: 'mem',
-        position: { x: -3.5, y: 0, z: 0 },
-        size: { width: 1.8, height: 0.6 },
-        ports: [
-          {
-            name: 'Address',
-            position: { x: 0.05, y: 0 },
-            valueSubject: 'mem_addr__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'Write Data',
-            id: 'write',
-            position: { x: 0.05, y: 0.2 },
-            valueSubject: 'mem_wdata__subject',
-            valueType: 'hex'
-          },
-          {
-            name: 'Read Data',
-            id: 'read',
-            position: { x: 1.35, y: 0 },
-            valueSubject: 'mem_rdata__subject',
-            valueType: 'hex'
-          }
-        ],
-        icons: [
-          {
-            name: 'Instr',
-            position: { x: 0.5, y: 0 },
-            valueSubject: 'uut__DOT__mem_do_rinst__subject',
-            compare: 1
-          },
-          {
-            name: 'Write',
-            position: { x: 0.7, y: 0 },
-            valueSubject: 'uut__DOT__mem_do_wdata__subject',
-            compare: 1
-          },
-          {
-            name: 'Read',
-            position: { x: 0.9, y: 0 },
-            valueSubject: 'uut__DOT__mem_do_rdata__subject',
-            compare: 1
-          },
-          {
-            name: 'Done',
-            position: { x: 1.1, y: 0 },
-            valueSubject: 'uut__DOT__mem_done__subject',
-            compare: 1
-          },
-          {
-            name: 'Prefe.',
-            position: { x: 0.5, y: 0.1 },
-            valueSubject: 'uut__DOT__mem_do_prefetch__subject',
-            compare: 1
-          }
-        ]
-      }
-    ];
 
-    for (const panel of panelInstantiation) {
+    for (const panel of panels) {
       const _panel = new Panel(
         this.scene,
         panel.position.x,
@@ -322,87 +135,26 @@ export class GraphService {
       this.panels.push(_panel);
     }
 
-    const links = [
-      {
-        from: {
-          panel: 'instr_dec',
-          port: 'imm'
-        },
-        to: {
-          panel: 'alu',
-          port: 'op2'
-        }
-      },
-      {
-        from: {
-          panel: 'instr_dec',
-          port: 'rd'
-        },
-        to: {
-          panel: 'reg',
-          port: 'rd'
-        }
-      },
-      {
-        from: {
-          panel: 'reg',
-          port: 'rdata'
-        },
-        to: {
-          panel: 'alu',
-          port: 'op1'
-        },
-      },
-      {
-        from: {
-          panel: 'mem',
-          port: 'read'
-        },
-        to: {
-          panel: 'instr_dec',
-          port: 'opcode'
-        }
-      },
-      {
-        from: {
-          panel: 'alu',
-          port: 'out'
-        },
-        to: {
-          panel: 'mem',
-          port: 'write'
-        }
-      },
-      {
-        from: {
-          panel: 'alu',
-          port: 'out'
-        },
-        to: {
-          panel: 'reg',
-          port: 'wdata'
-        }
-      }
-    ];
+
 
     for (const link of links) {
-      const fromPanel = panelInstantiation.filter((e) => e.id === link.from.panel)[0];
-      const fromPort = fromPanel.ports.filter((e) => e.id === link.from.port)[0];
-      const toPanel = panelInstantiation.filter((e) => e.id === link.to.panel)[0];
-      const toPort = toPanel.ports.filter((e) => e.id === link.to.port)[0];
-
-      this.addLink(
-        fromPanel.position.x + fromPort.position.x + 0.4,
-        fromPanel.position.y + fromPanel.size.height - fromPort.position.y - 0.25,
-        toPanel.position.x + toPort.position.x,
-        toPanel.position.y + toPanel.size.height - toPort.position.y  - 0.25
-      );
+      this.addLink(panels, link);
     }
+
   }
 
 
-  addLink(x0, y0, x1, y1) {
+  addLink(panels, link) {
     let strokeTexture: THREE.Texture;
+    const fromPanel = panels.filter((e) => e.id === link.from.panel)[0];
+    const fromPort = fromPanel.ports.filter((e) => e.id === link.from.port)[0];
+    const toPanel = panels.filter((e) => e.id === link.to.panel)[0];
+    const toPort = toPanel.ports.filter((e) => e.id === link.to.port)[0];
+
+    const x0 = fromPanel.position.x + fromPort.position.x + 0.4;
+    const y0 = fromPanel.position.y + fromPanel.size.height - fromPort.position.y - 0.25;
+    const x1 = toPanel.position.x + toPort.position.x;
+    const y1 = toPanel.position.y + toPanel.size.height - toPort.position.y - 0.25;
 
     const init = () => {
       const curve = new THREE.CatmullRomCurve3(
@@ -416,7 +168,7 @@ export class GraphService {
         'chordal'
       );
 
-      const points = curve.getPoints(500);
+      const points = curve.getSpacedPoints(500);
 
       let length = 0;
       for (let i = 1; i < points.length; i++) {
@@ -427,10 +179,42 @@ export class GraphService {
         // color: new THREE.Color(readStyleProperty('grey1')),
         lineWidth: 0.08,
         sizeAttenuation: true,
+        opacity: 0.1,
+        transparent: true,
         useMap: true,
         map: strokeTexture,
         repeat: new THREE.Vector2(length * 10, 1),
         offset: new THREE.Vector2(0.5, 0)
+      });
+
+      if (link.active) {
+        this.simLibInterfaceService.bindings.uut__DOT__next_insn_opcode__subject.subscribe(() => {
+          if (link.active(this.simLibInterfaceService.bindings)) {
+            tween({
+              from: lineBasicMaterial.opacity,
+              to: 1,
+              ease: easing.easeOut,
+              duration: 500
+            }).start((v) => lineBasicMaterial.opacity = v);
+          } else {
+            tween({
+              from: lineBasicMaterial.opacity,
+              to: 0.1,
+              ease: easing.easeOut,
+              duration: 500
+            }).start((v) => lineBasicMaterial.opacity = v);          }
+        });
+      }
+
+      this.simLibInterfaceService.bindings[toPort.valueSubject].subscribe(() => {
+        if (link.active(this.simLibInterfaceService.bindings)) {
+          tween({
+            from: readStyleProperty('accent'),
+            to: '#ffffff',
+            ease: easing.easeOut,
+            duration: 10000
+          }).start((v) => lineBasicMaterial.color = new THREE.Color(v));
+        }
       });
 
       this.runInRenderLoop((time, deltaTime) => lineBasicMaterial.offset.add(new THREE.Vector2(3 * deltaTime, 0)));
@@ -446,7 +230,7 @@ export class GraphService {
       });
 
       const lineMesh = new THREE.Mesh(line.geometry, lineBasicMaterial);
-      lineMesh.renderOrder = 1;
+      lineMesh.renderOrder = 0;
       this.scene.add(lineMesh);
     };
 
