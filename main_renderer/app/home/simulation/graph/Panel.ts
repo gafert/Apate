@@ -10,7 +10,7 @@ import { easing, styler, tween } from 'popmotion';
 
 export class Port {
   public meshGroup: THREE.Object3D;
-  private _valueText: MeshText2D;
+  private valueText: MeshText2D;
   private descriptorMesh: THREE.Mesh;
 
   constructor(
@@ -74,7 +74,7 @@ export class Port {
     // valueDescText.renderOrder = 1;
     // this.meshGroup.add(valueDescText);
 
-    this._valueText = new MeshText2D(String(this._value), {
+    this.valueText = new MeshText2D(String(this._value), {
       align: textAlign.left,
       font: '100px Roboto',
       fillStyle: '#ffffff',
@@ -82,14 +82,14 @@ export class Port {
     });
 
     // Scale 100 px font down
-    this._valueText.scale.set(0.0005, 0.0005, 0);
-    this._valueText.position.set(this._x + headerTextPadding + 0.15, this._y - height / 2 + 0.05 / 2 - height, this._z);
-    this.meshGroup.add(this._valueText);
+    this.valueText.scale.set(0.0005, 0.0005, 0);
+    this.valueText.position.set(this._x + headerTextPadding + 0.15, this._y - height / 2 + 0.05 / 2 - height, this._z);
+    this.meshGroup.add(this.valueText);
   }
 
   setValue(value) {
-    this._valueText.text = value;
-    this._valueText.updateText();
+    this.valueText.text = value;
+    this.valueText.updateText();
   }
 
   setBorderColor(color: THREE.Color) {
@@ -97,19 +97,108 @@ export class Port {
     this.descriptorMesh.material.uniforms.u_borderColor.value = color;
   }
 
+  getBorderColor() {
+    // @ts-ignore
+    return this.descriptorMesh.material.uniforms.u_borderColor.value;
+  }
+
   setBackgroundColor(color: THREE.Color) {
     // @ts-ignore
     this.descriptorMesh.material.uniforms.u_backgroundColor.value = color;
+  }
+
+  getBackgroundColor() {
+    // @ts-ignore
+    return this.descriptorMesh.material.uniforms.u_backgroundColor.value;
+  }
+}
+
+export class Icon {
+  public meshGroup: THREE.Object3D;
+  private descriptorMesh: THREE.Mesh;
+  private valueText: MeshText2D;
+
+  constructor(
+    private _x: number,
+    private _y: number,
+    private _z: number,
+    private _value: any,
+    private _globalUniforms: object
+  ) {
+    this.meshGroup = new THREE.Object3D();
+
+    const width = 0.2;
+    const height = 0.08;
+    const headerTextPadding = 0.02;
+
+    const headerGeometry = new THREE.PlaneGeometry(width, height, 1, 1);
+    // anchor left bottom
+    headerGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(width / 2, -height / 2, this._z));
+
+    const inputMaterial = new THREE.ShaderMaterial({
+      vertexShader: V_SHADER,
+      fragmentShader: F_SHADER,
+      uniforms: {
+        u_backgroundColor: { value: new THREE.Color(readStyleProperty('grey2')) },
+        u_borderColor: { value:  new THREE.Color(readStyleProperty('grey1')) },
+        u_width: { value: width },
+        u_height: { value: height },
+        ...this._globalUniforms
+      }
+    });
+
+    this.descriptorMesh = new THREE.Mesh(headerGeometry, inputMaterial);
+    this.descriptorMesh.position.set(this._x, this._y, this._z);
+    this.descriptorMesh.renderOrder = 50;
+    this.meshGroup.add(this.descriptorMesh);
+
+    const valueText = new MeshText2D(this._value, {
+      align: textAlign.left,
+      font: '100px Roboto',
+      fillStyle: '#ffffff',
+      antialias: true
+    });
+
+    // Scale 100 px font down
+    valueText.scale.set(0.0005, 0.0005, 0);
+    valueText.position.set(this._x + headerTextPadding, this._y - height / 2 + 0.05 / 2, this._z);
+    valueText.renderOrder = 100;
+    this.meshGroup.add(valueText);
+  }
+
+  setValue(value) {
+    this.valueText.text = value;
+    this.valueText.updateText();
+  }
+
+  setBorderColor(color: THREE.Color) {
+    // @ts-ignore
+    this.descriptorMesh.material.uniforms.u_borderColor.value = color;
+  }
+
+  getBorderColor() {
+    // @ts-ignore
+    return this.descriptorMesh.material.uniforms.u_borderColor.value;
+  }
+
+  setBackgroundColor(color: THREE.Color) {
+    // @ts-ignore
+    this.descriptorMesh.material.uniforms.u_backgroundColor.value = color;
+  }
+
+  getBackgroundColor() {
+    // @ts-ignore
+    return this.descriptorMesh.material.uniforms.u_backgroundColor.value;
   }
 }
 
 
 export class Panel {
   public ports: Port[] = [];
-  private _headerLine: THREE.Mesh;
-  private _headerText: MeshText2D;
-  private _panelMaterial: THREE.ShaderMaterial;
-  private _panelMesh: THREE.Mesh;
+  private headerLine: THREE.Mesh;
+  private headerText: MeshText2D;
+  private panelMaterial: THREE.ShaderMaterial;
+  private panelMesh: THREE.Mesh;
 
   constructor(
     private scene: THREE.Scene,
@@ -122,7 +211,7 @@ export class Panel {
     private _globalUniforms: object,
     private _simLibInterfaceService: SimLibInterfaceService
   ) {
-    this._panelMaterial = new THREE.ShaderMaterial({
+    this.panelMaterial = new THREE.ShaderMaterial({
       vertexShader: V_SHADER,
       fragmentShader: F_SHADER,
       uniforms: {
@@ -136,23 +225,23 @@ export class Panel {
 
     const geometry = new THREE.PlaneGeometry(this._width, this._height);
     geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(this._width / 2, this._height / 2, 0));
-    this._panelMesh = new THREE.Mesh(geometry, this._panelMaterial);
-    this._panelMesh.position.set(this._x, this._y, this._z);
-    this._panelMesh.renderOrder = 0;
-    scene.add(this._panelMesh);
+    this.panelMesh = new THREE.Mesh(geometry, this.panelMaterial);
+    this.panelMesh.position.set(this._x, this._y, this._z);
+    this.panelMesh.renderOrder = 0;
+    scene.add(this.panelMesh);
 
-    this._headerText = new MeshText2D(this._name, {
+    this.headerText = new MeshText2D(this._name, {
       align: textAlign.left,
       font: '100px Roboto',
       fillStyle: '#ffffff',
       antialias: true
     });
     // Scale 100 px font down
-    this._headerText.scale.set(0.0005, 0.0005, 0);
+    this.headerText.scale.set(0.0005, 0.0005, 0);
 
-    this._headerText.position.set(0.05, this._height - 0.05, 0);
-    this._headerText.renderOrder = 1;
-    this._panelMesh.add(this._headerText);
+    this.headerText.position.set(0.05, this._height - 0.05, 0);
+    this.headerText.renderOrder = 1;
+    this.panelMesh.add(this.headerText);
 
     // Line under the header
     const lineBasicMaterial = new MeshLineMaterial({
@@ -166,20 +255,16 @@ export class Panel {
     const line = new MeshLine();
     line.setGeometry(points);
 
-    this._headerLine = new THREE.Mesh(line.geometry, lineBasicMaterial);
-    this._headerLine.renderOrder = 1;
-    this._panelMesh.add(this._headerLine);
+    this.headerLine = new THREE.Mesh(line.geometry, lineBasicMaterial);
+    this.headerLine.renderOrder = 1;
+    this.panelMesh.add(this.headerLine);
   }
 
   changeBorderColor(color: THREE.Color) {
     // @ts-ignore
     this._panelMesh.material.uniforms.u_borderColor.value = color;
     // @ts-ignore
-    this._headerLine.material.color = color;
-  }
-
-  get panelMesh(): THREE.Mesh {
-    return this._panelMesh;
+    this.headerLine.material.color = color;
   }
 
   /**
@@ -193,7 +278,7 @@ export class Panel {
    */
   addPort(x, y, name, value, valueType, valueSubject?) {
     const port = new Port(x, y, 0, name, value, this._globalUniforms);
-    this._panelMesh.add(port.meshGroup);
+    this.panelMesh.add(port.meshGroup);
     this.ports.push(port);
 
     // If a subject is set subscribe to it
@@ -203,9 +288,8 @@ export class Panel {
           from: readStyleProperty('accent'),
           to: readStyleProperty('grey1'),
           ease: easing.easeOut,
-          duration: 5000,
+          duration: 10000,
         }).start((v) => port.setBorderColor(new THREE.Color(v)));
-        console.log("Called this");
 
         switch (valueType) {
           case 'hex':
@@ -217,6 +301,48 @@ export class Panel {
           case 'dec':
           default:
             port.setValue(value);
+        }
+      });
+    }
+  }
+
+  /**
+   * Add a icon to the panel. Starting 0,0 at left,top
+   * @param x
+   * @param y
+   * @param value Value to set
+   * @param compare A value to compare the subject to to activate the icon
+   * @param valueSubject Subject to subscribe to for the value if changed
+   */
+  addIcon(x, y, value, compare?, valueSubject?) {
+    const icon = new Icon(x, y, 0, value, this._globalUniforms);
+    this.panelMesh.add(icon.meshGroup);
+
+    // If a subject is set subscribe to it
+    if (valueSubject && compare) {
+      this._simLibInterfaceService.bindings[valueSubject].subscribe((value) => {
+        console.log(value)
+
+        if(value === compare) {
+          tween({
+            from: '#' + icon.getBorderColor().getHexString(),
+            to: readStyleProperty('accent'),
+            ease: easing.easeOut,
+            duration: 500,
+          }).start((v) => {
+            icon.setBackgroundColor(new THREE.Color(v));
+            icon.setBorderColor(new THREE.Color(v))
+          });
+        } else {
+          tween({
+            from: '#' +  icon.getBorderColor().getHexString(),
+            to: readStyleProperty('grey1'),
+            ease: easing.easeOut,
+            duration: 500,
+          }).start((v) => {
+            icon.setBackgroundColor(new THREE.Color(v));
+            icon.setBorderColor(new THREE.Color(v))
+          });
         }
       });
     }
