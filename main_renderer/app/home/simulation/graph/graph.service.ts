@@ -8,6 +8,9 @@ import links from './links.yml';
 import panels from './panels.yml';
 import { easing, tween } from 'popmotion';
 import { readStyleProperty } from '../../../utils/helper';
+import { loadGIF, parseGIF } from './gifparser';
+import { MathUtils } from 'three';
+import floorPowerOfTwo = MathUtils.floorPowerOfTwo;
 
 @Injectable()
 export class GraphService {
@@ -135,17 +138,34 @@ export class GraphService {
       this.panels.push(_panel);
     }
 
-
-
+    const loadCallbacks = [];
     for (const link of links) {
-      this.addLink(panels, link);
+      this.addLink(panels, link, (init) => {
+        loadCallbacks.push(init);
+      });
     }
 
+    const video = document.createElement('video');
+    video.src = 'assets/Pfeil.mp4';
+    video.loop = true;
+    video.autoplay = true;
+    video.addEventListener('loadeddata', function() {
+      console.log('loadeddata');
+      video.play();
+      console.log(video);
+      loadCallbacks.forEach((init) => init(video));
+    });
+
+    // loadGIF('assets/pfeile.gif', (times, cnt, frames) => {
+    //   const w = floorPowerOfTwo(frames[0].width)
+    //   const h = floorPowerOfTwo(frames[0].height)
+    //   const gif = { times: times, cnt: cnt, frames: frames, height: h, width: w };
+    //   loadCallbacks.forEach((init) => init(gif))
+    // });
   }
 
 
-  addLink(panels, link) {
-    let strokeTexture: THREE.Texture;
+  addLink(panels, link, loadCallback) {
     const fromPanel = panels.filter((e) => e.id === link.from.panel)[0];
     const fromPort = fromPanel.ports.filter((e) => e.id === link.from.port)[0];
     const toPanel = panels.filter((e) => e.id === link.to.panel)[0];
@@ -156,16 +176,31 @@ export class GraphService {
     const x1 = toPanel.position.x + toPort.position.x;
     const y1 = toPanel.position.y + toPanel.size.height - toPort.position.y - 0.25;
 
-    const init = () => {
+    const init = (video: HTMLVideoElement) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      const strokeTexture = new THREE.Texture(canvas);
+      strokeTexture.wrapS = THREE.RepeatWrapping;
+      strokeTexture.wrapT = THREE.RepeatWrapping;
+
+      const prepoints = [
+        new THREE.Vector3(x0 - 0.05, y0, fromPanel.position.z),
+        //new THREE.Vector3(Math.max(x0 + (x1 - x0) / 2 - 0.2, x0 + 0.2), y0 < y1 ? Math.min(y0 + 0.05, y1) : Math.max(y0 - 0.05, y1), 0),
+        //new THREE.Vector3(Math.min(x0 + (x1 - x0) / 2 + 0.2, x1 - 0.2), y0 < y1 ? Math.max(y1 - 0.05, y0) : Math.min(y1 + 0.05, y0), 0),
+        new THREE.Vector3(Math.max(x0 + (x1 - x0) / 2 - 0.2, x0 + 0.2), y0 < y1 ? Math.min(y0, y1) : Math.max(y0, y1), fromPanel.position.z),
+        new THREE.Vector3(Math.max(x0 + (x1 - x0) / 2 - 0.2, x0 + 0.2), (y0 + y1) / 2, (fromPanel.position.z + toPanel.position.z) / 2),
+        new THREE.Vector3(Math.min(x0 + (x1 - x0) / 2 + 0.2, x1 - 0.2), (y0 + y1) / 2, (fromPanel.position.z + toPanel.position.z) / 2),
+        new THREE.Vector3(Math.min(x0 + (x1 - x0) / 2 + 0.2, x1 - 0.2), y0 < y1 ? Math.max(y1, y0) : Math.min(y1, y0), toPanel.position.z),
+        new THREE.Vector3(x1 + 0.05, y1, toPanel.position.z)
+      ];
+
       const curve = new THREE.CatmullRomCurve3(
-        [
-          new THREE.Vector3(x0 - 0.05, y0, 0),
-          new THREE.Vector3(Math.max(x0 + (x1 - x0) / 2 - 0.2, x0 + 0.2), y0 < y1 ? Math.min(y0 + 0.05, y1) : Math.max(y0 - 0.05, y1), 0),
-          new THREE.Vector3(Math.min(x0 + (x1 - x0) / 2 + 0.2, x1 - 0.2), y0 < y1 ? Math.max(y1 - 0.05, y0) : Math.min(y1 + 0.05, y0), 0),
-          new THREE.Vector3(x1 + 0.05, y1, 0)
-        ],
+        prepoints,
         false,
-        'chordal'
+        'catmullrom',
+        0.000000001
       );
 
       const points = curve.getSpacedPoints(500);
@@ -183,12 +218,12 @@ export class GraphService {
         transparent: true,
         useMap: true,
         map: strokeTexture,
-        repeat: new THREE.Vector2(length * 10, 1),
-        offset: new THREE.Vector2(0.5, 0)
+        repeat: new THREE.Vector2(length * 2000 / video.videoWidth, 1)
+        //offset: new THREE.Vector2(0.5, 0)
       });
 
       if (link.active) {
-        this.simLibInterfaceService.bindings.uut__DOT__next_insn_opcode__subject.subscribe(() => {
+        this.simLibInterfaceService.bindings[toPort.valueSubject].subscribe(() => {
           if (link.active(this.simLibInterfaceService.bindings)) {
             tween({
               from: lineBasicMaterial.opacity,
@@ -196,28 +231,45 @@ export class GraphService {
               ease: easing.easeOut,
               duration: 500
             }).start((v) => lineBasicMaterial.opacity = v);
+            tween({
+              from: readStyleProperty('accent'),
+              to: '#ffffff',
+              ease: easing.easeOut,
+              duration: 40000
+            }).start((v) => lineBasicMaterial.color = new THREE.Color(v));
           } else {
             tween({
               from: lineBasicMaterial.opacity,
               to: 0.1,
               ease: easing.easeOut,
               duration: 500
-            }).start((v) => lineBasicMaterial.opacity = v);          }
+            }).start((v) => lineBasicMaterial.opacity = v);
+          }
         });
       }
 
-      this.simLibInterfaceService.bindings[toPort.valueSubject].subscribe(() => {
-        if (link.active(this.simLibInterfaceService.bindings)) {
-          tween({
-            from: readStyleProperty('accent'),
-            to: '#ffffff',
-            ease: easing.easeOut,
-            duration: 10000
-          }).start((v) => lineBasicMaterial.color = new THREE.Color(v));
-        }
+      // let frameIndex = 0;
+      // let previouseFrameIndex = 0;
+      // let lastTime = 0;
+      this.runInRenderLoop((time, deltaTime) => {
+        // // lineBasicMaterial.offset.add(new THREE.Vector2(3 * deltaTime, 0));
+        // if(time - lastTime > gif.times[previouseFrameIndex] * 0.001 ) {
+        //   lastTime = time;
+        //   previouseFrameIndex = frameIndex;
+        //   frameIndex++;
+        //   if (frameIndex >= gif.frames.length) {
+        //     frameIndex = 0;
+        //     context.clearRect(0, 0, gif.width, gif.height)
+        //     strokeTexture.needsUpdate = true
+        //   }
+        //   const frame = gif.frames[frameIndex];
+        //   //console.log( this.gif.frames, frameIndex, frame);
+        //   context.drawImage(frame, 0, 0, gif.width, gif.height);
+        //   strokeTexture.needsUpdate = true;
+        // }
+        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+        strokeTexture.needsUpdate = true;
       });
-
-      this.runInRenderLoop((time, deltaTime) => lineBasicMaterial.offset.add(new THREE.Vector2(3 * deltaTime, 0)));
 
       const line = new MeshLine();
       const geometry = new THREE.Geometry();
@@ -234,12 +286,14 @@ export class GraphService {
       this.scene.add(lineMesh);
     };
 
-    const loader = new THREE.TextureLoader();
-    loader.load('assets/Arrow.png', function(texture) {
-      strokeTexture = texture;
-      strokeTexture.wrapS = strokeTexture.wrapT = THREE.RepeatWrapping;
-      init();
-    });
+    loadCallback(init);
+
+    // const loader = new THREE.TextureLoader();
+    // loader.load('assets/Arrow.png', function(texture) {
+    //   strokeTexture = texture;
+    //   strokeTexture.wrapS = strokeTexture.wrapT = THREE.RepeatWrapping;
+    //   init();
+    // });
   }
 
   render() {

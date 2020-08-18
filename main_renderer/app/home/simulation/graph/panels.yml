@@ -27,7 +27,7 @@
         x: 0.5
         y: 0.2
       valueSubject: uut__DOT__decoded_rd__subject
-      valueType: hex
+      valueType: dec
     - name: Immediate
       id: imm
       position:
@@ -48,13 +48,6 @@
         x: 0.5
         y: 0.8
       valueSubject: uut__DOT__decoded_rs2__subject
-      valueType: hex
-    - name: Is Imm
-      id: is_imm
-      position:
-        x: 0.5
-        y: 1
-      valueSubject: uut__DOT__is_alu_reg_imm__subject
       valueType: hex
 - name: Arithmetic Logic Unit
   id: alu
@@ -89,8 +82,8 @@
     - name: Reg out
       id: reg
       position:
-        x: 0.05
-        y: 0.6
+        x: 0.5
+        y: 0.2
       valueSubject: uut__DOT__reg_out__subject
       valueType: hex
     - name: ALU out
@@ -99,6 +92,27 @@
         x: 0.5
         y: 0
       valueSubject: uut__DOT__alu_out__subject
+      valueType: hex
+    - name: Latched store
+      id: out
+      position:
+        x: 0.5
+        y: 0.4
+      valueSubject: uut__DOT__latched_store__subject
+      valueType: hex
+    - name: Latched stalu
+      id: out
+      position:
+        x: 0.5
+        y: 0.6
+      valueSubject: uut__DOT__latched_stalu__subject
+      valueType: hex
+    - name: Latched branch
+      id: out
+      position:
+        x: 0.5
+        y: 0.8
+      valueSubject: uut__DOT__latched_branch__subject
       valueType: hex
 - name: Registers
   id: reg
@@ -110,13 +124,13 @@
     width: 0.95
     height: 0.6
   ports:
-    - name: Address (RD)
+    - name: Address
       id: rd
       position:
         x: 0.05
         y: 0
-      valueSubject: uut__DOT__decoded_rd__subject
-      valueType: hex
+      valueSubject: uut__DOT__decoded_rs1__subject
+      valueType: dec
     - name: Write data
       id: wdata
       position:
@@ -141,9 +155,9 @@
 - name: Memory
   id: mem
   position:
-    x: -3.5
-    y: 0
-    z: 0
+    x: 0
+    y: -1
+    z: -2
   size:
     width: 1.8
     height: 0.6

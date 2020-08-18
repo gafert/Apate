@@ -11,6 +11,7 @@ import { easing, styler, tween } from 'popmotion';
 export class Port {
   public meshGroup: THREE.Object3D;
   private valueText: MeshText2D;
+  private valueTextAdditional: MeshText2D;
   private descriptorMesh: THREE.Mesh;
 
   constructor(
@@ -84,13 +85,30 @@ export class Port {
 
     // Scale 100 px font down
     this.valueText.scale.set(0.0005, 0.0005, 0);
-    this.valueText.position.set(this._x + headerTextPadding + 0.15, this._y - height / 2 + 0.05 / 2 - height, this._z);
+    this.valueText.position.set(this._x + headerTextPadding, this._y - height / 2 + 0.05 / 2 - height, this._z);
     this.meshGroup.add(this.valueText);
+
+    this.valueTextAdditional = new MeshText2D(String(""), {
+      align: textAlign.left,
+      font: '100px Roboto',
+      fillStyle: '#ffffff',
+      antialias: true
+    });
+
+    // Scale 100 px font down
+    this.valueTextAdditional.scale.set(0.0005, 0.0005, 0);
+    this.valueTextAdditional.position.set(this._x + headerTextPadding + 0.25, this._y - height / 2 + 0.05 / 2 - height, this._z);
+    this.meshGroup.add(this.valueTextAdditional);
   }
 
   setValue(value) {
     this.valueText.text = value;
     this.valueText.updateText();
+  }
+
+  setAdditionalValue(value) {
+    this.valueTextAdditional.text = value;
+    this.valueTextAdditional.updateText();
   }
 
   setBorderColor(color: THREE.Color) {
@@ -296,6 +314,7 @@ export class Panel {
         switch (valueType) {
           case 'hex':
             port.setValue(byteToHex(value, 8));
+            port.setAdditionalValue(value);
             break;
           case 'string':
             port.setValue(new Buffer(byteToHex(value, 0), 'hex'));

@@ -13,6 +13,8 @@
   to:
     panel: reg
     port: rd
+  active: !!js/function >
+    function (binding) { return 1; }
 
 - from:
     panel: reg
@@ -20,6 +22,8 @@
   to:
     panel: alu
     port: op1
+  active: !!js/function >
+    function (binding) { return binding.uut__DOT__is_alu_reg_imm__subject.value === 1; }
 
 - from:
     panel: mem
@@ -35,9 +39,12 @@
     panel: mem
     port: write
 
+
 - from:
     panel: alu
     port: out
   to:
     panel: reg
     port: wdata
+  active: !!js/function >
+    function (binding) { return binding.uut__DOT__latched_store__subject.value === 1; }
