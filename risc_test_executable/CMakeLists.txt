@@ -42,6 +42,11 @@ add_custom_target(make_program_hex
         COMMAND ${RISC_OBJ} -O verilog ${CMAKE_CURRENT_BINARY_DIR}/program.elf program.hex
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
+add_custom_target(make_program_real_hex
+        DEPENDS program
+        COMMAND ${RISC_OBJ} ${CMAKE_CURRENT_BINARY_DIR}/program.elf program.hex
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
 add_custom_target(read_elf
         DEPENDS strip_debug
         COMMAND ${RISC_READELF} -a ${CMAKE_CURRENT_BINARY_DIR}/program.elf > ${CMAKE_CURRENT_SOURCE_DIR}/program_readelf.txt

@@ -1,0 +1,32 @@
+- port_imm_1:
+    type: port
+- port_rs2_1:
+    type: port
+- signal_imm_1:
+    type: signal
+    from: port_imm_1
+- signal_rs2_1:
+    type: signal
+    from: port_rs2_1
+- mux_1:
+    type: mux
+    from:
+      - signal_imm_1
+      - signal_rs2_1
+    active:
+      - imm
+      - op
+- signal_mux_out_1:
+    type: signal
+    from: port_rs2_1
+- mux_2:
+    type: mux
+    from:
+      - signal_mux_out_1
+      - signal_other
+    active:
+      - imm | op
+      - load
+- signal_mux_out_2:
+    type: signal
+    from: mux_2

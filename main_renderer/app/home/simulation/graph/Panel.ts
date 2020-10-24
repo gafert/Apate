@@ -317,7 +317,7 @@ export class Panel {
             port.setAdditionalValue(value);
             break;
           case 'string':
-            port.setValue(new Buffer(byteToHex(value, 0), 'hex'));
+            port.setValue(value);
             break;
           case 'dec':
           default:

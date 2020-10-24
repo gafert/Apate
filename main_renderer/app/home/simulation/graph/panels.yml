@@ -7,113 +7,6 @@
   size:
     width: 0.95
     height: 1.2
-  ports:
-    - name: Opcode
-      id: opcode
-      position:
-        x: 0.05
-        y: 0
-      valueSubject: uut__DOT__next_insn_opcode__subject
-      valueType: hex
-    - name: Instruction
-      position:
-        x: 0.5
-        y: 0
-      valueSubject: uut__DOT__dbg_ascii_instr__subject
-      valueType: string
-    - name: RD
-      id: rd
-      position:
-        x: 0.5
-        y: 0.2
-      valueSubject: uut__DOT__decoded_rd__subject
-      valueType: dec
-    - name: Immediate
-      id: imm
-      position:
-        x: 0.5
-        y: 0.4
-      valueSubject: uut__DOT__decoded_imm__subject
-      valueType: hex
-    - name: RS1
-      id: rs1
-      position:
-        x: 0.5
-        y: 0.6
-      valueSubject: uut__DOT__decoded_rs1__subject
-      valueType: hex
-    - name: RS2
-      id: rs2
-      position:
-        x: 0.5
-        y: 0.8
-      valueSubject: uut__DOT__decoded_rs2__subject
-      valueType: hex
-- name: Arithmetic Logic Unit
-  id: alu
-  position:
-    x: 2
-    y: 0
-    z: 0
-  size:
-    width: 0.95
-    height: 1.2
-  ports:
-    - name: Instruction
-      position:
-        x: 0.05
-        y: 0
-      valueSubject: uut__DOT__dbg_ascii_instr__subject
-      valueType: string
-    - name: Operator 1
-      id: op1
-      position:
-        x: 0.05
-        y: 0.2
-      valueSubject: uut__DOT__reg_op1__subject
-      valueType: hex
-    - name: Operator 2
-      id: op2
-      position:
-        x: 0.05
-        y: 0.4
-      valueSubject: uut__DOT__reg_op2__subject
-      valueType: hex
-    - name: Reg out
-      id: reg
-      position:
-        x: 0.5
-        y: 0.2
-      valueSubject: uut__DOT__reg_out__subject
-      valueType: hex
-    - name: ALU out
-      id: out
-      position:
-        x: 0.5
-        y: 0
-      valueSubject: uut__DOT__alu_out__subject
-      valueType: hex
-    - name: Latched store
-      id: out
-      position:
-        x: 0.5
-        y: 0.4
-      valueSubject: uut__DOT__latched_store__subject
-      valueType: hex
-    - name: Latched stalu
-      id: out
-      position:
-        x: 0.5
-        y: 0.6
-      valueSubject: uut__DOT__latched_stalu__subject
-      valueType: hex
-    - name: Latched branch
-      id: out
-      position:
-        x: 0.5
-        y: 0.8
-      valueSubject: uut__DOT__latched_branch__subject
-      valueType: hex
 - name: Registers
   id: reg
   position:
@@ -129,35 +22,28 @@
       position:
         x: 0.05
         y: 0
-      valueSubject: uut__DOT__decoded_rs1__subject
+      valueSubject: regAddress
       valueType: dec
     - name: Write data
       id: wdata
       position:
         x: 0.05
         y: 0.2
-      valueSubject: uut__DOT__cpuregs_wrdata__subject
+      valueSubject: regWriteData
       valueType: hex
     - name: Read data
       id: rdata
       position:
         x: 0.5
         y: 0.2
-      valueSubject: uut__DOT__cpuregs_rs1__subject
+      valueSubject: regReadData
       valueType: hex
-  icons:
-    - name: Write
-      position:
-        x: 0.5
-        y: 0
-      valueSubject: uut__DOT__cpuregs_write__subject
-      compare: 1
 - name: Memory
   id: mem
   position:
     x: 0
     y: -1
-    z: -2
+    z: 0
   size:
     width: 1.8
     height: 0.6
@@ -166,50 +52,19 @@
       position:
         x: 0.05
         y: 0
-      valueSubject: mem_addr__subject
+      valueSubject: memAddress
       valueType: hex
     - name: Write Data
       id: write
       position:
         x: 0.05
         y: 0.2
-      valueSubject: mem_wdata__subject
+      valueSubject: memWriteData
       valueType: hex
     - name: Read Data
       id: read
       position:
         x: 1.35
         y: 0
-      valueSubject: mem_rdata__subject
+      valueSubject: memReadData
       valueType: hex
-  icons:
-    - name: Instr
-      position:
-        x: 0.5
-        y: 0
-      valueSubject: uut__DOT__mem_do_rinst__subject
-      compare: 1
-    - name: Write
-      position:
-        x: 0.7
-        y: 0
-      valueSubject: uut__DOT__mem_do_wdata__subject
-      compare: 1
-    - name: Read
-      position:
-        x: 0.9
-        y: 0
-      valueSubject: uut__DOT__mem_do_rdata__subject
-      compare: 1
-    - name: Done
-      position:
-        x: 1.1
-        y: 0
-      valueSubject: uut__DOT__mem_done__subject
-      compare: 1
-    - name: Prefe.
-      position:
-        x: 0.5
-        y: 0.1
-      valueSubject: uut__DOT__mem_do_prefetch__subject
-      compare: 1

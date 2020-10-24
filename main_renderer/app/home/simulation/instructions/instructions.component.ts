@@ -1,13 +1,9 @@
 import { AfterViewInit, Component, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { byteToHex } from '../../../globals';
 import * as d3 from 'd3';
-import * as Store from 'electron-store';
 import { easing, styler, tween } from 'popmotion';
-import * as isDev from 'electron-is-dev';
-import * as path from 'path';
-import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
-import { DataService } from '../../../core/services/data.service';
 import { readStyleProperty } from '../../../utils/helper';
+import { ELF } from '../../../core/services/sim-lib-interface/elfParser';
 
 class Assembly {
   opcode: string;
@@ -34,30 +30,18 @@ class Section {
 @Component({
   selector: 'app-instructions',
   templateUrl: './instructions.component.html',
-  styleUrls: ['./instructions.component.scss'],
+  styleUrls: ['./instructions.component.scss']
 })
 export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
-  public sections: Section[] = [];
   public byteToHex = byteToHex;
-  @Input() private programCounter;
-  @Input() private elfPath;
-  private store = new Store();
-  private toolchainPath = this.store.get('toolchainPath', '');
-  private toolchainPrefix = this.store.get('toolchainPrefix', '');
-  private objdumpPath = path.join(this.toolchainPath, this.toolchainPrefix + 'objdump');
-  private isRunning = false;
+  @Input() public programCounter;
+  @Input() public parsedElf: ELF;
 
-  constructor(
-    private simLibInterfaceService: SimLibInterfaceService,
-    private dataService: DataService,
-    private ngZone: NgZone
-  ) {}
+  constructor() {
+  }
 
   ngOnInit(): void {
     // Reload instructions from last initiation
-    if (this.dataService.instructionsSections) {
-      this.sections = this.dataService.instructionsSections;
-    }
   }
 
   ngAfterViewInit(): void {
@@ -74,29 +58,15 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   public reload() {
-    if (this.elfPath.indexOf('.elf') > 0) {
-      if (!this.isRunning) {
-        this.isRunning = true;
-        const objdumpWorker = new Worker('./static/objdump.worker.js');
-        objdumpWorker.onmessage = (e) => {
-          this.ngZone.run(() => {
-            // Emitted when the elf changed and instructions needed to be renewed
-            this.sections = e.data;
-            // Save instructions
-            this.dataService.instructionsSections = this.sections;
-            setTimeout(() => {
-              this.setInstructionColor(0, this.programCounter);
-            }, 100);
-            objdumpWorker.terminate();
-            this.isRunning = false;
-          });
-        };
-        objdumpWorker.postMessage({ file: this.elfPath, isDev: isDev, objdumpPath: this.objdumpPath });
-      }
-    }
+    // Emitted when the elf changed and instructions needed to be renewed
+    // Save instructions
+    setTimeout(() => {
+      this.setInstructionColor(0, this.programCounter);
+    }, 100);
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+  }
 
   private setInstructionColor(oldPC, newPC) {
     // Change colors accordingly
@@ -106,7 +76,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
         from: { backgroundColor: oldAssemblyDiv.style.backgroundColor },
         to: { backgroundColor: readStyleProperty('accent-dark') },
         ease: easing.easeOut,
-        duration: 500,
+        duration: 500
       }).start((v) => styler(oldAssemblyDiv).set(v));
     }
     const oldAssemblyPcDiv = document.getElementById('assembly-code-div-pc-' + oldPC);
@@ -116,7 +86,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
         from: { backgroundColor: oldAssemblyPcDiv.style.backgroundColor },
         to: { backgroundColor: readStyleProperty('accent') },
         ease: easing.easeOut,
-        duration: 500,
+        duration: 500
       }).start((v) => {
         styler(oldAssemblyPcDiv).set(v);
         styler(oldAssemblyHexDiv).set(v);

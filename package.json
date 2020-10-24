@@ -22,29 +22,18 @@
     "?start": "echo Start electron locally with angular beeing served and watched",
     "start": "npm-run-all -p electron:serve ng:serve",
     "ng:serve": "ng serve",
-    "simworker:build": "cd ./simulation_library_worker && webpack",
     "electron:tsc": "tsc -p tsconfig-serve.json",
-    "electron:serve": "npm run electron:tsc && npm run simworker:build && wait-on http-get://localhost:4200/ && electron . --serve --enable-logging --verbose",
+    "electron:serve": "npm run electron:tsc && wait-on http-get://localhost:4200/ && electron . --serve --enable-logging --verbose",
     "electron:linux": "npm run build:prod && electron-builder build --linux",
     "electron:windows": "npm run build:prod && electron-builder build --win",
     "electron:mac": "npm run build:prod && electron-builder build --mac",
-    "build": "npm run electron:tsc && npm run simworker:build && ng build --base-href ./ ",
+    "build": "npm run electron:tsc && ng build --base-href ./ ",
     "build:dev": "npm run build -- -c dev",
     "build:prod": "npm run build -- -c production",
     "postinstall": "electron-builder install-app-deps",
     "ng": "ng",
     "test": "ng test",
-    "lint": "ng lint --fix",
-    "?build:simlib_binding:local": "echo Generates ts, cpp bindings between electron and the simulation_library. Requires cmake and python3.",
-    "build:simlib_binding:local": "cd ./simulation_library && cmake . -G\"Unix Makefiles\" && make GenerateBinding && cd ..",
-    "?build:simlib:local": "echo Compile the simlib simulation_library. Requires cmake and gcc to be installed.",
-    "build:simlib:local": "npm run build:simlib:clean && cmake -S./simulation_library -G\"Unix Makefiles\" -B./simulation_library && make -C ./simulation_library Vtestbench",
-    "?build:simlib:windows_docker": "echo Compile the simlib simulation_library for windows with a docker image. Requires docker.",
-    "build:simlib:windows_docker": "npm run build:simlib:clean && docker run --rm dockcross/windows-static-x64 > ./dockcross-windows-static-x64 && chmod +x ./dockcross-windows-static-x64 && ./dockcross-windows-static-x64 cmake -S./simulation_library -G\"Unix Makefiles\" -B./simulation_library && ./dockcross-windows-static-x64 make -C ./simulation_library Vtestbench",
-    "?build:simlib:linux_docker": "echo Compile the simlib simulation_library for linux with a docker image. Requires docker.",
-    "build:simlib:linux_docker": "npm run build:simlib:clean && docker run --rm dockcross/linux-x64 > ./dockcross-linux-x64 && chmod +x ./dockcross-linux-x64 && ./dockcross-linux-x64 cmake -S./simulation_library -G\"Unix Makefiles\" -B./simulation_library && ./dockcross-linux-x64 make -C ./simulation_library Vtestbench ",
-    "?build:simlib:clean": "echo Clean the CMakeFiles of the simulation_library.",
-    "build:simlib:clean": "rm -rf ./simulation_library/CMakeFiles ||: && rm ./simulation_library/Makefile ||: && rm ./simulation_library/CMakeCache.txt ||: && rm ./simulation_library/cmake_install.cmake ||:"
+    "lint": "ng lint --fix"
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "9.2.0",
@@ -77,6 +66,7 @@
     "eslint": "7.4.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-import": "2.22.0",
+    "js-yaml-loader": "1.2.2",
     "npm-run-all": "4.1.5",
     "raw-loader": "4.0.1",
     "rxjs": "6.6.0",
@@ -86,8 +76,7 @@
     "wait-on": "5.0.1",
     "webpack-cli": "3.3.12",
     "webpack-dev-server": "3.11.0",
-    "zone.js": "0.10.3",
-    "js-yaml-loader": "1.2.2"
+    "zone.js": "0.10.3"
   },
   "engines": {
     "node": ">=10.13.0"
@@ -112,6 +101,7 @@
     "tar-fs": "2.0.1",
     "three": "0.117.1",
     "three-text2d": "0.6.0",
+    "tinycolor2": "1.4.2",
     "ts-loader": "8.0.1",
     "unzipper": "0.10.11"
   }

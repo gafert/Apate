@@ -13,24 +13,24 @@
 
   <div style="display: flex; align-items: center">
     <div style="margin-left: 1em; margin-right: 1em">Program Counter</div>
-    <div>{{simLibInterfaceService.bindings.uut__DOT__reg_pc__subject  | async}}</div>
+    <div>{{simLibInterfaceService.bindings.pc  | async}}</div>
   </div>
 
   <div style="display: flex; align-items: center">
     <div style="margin-left: 1em; margin-right: 1em">CPU State</div>
-    <div>{{cpuStateToString(simLibInterfaceService.bindings.uut__DOT__cpu_state__subject  | async)}}</div>
+    <div>{{cpuStateToString(simLibInterfaceService.bindings.cpuState  | async)}}</div>
   </div>
 </div>
 
 <div class="main-tab-container" id="simulation-container">
   <app-graph style="width: 100%; height: 100%; position: absolute"></app-graph>
   <app-instructions #instructionsComponent
-                    [elfPath]="simulationElfPath"
-                    [programCounter]="simLibInterfaceService.bindings.uut__DOT__reg_pc__subject | async"
+                    [programCounter]="simLibInterfaceService.bindings.pc | async"
+                    [parsedElf]="simLibInterfaceService.parsedElf"
                     class="simulation-item-content app-instruction"></app-instructions>
   <app-registers
     class="simulation-item-content app-registers"
-    [registers]="simLibInterfaceService.bindings.uut__DOT__cpuregs__subject | async"></app-registers>
+    [registers]="simLibInterfaceService.bindings.cpuregs | async"></app-registers>
 
   <app-terminal class="simulation-item-content app-terminal"></app-terminal>
   <app-memory class="simulation-item-content app-memory"></app-memory>

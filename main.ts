@@ -1,44 +1,10 @@
 import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
-import {fork} from 'child_process';
-import * as net from "net";
-import * as isDev from "electron-is-dev";
 
-let simulationProcess;
 let mainWindow: BrowserWindow = null;
 const args = process.argv.slice(1),
   serve = args.some((val) => val === '--serve');
-
-function sendWindowMessage(targetWindow, message, payload) {
-  if (!targetWindow) {
-    console.log('Target window does not exist');
-    return;
-  }
-  targetWindow.webContents.send(message, payload);
-}
-
-function sendProcessMessage(process, command, payload) {
-  process.send({
-    command: command,
-    payload: payload
-  })
-}
-
-function startSimulationLibrary() {
-  // Pass app path to the forked process
-  // This is where settings and the library will reside
-  const appPath = `--appPath=${isDev ? app.getAppPath() : process.resourcesPath}`;
-  const simulationLibraryPath =  serve ? './dist/simulation_library_worker/bundle.js' : path.join(__dirname, 'dist/simulation_library_worker/bundle.js');
-  simulationProcess = fork(simulationLibraryPath,  [appPath]);
-  simulationProcess.on('message',  (message: any, sendHandle: net.Socket | net.Server) => {
-    console.log("Message from simulation_library", message);
-    sendWindowMessage(mainWindow, 'simulation-library', message);
-  });
-  simulationProcess.on('exit', (code, signal) => {
-    console.log(code, signal);
-  })
-}
 
 function createWindow(): BrowserWindow {
   const size = screen.getPrimaryDisplay().workAreaSize;
@@ -92,11 +58,6 @@ function createWindow(): BrowserWindow {
   });
 
 
-  ipcMain.on('simulation-command', (event, arg) => {
-    console.log('simulation-command from angular', arg);
-    sendProcessMessage(simulationProcess, arg.command, arg.payload);
-  });
-
   if (serve) {
     mainWindow.webContents.openDevTools();
   }
@@ -110,7 +71,6 @@ try {
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   app.on('ready', () => {
-    startSimulationLibrary();
     createWindow();
   });
 

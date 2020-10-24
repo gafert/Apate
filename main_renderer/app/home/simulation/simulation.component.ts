@@ -7,6 +7,7 @@ import { InstructionsComponent } from './instructions/instructions.component';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
+import { CPU_STATES } from '../../core/services/sim-lib-interface/bindingSubjects';
 
 @Component({
   selector: 'app-simulation',
@@ -19,8 +20,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
   public byteToHex = byteToHex;
   public range = range;
-  public showRegisters = true;
-  public showInstructions = true;
 
   /** Is set by loading settings input */
   public simulationElfPath;
@@ -89,22 +88,8 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
   cpuStateToString(cpuState) {
     switch (cpuState) {
-      case 0b10000000:
-        return 'trap';
-      case 0b01000000:
-        return 'fetch';
-      case 0b00100000:
-        return 'ld_rs1';
-      case 0b00010000:
-        return 'ld_rs2';
-      case 0b00001000:
-        return 'exec';
-      case 0b00000100:
-        return 'shift';
-      case 0b00000010:
-        return 'stmem';
-      case 0b00000001:
-        return 'ldmem';
+      default:
+        return cpuState;
     }
   }
 }

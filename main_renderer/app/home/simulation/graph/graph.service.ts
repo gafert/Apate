@@ -1,16 +1,19 @@
 import { Injectable, NgZone } from '@angular/core';
 import * as THREE from 'three';
-import { MeshLine, MeshLineMaterial } from '../../../utils/THREE.MeshLine';
 import panzoom from '../../../utils/drag.js';
-import { Panel } from './Panel';
 import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
-import links from './links.yml';
-import panels from './panels.yml';
-import { easing, tween } from 'popmotion';
-import { readStyleProperty } from '../../../utils/helper';
-import { loadGIF, parseGIF } from './gifparser';
-import { MathUtils } from 'three';
-import floorPowerOfTwo = MathUtils.floorPowerOfTwo;
+import { SVGLoader } from './SVGLoader';
+import RISC_SVG from '!!raw-loader!./risc_test.svg';
+import * as tinycolor from 'tinycolor2';
+import { INSTRUCTIONS } from '../../../core/services/sim-lib-interface/instructionParser';
+import { CPU_STATES } from '../../../core/services/sim-lib-interface/bindingSubjects';
+
+interface ThreeNode {
+  meshes: THREE.Mesh[];
+  id: string;
+  node: Element;
+  children: ThreeNode[];
+}
 
 @Injectable()
 export class GraphService {
@@ -30,13 +33,13 @@ export class GraphService {
     u_resolution: { type: 'vec2', value: new THREE.Vector2(0, 0) }
   };
 
-  private panels: Panel[] = [];
-
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
+  private idRoot;
+  private idFlat;
 
-  runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
-    this.renderLoopFunctions.push(func);
-  }
+  private mouse = new THREE.Vector2();
+  private INTERSECTED;
+  private raycaster;
 
   constructor(private ngZone: NgZone, private simLibInterfaceService: SimLibInterfaceService) {
     process.on('exit', () => {
@@ -54,6 +57,10 @@ export class GraphService {
     //     panel.changeBorderColor(new THREE.Color(Math.sin(time + index), Math.sin(time * 2.3 + index), Math.sin(time * 5.2 + index)))
     //   });
     // })
+  }
+
+  runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
+    this.renderLoopFunctions.push(func);
   }
 
   resize() {
@@ -80,11 +87,11 @@ export class GraphService {
         const height = domElement.clientHeight;
 
         this.scene = new THREE.Scene();
-        this.renderer = new THREE.WebGLRenderer({ alpha: true });
-        this.renderer.setPixelRatio(2);
+        this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
         domElement.appendChild(this.renderer.domElement);
 
-        this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
         this.camera.position.z = 5;
 
         const color = 0xffffff;
@@ -99,6 +106,10 @@ export class GraphService {
         this.resize();
         panzoom(this.camera, domElement);
 
+        // For intersection
+        this.raycaster = new THREE.Raycaster();
+        document.addEventListener('mousemove', this.onDocumentMouseMove.bind(this), false);
+
         if (document.readyState !== 'loading') {
           this.render();
         } else {
@@ -109,191 +120,226 @@ export class GraphService {
         this.initiated = true;
       }
     });
+
   }
 
   initiateObjects() {
+    const loader = new SVGLoader();
+    this.idRoot = loader.parse(RISC_SVG).root;
 
-    for (const panel of panels) {
-      const _panel = new Panel(
-        this.scene,
-        panel.position.x,
-        panel.position.y,
-        panel.position.z,
-        panel.name,
-        panel.size.width,
-        panel.size.height,
-        this.globalUniforms,
-        this.simLibInterfaceService
-      );
+    const renderGroup = new THREE.Group();
+    renderGroup.scale.multiplyScalar(0.25);
+    renderGroup.position.x = 0;
+    renderGroup.position.y = 0;
+    renderGroup.scale.y *= -1;
 
-      for (const port of panel.ports) {
-        _panel.addPort(port.position.x, panel.size.height - port.position.y - 0.2, port.name, undefined, port.valueType, port.valueSubject);
-      }
+    const generateChildren = (children) => {
+      for (const child of children) {
+        // Only generate meshes for non idRoot as in elements which have no children
+        if (!child.children) {
+          if (child.path) {
+            const path = child.path;
+            const meshes: THREE.Mesh[] = [];
+            if (path.userData.style.fill && path.userData.style.fill !== 'none') {
+              const fillColor = tinycolor(this.checkColor(path.userData.style.fill));
+              const material = new THREE.MeshBasicMaterial({
+                color: new THREE.Color().setStyle(fillColor.toHexString()),
+                opacity: path.userData.style.fillOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * fillColor.getAlpha(),
+                transparent: true,
+                side: THREE.DoubleSide,
+                depthWrite: false
+              });
+              const shapes = path.toShapes(true);
+              for (let j = 0; j < shapes.length; j++) {
+                const shape = shapes[j];
+                const geometry = new THREE.ShapeBufferGeometry(shape);
+                const mesh = new THREE.Mesh(geometry, material);
+                renderGroup.add(mesh);
+                meshes.push(mesh);
+              }
+            }
+            if (path.userData.style.stroke && path.userData.style.stroke !== 'none') {
+              const strokeColor = tinycolor(this.checkColor(path.userData.style.stroke));
+              const material1 = new THREE.MeshBasicMaterial({
+                color: new THREE.Color().setStyle(strokeColor.toHexString()),
+                opacity: path.userData.style.strokeOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * strokeColor.getAlpha(),
+                transparent: true,
+                side: THREE.DoubleSide,
+                depthWrite: false
+              });
 
-      if (panel.icons)
-        for (const icon of panel.icons) {
-          _panel.addIcon(icon.position.x, panel.size.height - icon.position.y - 0.2, icon.name, icon.compare, icon.valueSubject);
+              for (let j = 0, jl = path.subPaths.length; j < jl; j++) {
+                const subPath = path.subPaths[j];
+                const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path.userData.style);
+                if (geometry) {
+                  const mesh = new THREE.Mesh(geometry, material1);
+                  renderGroup.add(mesh);
+                  meshes.push(mesh);
+                }
+              }
+            }
+            child.meshes = meshes;
+          }
+        } else {
+          generateChildren(child.children);
         }
+      }
+    };
 
-      this.panels.push(_panel);
-    }
+    generateChildren(this.idRoot.children);
+    this.scene.add(renderGroup);
 
-    const loadCallbacks = [];
-    for (const link of links) {
-      this.addLink(panels, link, (init) => {
-        loadCallbacks.push(init);
-      });
-    }
+    console.log(this.idRoot);
+    this.idFlat = this.flattenRootToIndexIdArray(this.idRoot);
+    console.log(this.idFlat);
 
-    const video = document.createElement('video');
-    video.src = 'assets/Pfeil.mp4';
-    video.loop = true;
-    video.autoplay = true;
-    video.addEventListener('loadeddata', function() {
-      console.log('loadeddata');
-      video.play();
-      console.log(video);
-      loadCallbacks.forEach((init) => init(video));
+    this.simLibInterfaceService.bindings.instruction.subscribe((instruction) => {
+      if (instruction) {
+        if (instruction.name === INSTRUCTIONS.JAL) {
+          this.setVisibility('s_c_jal', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.search(new RegExp('/(jal)([^r])/g')) >= 0) {
+              this.setVisibility(key, true);
+            }
+          }
+        } else if (instruction.name === INSTRUCTIONS.JALR) {
+          this.setVisibility('s_c_jalr', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('jalr')) {
+              this.setVisibility(key, true);
+            }
+          }
+        } else if (instruction.name === INSTRUCTIONS.LUI) {
+          this.setVisibility('s_c_lui', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('lui')) {
+              this.setVisibility(key, true);
+            }
+          }
+        } else if (instruction.name === INSTRUCTIONS.AUIPC) {
+          this.setVisibility('s_c_auipc', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('auipc')) {
+              this.setVisibility(key, true);
+            }
+          }
+        } else if (instruction.name === INSTRUCTIONS.ADDI ||
+          instruction.name === INSTRUCTIONS.XORI ||
+          instruction.name === INSTRUCTIONS.ORI ||
+          instruction.name === INSTRUCTIONS.ANDI ||
+          instruction.name === INSTRUCTIONS.SLLI ||
+          instruction.name === INSTRUCTIONS.SRLI ||
+          instruction.name === INSTRUCTIONS.SRAI ||
+          instruction.name === INSTRUCTIONS.SLTI ||
+          instruction.name === INSTRUCTIONS.SLTIU
+        ) {
+          this.setVisibility('s_c_imm', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('imm')) {
+              this.setVisibility(key, true);
+            }
+          }
+        } else if (instruction.name === INSTRUCTIONS.ADD ||
+          instruction.name === INSTRUCTIONS.SUB ||
+          instruction.name === INSTRUCTIONS.XOR ||
+          instruction.name === INSTRUCTIONS.OR ||
+          instruction.name === INSTRUCTIONS.AND ||
+          instruction.name === INSTRUCTIONS.SLL ||
+          instruction.name === INSTRUCTIONS.SRL ||
+          instruction.name === INSTRUCTIONS.SRA ||
+          instruction.name === INSTRUCTIONS.SLT ||
+          instruction.name === INSTRUCTIONS.SLTU) {
+          this.setVisibility('s_c_op', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('op')) {
+              this.setVisibility(key, true);
+            }
+          }
+        } else if (instruction.name === INSTRUCTIONS.LB ||
+          instruction.name === INSTRUCTIONS.LH ||
+          instruction.name === INSTRUCTIONS.LW ||
+          instruction.name === INSTRUCTIONS.LBU ||
+          instruction.name === INSTRUCTIONS.LHU) {
+          this.setVisibility('s_c_load', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('load')) {
+              this.setVisibility(key, true);
+            }
+          }
+        } else if (instruction.name === INSTRUCTIONS.SB ||
+          instruction.name === INSTRUCTIONS.SH ||
+          instruction.name === INSTRUCTIONS.SW) {
+          this.setVisibility('s_c_store', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('store')) {
+              this.setVisibility(key, true);
+            }
+          }
+        } else if (instruction.name === INSTRUCTIONS.BEQ ||
+          instruction.name === INSTRUCTIONS.BNE ||
+          instruction.name === INSTRUCTIONS.BLT ||
+          instruction.name === INSTRUCTIONS.BGE ||
+          instruction.name === INSTRUCTIONS.BLTU ||
+          instruction.name === INSTRUCTIONS.BGEU) {
+          this.setVisibility('s_c_load', true);
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('branch')) {
+              this.setVisibility(key, true);
+            }
+          }
+        }
+      }
     });
 
-    // loadGIF('assets/pfeile.gif', (times, cnt, frames) => {
-    //   const w = floorPowerOfTwo(frames[0].width)
-    //   const h = floorPowerOfTwo(frames[0].height)
-    //   const gif = { times: times, cnt: cnt, frames: frames, height: h, width: w };
-    //   loadCallbacks.forEach((init) => init(gif))
-    // });
+    this.simLibInterfaceService.bindings.nextCpuState.subscribe((nextCpuState) => {
+      if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
+        for (const key of Object.keys(this.idFlat)) {
+          const element = this.idFlat[key];
+          if (key.includes('mux') || key.includes('s_c')) {
+            element.meshes.forEach((mesh) => {
+              mesh.material.opacity = 0.1;
+            });
+          }
+        }
+      }
+    });
+  }
+
+  onDocumentMouseMove(event) {
+    event.preventDefault();
+    this.mouse.x = (event.clientX / this.domElement.clientWidth) * 2 - 1;
+    this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.clientHeight)) / this.domElement.clientHeight) * 2 + 1;
   }
 
 
-  addLink(panels, link, loadCallback) {
-    const fromPanel = panels.filter((e) => e.id === link.from.panel)[0];
-    const fromPort = fromPanel.ports.filter((e) => e.id === link.from.port)[0];
-    const toPanel = panels.filter((e) => e.id === link.to.panel)[0];
-    const toPort = toPanel.ports.filter((e) => e.id === link.to.port)[0];
+  setVisibility(id, on) {
+    this.idFlat[id].meshes.forEach((mesh) => {
+      mesh.material.opacity = on ? 1 : 0.2;
+    });
+  }
 
-    const x0 = fromPanel.position.x + fromPort.position.x + 0.4;
-    const y0 = fromPanel.position.y + fromPanel.size.height - fromPort.position.y - 0.25;
-    const x1 = toPanel.position.x + toPort.position.x;
-    const y1 = toPanel.position.y + toPanel.size.height - toPort.position.y - 0.25;
+  flattenRootToIndexIdArray(root) {
+    const ids = [];
 
-    const init = (video: HTMLVideoElement) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext('2d');
-      const strokeTexture = new THREE.Texture(canvas);
-      strokeTexture.wrapS = THREE.RepeatWrapping;
-      strokeTexture.wrapT = THREE.RepeatWrapping;
-
-      const prepoints = [
-        new THREE.Vector3(x0 - 0.05, y0, fromPanel.position.z),
-        //new THREE.Vector3(Math.max(x0 + (x1 - x0) / 2 - 0.2, x0 + 0.2), y0 < y1 ? Math.min(y0 + 0.05, y1) : Math.max(y0 - 0.05, y1), 0),
-        //new THREE.Vector3(Math.min(x0 + (x1 - x0) / 2 + 0.2, x1 - 0.2), y0 < y1 ? Math.max(y1 - 0.05, y0) : Math.min(y1 + 0.05, y0), 0),
-        new THREE.Vector3(Math.max(x0 + (x1 - x0) / 2 - 0.2, x0 + 0.2), y0 < y1 ? Math.min(y0, y1) : Math.max(y0, y1), fromPanel.position.z),
-        new THREE.Vector3(Math.max(x0 + (x1 - x0) / 2 - 0.2, x0 + 0.2), (y0 + y1) / 2, (fromPanel.position.z + toPanel.position.z) / 2),
-        new THREE.Vector3(Math.min(x0 + (x1 - x0) / 2 + 0.2, x1 - 0.2), (y0 + y1) / 2, (fromPanel.position.z + toPanel.position.z) / 2),
-        new THREE.Vector3(Math.min(x0 + (x1 - x0) / 2 + 0.2, x1 - 0.2), y0 < y1 ? Math.max(y1, y0) : Math.min(y1, y0), toPanel.position.z),
-        new THREE.Vector3(x1 + 0.05, y1, toPanel.position.z)
-      ];
-
-      const curve = new THREE.CatmullRomCurve3(
-        prepoints,
-        false,
-        'catmullrom',
-        0.000000001
-      );
-
-      const points = curve.getSpacedPoints(500);
-
-      let length = 0;
-      for (let i = 1; i < points.length; i++) {
-        length += Math.sqrt(Math.pow(points[i].y - points[i - 1].y, 2) + Math.pow(points[i].x - points[i - 1].x, 2));
-      }
-
-      const lineBasicMaterial = new MeshLineMaterial({
-        // color: new THREE.Color(readStyleProperty('grey1')),
-        lineWidth: 0.08,
-        sizeAttenuation: true,
-        opacity: 0.1,
-        transparent: true,
-        useMap: true,
-        map: strokeTexture,
-        repeat: new THREE.Vector2(length * 2000 / video.videoWidth, 1)
-        //offset: new THREE.Vector2(0.5, 0)
-      });
-
-      if (link.active) {
-        this.simLibInterfaceService.bindings[toPort.valueSubject].subscribe(() => {
-          if (link.active(this.simLibInterfaceService.bindings)) {
-            tween({
-              from: lineBasicMaterial.opacity,
-              to: 1,
-              ease: easing.easeOut,
-              duration: 500
-            }).start((v) => lineBasicMaterial.opacity = v);
-            tween({
-              from: readStyleProperty('accent'),
-              to: '#ffffff',
-              ease: easing.easeOut,
-              duration: 40000
-            }).start((v) => lineBasicMaterial.color = new THREE.Color(v));
-          } else {
-            tween({
-              from: lineBasicMaterial.opacity,
-              to: 0.1,
-              ease: easing.easeOut,
-              duration: 500
-            }).start((v) => lineBasicMaterial.opacity = v);
-          }
-        });
-      }
-
-      // let frameIndex = 0;
-      // let previouseFrameIndex = 0;
-      // let lastTime = 0;
-      this.runInRenderLoop((time, deltaTime) => {
-        // // lineBasicMaterial.offset.add(new THREE.Vector2(3 * deltaTime, 0));
-        // if(time - lastTime > gif.times[previouseFrameIndex] * 0.001 ) {
-        //   lastTime = time;
-        //   previouseFrameIndex = frameIndex;
-        //   frameIndex++;
-        //   if (frameIndex >= gif.frames.length) {
-        //     frameIndex = 0;
-        //     context.clearRect(0, 0, gif.width, gif.height)
-        //     strokeTexture.needsUpdate = true
-        //   }
-        //   const frame = gif.frames[frameIndex];
-        //   //console.log( this.gif.frames, frameIndex, frame);
-        //   context.drawImage(frame, 0, 0, gif.width, gif.height);
-        //   strokeTexture.needsUpdate = true;
-        // }
-        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-        strokeTexture.needsUpdate = true;
-      });
-
-      const line = new MeshLine();
-      const geometry = new THREE.Geometry();
-      for (const point of points) {
-        geometry.vertices.push(point);
-      }
-
-      line.setGeometry(geometry, function(p) {
-        return 1 - Math.sin(p * Math.PI) / 2.5;
-      });
-
-      const lineMesh = new THREE.Mesh(line.geometry, lineBasicMaterial);
-      lineMesh.renderOrder = 0;
-      this.scene.add(lineMesh);
+    const traverseChildren = (child) => {
+      const meshes = [];
+      if (child.meshes) meshes.push(...child.meshes);
+      if (child.children) for (const deeperChild of child.children) meshes.push(...traverseChildren(deeperChild));
+      if (child.id) ids[child.id] = { meshes: meshes };
+      return meshes;
     };
 
-    loadCallback(init);
+    traverseChildren(root);
 
-    // const loader = new THREE.TextureLoader();
-    // loader.load('assets/Arrow.png', function(texture) {
-    //   strokeTexture = texture;
-    //   strokeTexture.wrapS = strokeTexture.wrapT = THREE.RepeatWrapping;
-    //   init();
-    // });
+    return ids;
+  }
+
+  checkColor(color) {
+    if (color == 'none' || color == undefined) {
+      return 'rgba(255,255,255,0)';
+    } else {
+      return color;
+    }
   }
 
   render() {
@@ -306,6 +352,22 @@ export class GraphService {
         func(this.time, deltaTime);
       }
       this.globalUniforms.u_time.value = this.time;
+
+      // Intersection
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+      const intersects = this.raycaster.intersectObjects(this.scene.children[2].children);
+      if (intersects.length > 0) {
+        if (this.INTERSECTED != intersects[0].object) {
+          if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
+          this.INTERSECTED = intersects[0].object;
+          this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
+          this.INTERSECTED.material.color.setHex(0xff0000);
+        }
+      } else {
+        if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
+        this.INTERSECTED = null;
+      }
+
       this.renderer.render(this.scene, this.camera);
     });
   }

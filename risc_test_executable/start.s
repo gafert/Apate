@@ -1,7 +1,7 @@
 .section .text.init
 entry:
     /* zero-initialize all registers */
-    /*addi x1, zero, 0
+    /* addi x1, zero, 0
     addi x2, zero, 0
     addi x3, zero, 0
     addi x4, zero, 0
@@ -31,7 +31,7 @@ entry:
     addi x28, zero, 0
     addi x29, zero, 0
     addi x30, zero, 0
-    addi x31, zero, 0*/
+    addi x31, zero, 0 */
 
     /* set stack pointer */
     lui sp, %hi(512)
@@ -41,9 +41,7 @@ entry:
     /* (stack is aligned to 16 bytes in riscv calling convention) */
     /* addi sp,sp,-16 */
 
-
     call  main          # call the main function
     ecall               # halt the simluation when it returns
-
 end:
-    j end               # loop when finished if there is no environment to return to.
+    addi x30, zero, 0

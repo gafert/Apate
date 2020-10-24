@@ -23,32 +23,32 @@ module.exports = (config, options) => {
 
   config.externals = {
     ...config.externals,
-    electron: "require('electron')",
-    buffer: "require('buffer')",
-    child_process: "require('child_process')",
-    worker_threads: "require('worker_threads')",
-    crypto: "require('crypto')",
-    dialog: "require('dialog')",
-    events: "require('events')",
-    fs: "require('fs')",
-    http: "require('http')",
-    https: "require('https')",
-    assert: "require('assert')",
-    dns: "require('dns')",
-    net: "require('net')",
-    os: "require('os')",
-    path: "require('path')",
-    querystring: "require('querystring')",
-    readline: "require('readline')",
-    repl: "require('repl')",
-    stream: "require('stream')",
-    string_decoder: "require('string_decoder')",
-    url: "require('url')",
-    util: "require('util')",
-    zlib: "require('zlib')",
-    'electron-is-dev': "require('electron-is-dev')",
-    'ffi-napi': "require('ffi-napi')",
-    'ref-napi': "require('ref-napi')"
+    electron: 'require(\'electron\')',
+    buffer: 'require(\'buffer\')',
+    child_process: 'require(\'child_process\')',
+    worker_threads: 'require(\'worker_threads\')',
+    crypto: 'require(\'crypto\')',
+    dialog: 'require(\'dialog\')',
+    events: 'require(\'events\')',
+    fs: 'require(\'fs\')',
+    http: 'require(\'http\')',
+    https: 'require(\'https\')',
+    assert: 'require(\'assert\')',
+    dns: 'require(\'dns\')',
+    net: 'require(\'net\')',
+    os: 'require(\'os\')',
+    path: 'require(\'path\')',
+    querystring: 'require(\'querystring\')',
+    readline: 'require(\'readline\')',
+    repl: 'require(\'repl\')',
+    stream: 'require(\'stream\')',
+    string_decoder: 'require(\'string_decoder\')',
+    url: 'require(\'url\')',
+    util: 'require(\'util\')',
+    zlib: 'require(\'zlib\')',
+    'electron-is-dev': 'require(\'electron-is-dev\')',
+    'ffi-napi': 'require(\'ffi-napi\')',
+    'ref-napi': 'require(\'ref-napi\')'
   };
 
   // yaml unsafe to load js functions from yaml
@@ -59,13 +59,16 @@ module.exports = (config, options) => {
       use: 'node-loader'
     }, {
       test: /\.vert$/i,
-      use: 'raw-loader',
+      use: 'raw-loader'
     }, {
       test: /\.frag$/i,
-      use: 'raw-loader',
+      use: 'raw-loader'
     }, {
       test: /\.txt$/i,
-      use: 'raw-loader',
+      use: 'raw-loader'
+    }, {
+      test: /\.svg$/i,
+      use: 'raw-loader'
     }, {
       test: /\.ya?ml$/i,
       use: [{
@@ -78,4 +81,4 @@ module.exports = (config, options) => {
   ];
 
   return config;
-}
+};

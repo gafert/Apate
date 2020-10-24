@@ -3,33 +3,36 @@
     Instructions
   </div>
   <div class="grid-container--content">
-    <div *ngIf="sections.length === 0" style="text-align: center; width: 100%; margin-top: 1em">
+    <div *ngIf="!parsedElf" style="text-align: center; width: 100%; margin-top: 1em">
       No ELF loaded. Please initiate first.
     </div>
-    <div *ngFor="let section of sections" class="small-rounded-container grey2">
-      {{section.name}}
-      <div *ngFor="let symbol of section.symbols" class="small-rounded-container grey3">
-        <div class="symbol-header">
-          {{symbol.name}}
-          <div class="text-rounded-container grey2 mono">{{symbol.hex}}</div>
-        </div>
-
-        <ng-container *ngFor="let code of symbol.code">
-          <ng-container *ngTemplateOutlet="pure_assembly; context: { $implicit:  code}">
-          </ng-container>
+    <ng-container *ngIf="parsedElf">
+      <div *ngFor="let section of parsedElf.section_headers" class="small-rounded-container grey2">
+        {{section.name}}
+        <ng-container *ngIf="section.symbols">
+          <div *ngFor="let symbol of section.symbols" class="small-rounded-container grey3">
+            <div class="symbol-header">
+              {{symbol.name}}
+              <div class="text-rounded-container grey2 mono">{{byteToHex(symbol.st_value, 8)}}</div>
+            </div>
+            <ng-container *ngFor="let instruction of symbol.instructions">
+              <ng-container *ngTemplateOutlet="instruction_template; context: { $implicit:  instruction}">
+              </ng-container>
+            </ng-container>
+          </div>
         </ng-container>
       </div>
-    </div>
+    </ng-container>
   </div>
 </div>
 
-<ng-template #pure_assembly let-code>
-  <div id="assembly-code-div-{{assembly.pc}}" *ngFor="let assembly of code.assembly"
+<ng-template #instruction_template let-instruction>
+  <div id="assembly-code-div-{{instruction.pc}}"
        class="small-rounded-container grey2"
        style="display: flex; justify-content: space-between; align-items: center;">
-    <div id="assembly-code-div-pc-{{assembly.pc}}"
-         class="text-rounded-container mono">{{byteToHex(assembly.pc, 1)}}</div>
-    <div style="flex-grow: 1; padding-left: 0.5em">{{assembly.opcode}}</div>
-    <div id="assembly-code-div-hex-{{assembly.pc}}" class="text-rounded-container mono">{{assembly.hex}}</div>
+    <div id="assembly-code-div-pc-{{instruction.pc}}"
+         class="text-rounded-container mono">{{byteToHex(instruction.pc, 1)}}</div>
+    <div style="flex-grow: 1; padding-left: 0.5em">{{instruction.name}}</div>
+    <div id="assembly-code-div-hex-{{instruction.pc}}" class="text-rounded-container mono">{{byteToHex(instruction.instruction, 8)}}</div>
   </div>
 </ng-template>

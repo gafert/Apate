@@ -21,8 +21,7 @@
         "project": [
           "./main_renderer/tsconfig.app.json",
           "./main_renderer/tsconfig.spec.json",
-          "tsconfig-serve.json",
-          "./simulation_library_worker/tsconfig.json"
+          "tsconfig-serve.json"
         ],
         "sourceType": "module",
         "ecmaFeatures": {
@@ -50,7 +49,10 @@
         "@typescript-eslint/camelcase": 0,
         "@typescript-eslint/ban-ts-ignore": 0,
         "@angular-eslint/use-injectable-provided-in": "error",
-        "@angular-eslint/no-attribute-decorator": "error"
+        "@angular-eslint/no-attribute-decorator": "error",
+        "@typescript-eslint/no-case-declarations": 0,
+        "no-case-declarations": 0
+
       }
     },
     {
