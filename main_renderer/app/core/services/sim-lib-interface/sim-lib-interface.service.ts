@@ -58,6 +58,14 @@ export class SimLibInterfaceService implements OnDestroy {
         const inst = parseInstruction(this.bindings.memReadData.value);
         console.log(inst);
         this.bindings.instruction.next(inst);
+
+        this.bindings.rs1addr.next(inst.rs1);
+        this.bindings.rs1addr.next(inst.rs2);
+        this.bindings.rs1.next(this.bindings.cpuregs.value[inst.rs1]);
+        this.bindings.rs2.next(this.bindings.cpuregs.value[inst.rs2]);
+        this.bindings.rd.next(inst.rd);
+        this.bindings.imm.next(inst.imm);
+
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
         this.bindings.nextCpuState.next(CPU_STATES.EXECUTE);
         break;
@@ -67,8 +75,8 @@ export class SimLibInterfaceService implements OnDestroy {
         const registers = this.bindings.cpuregs.value;
         const immediate = this.bindings.instruction.value.imm;
         let pc = this.bindings.pc.value;
-        const rs1Value = registers[instruction.rs1];
-        const rs2Value = registers[instruction.rs2];
+        const rs1Value = this.bindings.rs1.getValue();
+        const rs2Value = this.bindings.rs2.getValue();
         switch (instruction.opcode) {
           case OPCODES.OP:
             switch (instruction.func3) {

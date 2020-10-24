@@ -1,5 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import * as THREE from 'three';
+import { Group } from 'three';
 import panzoom from '../../../utils/drag.js';
 import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 import { SVGLoader } from './SVGLoader';
@@ -7,6 +8,7 @@ import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
 import { INSTRUCTIONS } from '../../../core/services/sim-lib-interface/instructionParser';
 import { CPU_STATES } from '../../../core/services/sim-lib-interface/bindingSubjects';
+import { MeshText2D, textAlign } from 'three-text2d';
 
 interface ThreeNode {
   meshes: THREE.Mesh[];
@@ -133,7 +135,7 @@ export class GraphService {
     renderGroup.position.y = 0;
     renderGroup.scale.y *= -1;
 
-    const generateChildren = (children) => {
+    const generateChildren = (children, childGroup) => {
       for (const child of children) {
         // Only generate meshes for non idRoot as in elements which have no children
         if (!child.children) {
@@ -154,7 +156,8 @@ export class GraphService {
                 const shape = shapes[j];
                 const geometry = new THREE.ShapeBufferGeometry(shape);
                 const mesh = new THREE.Mesh(geometry, material);
-                renderGroup.add(mesh);
+                mesh.name = child.id;
+                childGroup.add(mesh);
                 meshes.push(mesh);
               }
             }
@@ -173,28 +176,53 @@ export class GraphService {
                 const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path.userData.style);
                 if (geometry) {
                   const mesh = new THREE.Mesh(geometry, material1);
-                  renderGroup.add(mesh);
+                  childGroup.add(mesh);
+                  mesh.name = child.id;
                   meshes.push(mesh);
+                  console.log(geometry);
+
+                  if(this.getSignalName(child.id)) {
+                    geometry.computeBoundingBox(); // Used later for positioning / may remove
+                    // TODO: Set text to variable value dynamically --> subscribe
+                    const text = new MeshText2D(child.id, {
+                      align: textAlign.left,
+                      font: '20px Roboto',
+                      fillStyle: '#ffffff',
+                      antialias: true
+                    });
+                    // Scale 100 px font down
+                    text.scale.set(0.5,-0.5,0.5);
+                    // TODO: Get right position from buffer geometry
+                    text.position.set(geometry.boundingBox.min.x, geometry.boundingBox.max.y, 0);
+                    childGroup.add(text);
+                  }
                 }
               }
             }
             child.meshes = meshes;
           }
         } else {
-          generateChildren(child.children);
+          const newChildGroup = new Group();
+          newChildGroup.name = child.id;
+          generateChildren(child.children, newChildGroup);
+          childGroup.add(newChildGroup);
         }
       }
     };
 
-    generateChildren(this.idRoot.children);
+    generateChildren(this.idRoot.children, renderGroup);
     this.scene.add(renderGroup);
+    console.log(renderGroup);
 
     console.log(this.idRoot);
     this.idFlat = this.flattenRootToIndexIdArray(this.idRoot);
     console.log(this.idFlat);
 
+    // Show groups which are active according to the opcode
     this.simLibInterfaceService.bindings.instruction.subscribe((instruction) => {
       if (instruction) {
+        this.setVisibility('s_c_instr', true);
+
         if (instruction.name === INSTRUCTIONS.JAL) {
           this.setVisibility('s_c_jal', true);
           for (const key of Object.keys(this.idFlat)) {
@@ -281,7 +309,7 @@ export class GraphService {
           instruction.name === INSTRUCTIONS.BGE ||
           instruction.name === INSTRUCTIONS.BLTU ||
           instruction.name === INSTRUCTIONS.BGEU) {
-          this.setVisibility('s_c_load', true);
+          this.setVisibility('s_c_branch', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('branch')) {
               this.setVisibility(key, true);
@@ -291,6 +319,7 @@ export class GraphService {
       }
     });
 
+    // Hide all elements when the next decoding stage is incoming
     this.simLibInterfaceService.bindings.nextCpuState.subscribe((nextCpuState) => {
       if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
         for (const key of Object.keys(this.idFlat)) {
@@ -355,11 +384,26 @@ export class GraphService {
 
       // Intersection
       this.raycaster.setFromCamera(this.mouse, this.camera);
-      const intersects = this.raycaster.intersectObjects(this.scene.children[2].children);
+
+      const intersects = this.raycaster.intersectObjects(this.scene.children, true);
       if (intersects.length > 0) {
         if (this.INTERSECTED != intersects[0].object) {
           if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
           this.INTERSECTED = intersects[0].object;
+          if (this.INTERSECTED.parent.name.indexOf('p') == 0) {
+            if (this.INTERSECTED.parent.parent.name.indexOf('p_') == 0) {
+              // INTERSECTED is part of a port
+              const portName = this.getPortName(this.INTERSECTED.parent.parent.name);
+              if (portName == 'pc') {
+                console.log('Program Counter: ' + this.simLibInterfaceService.bindings.pc.getValue());
+              } else {
+                console.log('Not found data path: ', this.INTERSECTED.parent.parent.name, portName);
+              }
+            }
+          } else if (this.INTERSECTED.name.indexOf('s') == 0) {
+            // This is a signal wire
+            console.log('Signal not found: ', this.INTERSECTED.name, this.getSignalName(this.INTERSECTED.name));
+          }
           this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
           this.INTERSECTED.material.color.setHex(0xff0000);
         }
@@ -370,6 +414,20 @@ export class GraphService {
 
       this.renderer.render(this.scene, this.camera);
     });
+  }
+
+  getPortName(id) {
+    const regex = /(?:p_)(.*?)(?:[-\n$\s])/g;
+    return this.getFirstGroup(regex, id);
+  }
+
+  getSignalName(id) {
+    const regex = /(?:s_)(.*?)(?:-|$)/g;
+    return this.getFirstGroup(regex, id);
+  }
+
+  getFirstGroup(regexp, str) {
+    return Array.from(str.matchAll(regexp), m => m[1])[0];
   }
 
   stopRender() {

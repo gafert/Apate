@@ -42,8 +42,16 @@ export class Bindings {
   public regReadData = new BehaviorSubject(null);
   public regWriteData = new BehaviorSubject(null);
 
-  // State
+  // Data path
   public pc = new BehaviorSubject<number>(null);
+  public rd = new BehaviorSubject<number>(null);
+  public imm = new BehaviorSubject<number>(null);
+  public rs1addr = new BehaviorSubject<number>(null);
+  public rs2addr = new BehaviorSubject<number>(null);
+  public rs1 = new BehaviorSubject<number>(null);
+  public rs2 = new BehaviorSubject<number>(null);
+
+  // State
   public nextCpuState = new BehaviorSubject<CPU_STATES>(null);
   public cpuState = new BehaviorSubject<CPU_STATES>(null);
 
