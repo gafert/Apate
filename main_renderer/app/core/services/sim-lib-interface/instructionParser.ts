@@ -329,3 +329,67 @@ export function parseInstruction(instruction): Instruction {
 
   return parsedInstruction;
 }
+
+export function isIMM(name: string): boolean {
+  return name === INSTRUCTIONS.ADDI ||
+    name === INSTRUCTIONS.XORI ||
+    name === INSTRUCTIONS.ORI ||
+    name === INSTRUCTIONS.ANDI ||
+    name === INSTRUCTIONS.SLLI ||
+    name === INSTRUCTIONS.SRLI ||
+    name === INSTRUCTIONS.SRAI ||
+    name === INSTRUCTIONS.SLTI ||
+    name === INSTRUCTIONS.SLTIU;
+}
+
+export function isOP(name: string): boolean {
+  return name === INSTRUCTIONS.ADD ||
+    name === INSTRUCTIONS.SUB ||
+    name === INSTRUCTIONS.XOR ||
+    name === INSTRUCTIONS.OR ||
+    name === INSTRUCTIONS.AND ||
+    name === INSTRUCTIONS.SLL ||
+    name === INSTRUCTIONS.SRL ||
+    name === INSTRUCTIONS.SRA ||
+    name === INSTRUCTIONS.SLT ||
+    name === INSTRUCTIONS.SLTU;
+}
+
+export function isLOAD(name: string): boolean {
+  return name === INSTRUCTIONS.LB ||
+    name === INSTRUCTIONS.LH ||
+    name === INSTRUCTIONS.LW ||
+    name === INSTRUCTIONS.LBU ||
+    name === INSTRUCTIONS.LHU;
+}
+
+export function isSTORE(name: string): boolean {
+  return name === INSTRUCTIONS.SB ||
+    name === INSTRUCTIONS.SH ||
+    name === INSTRUCTIONS.SW;
+}
+
+export function isBRANCH(name: string): boolean {
+  return name === INSTRUCTIONS.BEQ ||
+    name === INSTRUCTIONS.BNE ||
+    name === INSTRUCTIONS.BLT ||
+    name === INSTRUCTIONS.BGE ||
+    name === INSTRUCTIONS.BLTU ||
+    name === INSTRUCTIONS.BGEU;
+}
+
+export function isJAL(name: string): boolean {
+  return name === INSTRUCTIONS.JAL
+}
+
+export function isJALR(name: string): boolean {
+  return name === INSTRUCTIONS.JALR
+}
+
+export function isLUI(name: string): boolean {
+  return name === INSTRUCTIONS.LUI
+}
+
+export function isAUIPC(name: string): boolean {
+  return name === INSTRUCTIONS.AUIPC
+}

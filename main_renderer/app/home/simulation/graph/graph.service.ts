@@ -6,9 +6,21 @@ import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface
 import { SVGLoader } from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
-import { INSTRUCTIONS } from '../../../core/services/sim-lib-interface/instructionParser';
+import {
+  isAUIPC,
+  isBRANCH,
+  isIMM,
+  isJAL,
+  isJALR,
+  isLOAD,
+  isLUI,
+  isOP,
+  isSTORE
+} from '../../../core/services/sim-lib-interface/instructionParser';
 import { CPU_STATES } from '../../../core/services/sim-lib-interface/bindingSubjects';
 import { MeshText2D, textAlign } from 'three-text2d';
+import * as d3 from 'd3';
+import { byteToHex } from '../../../globals';
 
 interface ThreeNode {
   meshes: THREE.Mesh[];
@@ -179,22 +191,38 @@ export class GraphService {
                   childGroup.add(mesh);
                   mesh.name = child.id;
                   meshes.push(mesh);
-                  console.log(geometry);
 
-                  if(this.getSignalName(child.id)) {
-                    geometry.computeBoundingBox(); // Used later for positioning / may remove
-                    // TODO: Set text to variable value dynamically --> subscribe
-                    const text = new MeshText2D(child.id, {
+                  const signalName = this.getSignalName(child.id);
+                  if (signalName) {
+                    const text = new MeshText2D(signalName, {
                       align: textAlign.left,
-                      font: '20px Roboto',
+                      font: '50px Roboto',
                       fillStyle: '#ffffff',
                       antialias: true
                     });
-                    // Scale 100 px font down
-                    text.scale.set(0.5,-0.5,0.5);
-                    // TODO: Get right position from buffer geometry
-                    text.position.set(geometry.boundingBox.min.x, geometry.boundingBox.max.y, 0);
+                    text.scale.set(0.25, -0.25, 0.25);
+
+                    // Get position from signal
+                    const positions = [];
+                    for (let i = 0; i < geometry.attributes.position.count; i++) {
+                      positions.push({
+                        x: geometry.attributes.position.array[i * 3],
+                        y: geometry.attributes.position.array[i * 3 + 1],
+                        z: geometry.attributes.position.array[i * 3 + 2]
+                      });
+                    }
+                    const leftes = d3.scan(positions, (a, b) => a.x - b.x);
+                    text.position.set(positions[leftes].x + 3, positions[leftes].y + 2, positions[leftes].z);
+
+                    const binding = this.simLibInterfaceService.bindings.values[signalName];
+                    if (binding) {
+                      binding.subscribe((value) => {
+                        text.text = byteToHex(value, 6);
+                      });
+                    }
+
                     childGroup.add(text);
+                    meshes.push(text.mesh);
                   }
                 }
               }
@@ -212,103 +240,76 @@ export class GraphService {
 
     generateChildren(this.idRoot.children, renderGroup);
     this.scene.add(renderGroup);
-    console.log(renderGroup);
 
-    console.log(this.idRoot);
     this.idFlat = this.flattenRootToIndexIdArray(this.idRoot);
-    console.log(this.idFlat);
 
+    this.initHighlightingUsedPaths();
+  }
+
+  initHighlightingUsedPaths() {
     // Show groups which are active according to the opcode
     this.simLibInterfaceService.bindings.instruction.subscribe((instruction) => {
       if (instruction) {
+        // Hide all instructions
         this.setVisibility('s_c_instr', true);
 
-        if (instruction.name === INSTRUCTIONS.JAL) {
+        if (isJAL(instruction.name)) {
           this.setVisibility('s_c_jal', true);
           for (const key of Object.keys(this.idFlat)) {
-            if (key.search(new RegExp('/(jal)([^r])/g')) >= 0) {
+            if (key.search(/(jal)([^r])/g) >= 0) {
               this.setVisibility(key, true);
             }
           }
-        } else if (instruction.name === INSTRUCTIONS.JALR) {
+        } else if (isJALR(instruction.name)) {
           this.setVisibility('s_c_jalr', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('jalr')) {
               this.setVisibility(key, true);
             }
           }
-        } else if (instruction.name === INSTRUCTIONS.LUI) {
+        } else if (isLUI(instruction.name)) {
           this.setVisibility('s_c_lui', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('lui')) {
               this.setVisibility(key, true);
             }
           }
-        } else if (instruction.name === INSTRUCTIONS.AUIPC) {
+        } else if (isAUIPC(instruction.name)) {
           this.setVisibility('s_c_auipc', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('auipc')) {
               this.setVisibility(key, true);
             }
           }
-        } else if (instruction.name === INSTRUCTIONS.ADDI ||
-          instruction.name === INSTRUCTIONS.XORI ||
-          instruction.name === INSTRUCTIONS.ORI ||
-          instruction.name === INSTRUCTIONS.ANDI ||
-          instruction.name === INSTRUCTIONS.SLLI ||
-          instruction.name === INSTRUCTIONS.SRLI ||
-          instruction.name === INSTRUCTIONS.SRAI ||
-          instruction.name === INSTRUCTIONS.SLTI ||
-          instruction.name === INSTRUCTIONS.SLTIU
-        ) {
+        } else if (isIMM(instruction.name)) {
           this.setVisibility('s_c_imm', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('imm')) {
               this.setVisibility(key, true);
             }
           }
-        } else if (instruction.name === INSTRUCTIONS.ADD ||
-          instruction.name === INSTRUCTIONS.SUB ||
-          instruction.name === INSTRUCTIONS.XOR ||
-          instruction.name === INSTRUCTIONS.OR ||
-          instruction.name === INSTRUCTIONS.AND ||
-          instruction.name === INSTRUCTIONS.SLL ||
-          instruction.name === INSTRUCTIONS.SRL ||
-          instruction.name === INSTRUCTIONS.SRA ||
-          instruction.name === INSTRUCTIONS.SLT ||
-          instruction.name === INSTRUCTIONS.SLTU) {
+        } else if (isOP(instruction.name)) {
           this.setVisibility('s_c_op', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('op')) {
               this.setVisibility(key, true);
             }
           }
-        } else if (instruction.name === INSTRUCTIONS.LB ||
-          instruction.name === INSTRUCTIONS.LH ||
-          instruction.name === INSTRUCTIONS.LW ||
-          instruction.name === INSTRUCTIONS.LBU ||
-          instruction.name === INSTRUCTIONS.LHU) {
+        } else if (isLOAD(instruction.name)) {
           this.setVisibility('s_c_load', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('load')) {
               this.setVisibility(key, true);
             }
           }
-        } else if (instruction.name === INSTRUCTIONS.SB ||
-          instruction.name === INSTRUCTIONS.SH ||
-          instruction.name === INSTRUCTIONS.SW) {
+        } else if (isSTORE(instruction.name)) {
           this.setVisibility('s_c_store', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('store')) {
               this.setVisibility(key, true);
             }
           }
-        } else if (instruction.name === INSTRUCTIONS.BEQ ||
-          instruction.name === INSTRUCTIONS.BNE ||
-          instruction.name === INSTRUCTIONS.BLT ||
-          instruction.name === INSTRUCTIONS.BGE ||
-          instruction.name === INSTRUCTIONS.BLTU ||
-          instruction.name === INSTRUCTIONS.BGEU) {
+        } else if (isBRANCH(instruction.name)) {
           this.setVisibility('s_c_branch', true);
           for (const key of Object.keys(this.idFlat)) {
             if (key.includes('mux') && key.includes('branch')) {
@@ -319,11 +320,11 @@ export class GraphService {
       }
     });
 
-    // Hide all elements when the next decoding stage is incoming
     this.simLibInterfaceService.bindings.nextCpuState.subscribe((nextCpuState) => {
-      if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
-        for (const key of Object.keys(this.idFlat)) {
-          const element = this.idFlat[key];
+      for (const key of Object.keys(this.idFlat)) {
+        const element = this.idFlat[key];
+        if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
+          // Hide all elements when the next decoding stage is incoming
           if (key.includes('mux') || key.includes('s_c')) {
             element.meshes.forEach((mesh) => {
               mesh.material.opacity = 0.1;
@@ -331,6 +332,60 @@ export class GraphService {
           }
         }
       }
+    });
+
+    this.simLibInterfaceService.bindings.cpuState.subscribe((nextCpuState) => {
+      for (const key of Object.keys(this.idFlat)) {
+        const element = this.idFlat[key];
+
+        // Show only state borders of active state
+        if (key.includes('state')) {
+          element.meshes.forEach((mesh) => {
+            mesh.material.opacity = 0.1;
+          });
+        }
+
+        if (nextCpuState === CPU_STATES.READ_DATA_FROM_MEMORY) {
+          if (key.includes('state') && key.includes('fetch')) {
+            element.meshes.forEach((mesh) => {
+              mesh.material.opacity = 1;
+            });
+          }
+        }
+
+        if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
+          if (key.includes('state') && key.includes('decode')) {
+            element.meshes.forEach((mesh) => {
+              mesh.material.opacity = 1;
+            });
+          }
+        }
+
+        if (nextCpuState === CPU_STATES.EXECUTE) {
+          if (key.includes('state') && key.includes('execute')) {
+            element.meshes.forEach((mesh) => {
+              mesh.material.opacity = 1;
+            });
+          }
+        }
+
+        if (nextCpuState === CPU_STATES.WRITE_BACK) {
+          if (key.includes('state') && key.includes('writeback')) {
+            element.meshes.forEach((mesh) => {
+              mesh.material.opacity = 1;
+            });
+          }
+        }
+
+        if (nextCpuState === CPU_STATES.ADVANCE_PC) {
+          if (key.includes('state') && key.includes('advpc')) {
+            element.meshes.forEach((mesh) => {
+              mesh.material.opacity = 1;
+            });
+          }
+        }
+      }
+
     });
   }
 

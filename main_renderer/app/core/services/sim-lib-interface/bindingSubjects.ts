@@ -38,18 +38,71 @@ export class Bindings {
 
   // Registers
   public cpuregs = new BehaviorSubject<number[]>(new Array(32).fill(0));
-  public regAddress = new BehaviorSubject(null);
-  public regReadData = new BehaviorSubject(null);
-  public regWriteData = new BehaviorSubject(null);
 
   // Data path
-  public pc = new BehaviorSubject<number>(null);
-  public rd = new BehaviorSubject<number>(null);
-  public imm = new BehaviorSubject<number>(null);
-  public rs1addr = new BehaviorSubject<number>(null);
-  public rs2addr = new BehaviorSubject<number>(null);
-  public rs1 = new BehaviorSubject<number>(null);
-  public rs2 = new BehaviorSubject<number>(null);
+  public pc = new BehaviorSubject<number>(0);
+  public rd = new BehaviorSubject<number>(0);
+  public imm = new BehaviorSubject<number>(0);
+  public rs1addr = new BehaviorSubject<number>(0);
+  public rs2addr = new BehaviorSubject<number>(0);
+  public rs1 = new BehaviorSubject<number>(0);
+  public rs2 = new BehaviorSubject<number>(0);
+
+  // At ALU
+  public imm_rs2 = new BehaviorSubject<number>(0);
+  public op1 = new BehaviorSubject<number>(0);
+  public op2 = new BehaviorSubject<number>(0);
+  public aluout = new BehaviorSubject<number>(0);
+  public pc_aluout = new BehaviorSubject<number>(0);
+  public mux_aluout = new BehaviorSubject<number>(0);
+  public regwrite = new BehaviorSubject<number>(0);
+
+  // At load store
+  public rs1_imm = new BehaviorSubject<number>(0);
+  public memread = new BehaviorSubject<number>(0);
+
+  // Branch
+  public branchResultBEQ = new BehaviorSubject<number>(0);
+  public branchResultBNE = new BehaviorSubject<number>(0);
+  public branchResultBLT = new BehaviorSubject<number>(0);
+  public branchResultBGE = new BehaviorSubject<number>(0);
+  public branchResult = new BehaviorSubject<number>(0);
+
+  // PC
+  public branchAddResult = new BehaviorSubject<number>(0);
+  public pcAdd = new BehaviorSubject<number>(0);
+  public pcAdvOther = new BehaviorSubject<number>(0);
+  public pcAdvJALR = new BehaviorSubject<number>(0);
+  public pcAdv = new BehaviorSubject<number>(0);
+
+  public values = {
+    'pc': this.pc,
+    'rd': this.rd,
+    'imm': this.imm,
+    'rs1addr': this.rs1addr,
+    'rs2addr': this.rs2addr,
+    'rs1': this.rs1,
+    'rs2': this.rs2,
+    'imm_rs2': this.imm_rs2,
+    'op1': this.op1,
+    'op2': this.op2,
+    'aluout': this.aluout,
+    'pc_aluout': this.pc_aluout,
+    'mux_aluout': this.mux_aluout,
+    'regwrite': this.regwrite,
+    'rs1_imm': this.rs1_imm,
+    'memread': this.memread,
+    'beq': this.branchResultBEQ,
+    'bne': this.branchResultBNE,
+    'blt': this.branchResultBLT,
+    'bge': this.branchResultBGE,
+    'branch': this.branchResult,
+    'branch_add': this.branchAddResult,
+    'pc_add': this.pcAdd,
+    'pc_adv_other': this.pcAdvOther,
+    'pc_adv_jalr': this.pcAdvJALR,
+    'pc_adv': this.pcAdv
+  }
 
   // State
   public nextCpuState = new BehaviorSubject<CPU_STATES>(null);
@@ -57,10 +110,6 @@ export class Bindings {
 
   // Decoder
   public instruction = new BehaviorSubject<Instruction>(null);
-
-  // Alu
-  public op1 = new BehaviorSubject(null);
-  public op2 = new BehaviorSubject(null);
 
   constructor() {
 
