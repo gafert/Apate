@@ -20,7 +20,6 @@ import {
 import { CPU_STATES } from '../../../core/services/sim-lib-interface/bindingSubjects';
 import { MeshText2D, textAlign } from 'three-text2d';
 import * as d3 from 'd3';
-import { byteToHex } from '../../../globals';
 
 interface ThreeNode {
   meshes: THREE.Mesh[];
@@ -217,7 +216,7 @@ export class GraphService {
                     const binding = this.simLibInterfaceService.bindings.values[signalName];
                     if (binding) {
                       binding.subscribe((value) => {
-                        text.text = byteToHex(value, 6);
+                        text.text = (value === null || value === undefined )? 'NaN' : value.toString();
                       });
                     }
 
@@ -257,7 +256,7 @@ export class GraphService {
         if (isJAL(instruction.name)) {
           this.setVisibility('s_c_jal', true);
           for (const key of Object.keys(this.idFlat)) {
-            if (key.search(/(jal)([^r])/g) >= 0) {
+            if (key.includes('mux') && key.includes('jal') && (key.indexOf('jal') !== key.indexOf('jalr'))) {
               this.setVisibility(key, true);
             }
           }

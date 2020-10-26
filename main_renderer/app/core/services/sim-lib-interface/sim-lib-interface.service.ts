@@ -39,15 +39,13 @@ export class SimLibInterfaceService implements OnDestroy {
     // Read program
     this.parsedElf.program.copy(this.bindings.memory.value, 0, 0);
     // this.bindings.memory.next();
-
     this.bindings.pc.next(0);
+    this.bindings.cpuState.next(CPU_STATES.READ_DATA_FROM_MEMORY);
     this.bindings.nextCpuState.next(CPU_STATES.READ_DATA_FROM_MEMORY);
     this.elfIsLoaded = true;
   }
 
   advanceSimulationClock() {
-    let instruction = this.bindings.instruction.value;
-
     switch (this.bindings.nextCpuState.value) {
       case CPU_STATES.BREAK:
         this.bindings.cpuState.next(CPU_STATES.BREAK);
@@ -60,50 +58,50 @@ export class SimLibInterfaceService implements OnDestroy {
         this.bindings.nextCpuState.next(CPU_STATES.DECODE_INSTRUCTION);
         break;
       case CPU_STATES.DECODE_INSTRUCTION:
-        instruction = parseInstruction(this.bindings.memReadData.value);
-        this.bindings.instruction.next(instruction);
+        this.bindings.instruction.next(parseInstruction(this.bindings.memReadData.value));
 
-        this.bindings.rs1addr.next(instruction.rs1);
-        this.bindings.rs1addr.next(instruction.rs2);
-        this.bindings.rs1.next(this.bindings.cpuregs.value[instruction.rs1]);
-        this.bindings.rs2.next(this.bindings.cpuregs.value[instruction.rs2]);
-        this.bindings.rd.next(instruction.rd);
-        this.bindings.imm.next(instruction.imm);
+        this.bindings.rs1addr.next(this.bindings.instruction.value.rs1);
+        this.bindings.rs2addr.next(this.bindings.instruction.value.rs2);
+        this.bindings.rs1.next(this.bindings.cpuregs.value[this.bindings.instruction.value.rs1]);
+        this.bindings.rs2.next(this.bindings.cpuregs.value[this.bindings.instruction.value.rs2]);
+        this.bindings.rd.next(this.bindings.instruction.value.rd);
+        this.bindings.imm.next(this.bindings.instruction.value.imm);
 
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
 
-        if(isBREAK(instruction.name)) {
+        if(isBREAK(this.bindings.instruction.value.name)) {
           this.bindings.nextCpuState.next(CPU_STATES.BREAK);
         } else {
           this.bindings.nextCpuState.next(CPU_STATES.EXECUTE);
         }
         break;
       case CPU_STATES.EXECUTE:
-
         //
         // LOAD STORE
         //
 
-        if (isLOAD(instruction.name)) {
-          this.bindings.memread.next(this.callMEMORYread(instruction, this.bindings.rs1_imm.value));
-        } else if (isSTORE(instruction.name)) {
-          this.callMEMORYwrite(instruction, this.bindings.rs1_imm.value, this.bindings.rs2.value);
+        if (isLOAD(this.bindings.instruction.value.name)) {
+          this.bindings.memread.next(this.callMEMORYread(this.bindings.instruction.value, this.bindings.rs1_imm.value));
+        } else if (isSTORE(this.bindings.instruction.value.name)) {
+          this.callMEMORYwrite(this.bindings.instruction.value, this.bindings.rs1_imm.value, this.bindings.rs2.value);
         }
 
         this.bindings.cpuState.next(CPU_STATES.EXECUTE);
         this.bindings.nextCpuState.next(CPU_STATES.WRITE_BACK);
         break;
       case CPU_STATES.WRITE_BACK:
-        if (isIMM(instruction.name) ||
-          isOP(instruction.name) ||
-          isJAL(instruction.name) ||
-          isJALR(instruction.name) ||
-          isLUI(instruction.name) ||
-          isAUIPC(instruction.name) ||
-          isLOAD(instruction.name)) {
-          const cpuregs = this.bindings.cpuregs.value;
-          cpuregs[this.bindings.rd.value] = this.bindings.regwrite.value;
-          this.bindings.cpuregs.next(cpuregs);
+        if (isIMM(this.bindings.instruction.value.name) ||
+          isOP(this.bindings.instruction.value.name) ||
+          isJAL(this.bindings.instruction.value.name) ||
+          isJALR(this.bindings.instruction.value.name) ||
+          isLUI(this.bindings.instruction.value.name) ||
+          isAUIPC(this.bindings.instruction.value.name) ||
+          isLOAD(this.bindings.instruction.value.name)) {
+          if(this.bindings.rd.value) {
+            const cpuregs = this.bindings.cpuregs.value;
+            cpuregs[this.bindings.rd.value] = this.bindings.regwrite.value;
+            this.bindings.cpuregs.next(cpuregs);
+          }
         }
 
         this.bindings.cpuState.next(CPU_STATES.WRITE_BACK);
@@ -123,89 +121,93 @@ export class SimLibInterfaceService implements OnDestroy {
     // ALU
     //
 
-    if (isIMM(instruction.name)) {
-      this.bindings.imm_rs2.next(this.bindings.imm.value);
-    } else if (isOP(instruction.name)) {
-      this.bindings.imm_rs2.next(this.bindings.rs2.value);
-    }
+    try {
+      if (isIMM(this.bindings.instruction.value.name)) {
+        this.bindings.imm_rs2.next(this.bindings.imm.value);
+      } else if (isOP(this.bindings.instruction.value.name)) {
+        this.bindings.imm_rs2.next(this.bindings.rs2.value);
+      }
 
-    if (isOP(instruction.name) || isIMM(instruction.name)) {
-      this.bindings.op1.next(this.bindings.imm_rs2.value);
-      this.bindings.op2.next(this.bindings.rs1.value);
-    } else if (isJALR(instruction.name) || isJAL(instruction.name)) {
-      this.bindings.op1.next(this.bindings.pc.value);
-      this.bindings.op2.next(4);
-    } else if (isLUI(instruction.name) || isAUIPC(instruction.name)) {
-      this.bindings.op1.next(this.bindings.imm.value);
-      this.bindings.op2.next(12);
-    }
+      if (isOP(this.bindings.instruction.value.name) || isIMM(this.bindings.instruction.value.name)) {
+        this.bindings.op1.next(this.bindings.imm_rs2.value);
+        this.bindings.op2.next(this.bindings.rs1.value);
+      } else if (isJALR(this.bindings.instruction.value.name) || isJAL(this.bindings.instruction.value.name)) {
+        this.bindings.op1.next(this.bindings.pc.value);
+        this.bindings.op2.next(4);
+      } else if (isLUI(this.bindings.instruction.value.name) || isAUIPC(this.bindings.instruction.value.name)) {
+        this.bindings.op1.next(this.bindings.imm.value);
+        this.bindings.op2.next(12);
+      }
 
-    this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, instruction));
-    this.bindings.pc_aluout.next(this.bindings.aluout.value + this.bindings.pc.value);
-    this.bindings.mux_aluout.next(isAUIPC(instruction.name) ? this.bindings.pc_aluout.value : this.bindings.aluout.value);
+      this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, this.bindings.instruction.value));
+      this.bindings.pc_aluout.next(this.bindings.aluout.value + this.bindings.pc.value);
+      this.bindings.mux_aluout.next(isAUIPC(this.bindings.instruction.value.name) ? this.bindings.pc_aluout.value : this.bindings.aluout.value);
 
 
-    //
-    // LOAD STORE
-    //
+      //
+      // LOAD STORE
+      //
 
-    this.bindings.rs1_imm.next(this.bindings.rs1.value + this.bindings.imm.value);
+      this.bindings.rs1_imm.next(this.bindings.rs1.value + this.bindings.imm.value);
 
-    if (isLOAD(instruction.name)) {
-      this.bindings.regwrite.next(this.bindings.memread.value);
-    } else if (isIMM(instruction.name) ||
-      isOP(instruction.name) ||
-      isJAL(instruction.name) ||
-      isJALR(instruction.name) ||
-      isLUI(instruction.name) ||
-      isAUIPC(instruction.name)) {
-      this.bindings.regwrite.next(this.bindings.mux_aluout.value);
-    }
+      if (isLOAD(this.bindings.instruction.value.name)) {
+        this.bindings.regwrite.next(this.bindings.memread.value);
+      } else if (isIMM(this.bindings.instruction.value.name) ||
+        isOP(this.bindings.instruction.value.name) ||
+        isJAL(this.bindings.instruction.value.name) ||
+        isJALR(this.bindings.instruction.value.name) ||
+        isLUI(this.bindings.instruction.value.name) ||
+        isAUIPC(this.bindings.instruction.value.name)) {
+        this.bindings.regwrite.next(this.bindings.mux_aluout.value);
+      }
 
-    //
-    // BRANCH
-    //
+      //
+      // BRANCH
+      //
 
-    this.bindings.branchResultBEQ.next(this.bindings.rs1.value == this.bindings.rs2.value ? 1 : 0);
-    this.bindings.branchResultBNE.next(this.bindings.rs1.value != this.bindings.rs2.value ? 1 : 0);
-    this.bindings.branchResultBLT.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
-    this.bindings.branchResultBGE.next(this.bindings.rs1.value >= this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchResultBEQ.next(this.bindings.rs1.value == this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchResultBNE.next(this.bindings.rs1.value != this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchResultBLT.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchResultBGE.next(this.bindings.rs1.value >= this.bindings.rs2.value ? 1 : 0);
 
-    if (instruction.name === INSTRUCTIONS.BEQ) {
-      this.bindings.branchResult.next(this.bindings.branchResultBEQ.value);
-    } else if (instruction.name === INSTRUCTIONS.BNE) {
-      this.bindings.branchResult.next(this.bindings.branchResultBNE.value);
-    } else if (instruction.name === INSTRUCTIONS.BLT || instruction.name === INSTRUCTIONS.BLTU) {
-      this.bindings.branchResult.next(this.bindings.branchResultBLT.value);
-    } else if (instruction.name === INSTRUCTIONS.BGE || instruction.name === INSTRUCTIONS.BGEU) {
-      this.bindings.branchResult.next(this.bindings.branchResultBGE.value);
-    }
+      if (this.bindings.instruction.value.name === INSTRUCTIONS.BEQ) {
+        this.bindings.branchResult.next(this.bindings.branchResultBEQ.value);
+      } else if (this.bindings.instruction.value.name === INSTRUCTIONS.BNE) {
+        this.bindings.branchResult.next(this.bindings.branchResultBNE.value);
+      } else if (this.bindings.instruction.value.name === INSTRUCTIONS.BLT || this.bindings.instruction.value.name === INSTRUCTIONS.BLTU) {
+        this.bindings.branchResult.next(this.bindings.branchResultBLT.value);
+      } else if (this.bindings.instruction.value.name === INSTRUCTIONS.BGE || this.bindings.instruction.value.name === INSTRUCTIONS.BGEU) {
+        this.bindings.branchResult.next(this.bindings.branchResultBGE.value);
+      }
 
-    //
-    // PC
-    //
+      //
+      // PC
+      //
 
-    if (this.bindings.branchResult.value === 1) {
-      this.bindings.branchAddResult.next(this.bindings.imm.value);
-    } else {
-      this.bindings.branchAddResult.next(4);
-    }
+      if (this.bindings.branchResult.value === 1) {
+        this.bindings.branchAddResult.next(this.bindings.imm.value);
+      } else {
+        this.bindings.branchAddResult.next(4);
+      }
 
-    if (isJAL(instruction.name)) {
-      this.bindings.pcAdd.next(this.bindings.imm.value);
-    } else if (isBRANCH(instruction.name)) {
-      this.bindings.pcAdd.next(this.bindings.branchAddResult.value);
-    } else {
-      this.bindings.pcAdd.next(4);
-    }
+      if (isJAL(this.bindings.instruction.value.name)) {
+        this.bindings.pcAdd.next(this.bindings.imm.value);
+      } else if (isBRANCH(this.bindings.instruction.value.name)) {
+        this.bindings.pcAdd.next(this.bindings.branchAddResult.value);
+      } else {
+        this.bindings.pcAdd.next(4);
+      }
 
-    this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
-    this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
+      this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
+      this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
 
-    if (isJALR(instruction.name)) {
-      this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);
-    } else {
-      this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
+      if (isJALR(this.bindings.instruction.value.name)) {
+        this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);
+      } else {
+        this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
+      }
+    } catch (e) {
+      console.log("Some value was not initiated yet", e)
     }
   }
 
@@ -319,11 +321,19 @@ export class SimLibInterfaceService implements OnDestroy {
   }
 
   runUntilBreak() {
-    let timeout = 10;
-    while (timeout > 0 && this.bindings.cpuState.value != CPU_STATES.BREAK) {
-      this.advanceSimulationClock();
-      timeout--;
+    let timeout = 10000;
+
+    const advance = () => {
+      if (timeout > 0 && this.bindings.cpuState.value != CPU_STATES.BREAK) {
+        setTimeout(() => {
+          this.advanceSimulationClock();
+          timeout--;
+          advance();
+        }, 5);
+      }
     }
+
+    advance();
   }
 
   read4BytesLittleEndian(data, location) {

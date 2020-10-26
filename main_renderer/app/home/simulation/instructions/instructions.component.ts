@@ -4,6 +4,8 @@ import * as d3 from 'd3';
 import { easing, styler, tween } from 'popmotion';
 import { readStyleProperty } from '../../../utils/helper';
 import { ELF } from '../../../core/services/sim-lib-interface/elfParser';
+import { INSTRUCTIONS_DESCRIPTIONS } from '../../../core/services/sim-lib-interface/instructionParser';
+import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 
 class Assembly {
   opcode: string;
@@ -37,7 +39,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
   @Input() public programCounter;
   @Input() public parsedElf: ELF;
 
-  constructor() {
+  constructor(public simLibInterfaceService: SimLibInterfaceService) {
   }
 
   ngOnInit(): void {
@@ -98,5 +100,18 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
     d3.select('#assembly-code-div-pc-' + newPC).style('border-color', 'transparent');
     d3.select('#assembly-code-div-hex-' + newPC).style('background', readStyleProperty('accent-dark'));
     d3.select('#assembly-code-div-hex-' + newPC).style('border-color', 'transparent');
+  }
+
+  expandInfo(pc) {
+    const infoElement = document.getElementById('assembly-info-div-' + pc);
+    if (infoElement.classList.contains('assembly-info-open')) {
+      infoElement.classList.remove('assembly-info-open');
+    } else {
+      infoElement.classList.add('assembly-info-open');
+    }
+  }
+
+  getInfoOfInstruction(instructionName) {
+    return INSTRUCTIONS_DESCRIPTIONS[instructionName];
   }
 }

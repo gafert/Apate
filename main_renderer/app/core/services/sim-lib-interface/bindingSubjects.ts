@@ -40,6 +40,7 @@ export class Bindings {
   public cpuregs = new BehaviorSubject<number[]>(new Array(32).fill(0));
 
   // Data path
+  public instrReadMem = new BehaviorSubject<number>(0);
   public pc = new BehaviorSubject<number>(0);
   public rd = new BehaviorSubject<number>(0);
   public imm = new BehaviorSubject<number>(0);
@@ -101,12 +102,13 @@ export class Bindings {
     'pc_add': this.pcAdd,
     'pc_adv_other': this.pcAdvOther,
     'pc_adv_jalr': this.pcAdvJALR,
-    'pc_adv': this.pcAdv
+    'pc_adv': this.pcAdv,
+    'instr_read_mem': this.instrReadMem
   }
 
   // State
   public nextCpuState = new BehaviorSubject<CPU_STATES>(null);
-  public cpuState = new BehaviorSubject<CPU_STATES>(null);
+  public cpuState = new BehaviorSubject<CPU_STATES>(CPU_STATES.READ_DATA_FROM_MEMORY);
 
   // Decoder
   public instruction = new BehaviorSubject<Instruction>(null);

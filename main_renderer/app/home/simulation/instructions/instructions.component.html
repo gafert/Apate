@@ -16,7 +16,7 @@
               <div class="text-rounded-container grey2 mono">{{byteToHex(symbol.st_value, 8)}}</div>
             </div>
             <ng-container *ngFor="let instruction of symbol.instructions">
-              <ng-container *ngTemplateOutlet="instruction_template; context: { $implicit:  instruction}">
+              <ng-container *ngTemplateOutlet="instruction_template; context: { instruction: instruction, info: getInfoOfInstruction(instruction.name)}">
               </ng-container>
             </ng-container>
           </div>
@@ -26,13 +26,26 @@
   </div>
 </div>
 
-<ng-template #instruction_template let-instruction>
+<ng-template #instruction_template let-instruction="instruction" let-info="info">
   <div id="assembly-code-div-{{instruction.pc}}"
-       class="small-rounded-container grey2"
-       style="display: flex; justify-content: space-between; align-items: center;">
-    <div id="assembly-code-div-pc-{{instruction.pc}}"
-         class="text-rounded-container mono">{{byteToHex(instruction.pc, 1)}}</div>
-    <div style="flex-grow: 1; padding-left: 0.5em">{{instruction.name}}</div>
-    <div id="assembly-code-div-hex-{{instruction.pc}}" class="text-rounded-container mono">{{byteToHex(instruction.instruction, 8)}}</div>
+       class="small-rounded-container grey2">
+    <div style="display: flex; justify-content: space-between; align-items: center;" (click)="expandInfo(instruction.pc)">
+      <div id="assembly-code-div-pc-{{instruction.pc}}"
+           class="text-rounded-container mono">{{instruction.pc}}</div>
+      <div style="flex-grow: 1; padding-left: 0.5em">{{info.name}}</div>
+      <div id="assembly-code-div-hex-{{instruction.pc}}"
+           class="text-rounded-container mono">{{byteToHex(instruction.instruction, 8)}}</div>
+    </div>
+    <div id="assembly-info-div-{{instruction.pc}}" class="assembly-info">
+      <div class="desc">{{info.desc}}</div>
+      <div class="formula">{{info.formula}}</div>
+      <table>
+        <tr *ngIf="info.rs1"><td class="data-header">RS1</td><td class="data-value">{{instruction.rs1}}</td></tr>
+        <tr *ngIf="info.rs2"><td class="data-header">RS2</td><td class="data-value">{{instruction.rs2}}</td></tr>
+        <tr *ngIf="info.imm"><td class="data-header">IMM</td><td class="data-value">{{instruction.imm}}</td></tr>
+        <tr *ngIf="info.rd"><td class="data-header">RD</td><td class="data-value">{{instruction.rd}}</td></tr>
+      </table>
+
+    </div>
   </div>
 </ng-template>
