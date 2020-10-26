@@ -9,6 +9,10 @@
                      [disabled]="!simLibInterfaceService.elfIsLoaded"
                      text="Step"></app-action-button>
 
+  <app-action-button style="margin-left: 1em" (activate)="runSimulation()"
+                     [disabled]="!simLibInterfaceService.elfIsLoaded"
+                     text="Run"></app-action-button>
+
   <app-selecto-option [(options)]="stepOptions"></app-selecto-option>
 
   <div style="display: flex; align-items: center">

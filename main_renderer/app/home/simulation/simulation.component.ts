@@ -81,6 +81,10 @@ export class SimulationComponent implements OnInit, OnDestroy {
     }
   }
 
+  runSimulation() {
+    this.simLibInterfaceService.runUntilBreak();
+  }
+
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();

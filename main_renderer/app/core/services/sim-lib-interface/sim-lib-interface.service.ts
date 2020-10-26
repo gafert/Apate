@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import {
   INSTRUCTIONS,
   isAUIPC,
-  isBRANCH,
+  isBRANCH, isBREAK,
   isIMM,
   isJAL,
   isJALR,
@@ -46,13 +46,13 @@ export class SimLibInterfaceService implements OnDestroy {
   }
 
   advanceSimulationClock() {
-    const instruction = this.bindings.instruction.value;
-    console.log(instruction);
+    let instruction = this.bindings.instruction.value;
 
     switch (this.bindings.nextCpuState.value) {
       case CPU_STATES.BREAK:
         this.bindings.cpuState.next(CPU_STATES.BREAK);
-        break;
+        console.log("BREAK");
+        return;
       case CPU_STATES.READ_DATA_FROM_MEMORY:
         this.bindings.memAddress.next(this.bindings.pc.value);
         this.bindings.memReadData.next(this.fetchDataFromMemory(this.bindings.memAddress.value));
@@ -60,85 +60,34 @@ export class SimLibInterfaceService implements OnDestroy {
         this.bindings.nextCpuState.next(CPU_STATES.DECODE_INSTRUCTION);
         break;
       case CPU_STATES.DECODE_INSTRUCTION:
-        const inst = parseInstruction(this.bindings.memReadData.value);
-        this.bindings.instruction.next(inst);
+        instruction = parseInstruction(this.bindings.memReadData.value);
+        this.bindings.instruction.next(instruction);
 
-        this.bindings.rs1addr.next(inst.rs1);
-        this.bindings.rs1addr.next(inst.rs2);
-        this.bindings.rs1.next(this.bindings.cpuregs.value[inst.rs1]);
-        this.bindings.rs2.next(this.bindings.cpuregs.value[inst.rs2]);
-        this.bindings.rd.next(inst.rd);
-        this.bindings.imm.next(inst.imm);
+        this.bindings.rs1addr.next(instruction.rs1);
+        this.bindings.rs1addr.next(instruction.rs2);
+        this.bindings.rs1.next(this.bindings.cpuregs.value[instruction.rs1]);
+        this.bindings.rs2.next(this.bindings.cpuregs.value[instruction.rs2]);
+        this.bindings.rd.next(instruction.rd);
+        this.bindings.imm.next(instruction.imm);
 
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
-        this.bindings.nextCpuState.next(CPU_STATES.EXECUTE);
+
+        if(isBREAK(instruction.name)) {
+          this.bindings.nextCpuState.next(CPU_STATES.BREAK);
+        } else {
+          this.bindings.nextCpuState.next(CPU_STATES.EXECUTE);
+        }
         break;
       case CPU_STATES.EXECUTE:
-
-        //
-        // ALU
-        //
-
-        if (isIMM(instruction.name)) {
-          this.bindings.imm_rs2.next(this.bindings.imm.value);
-        } else if (isOP(instruction.name)) {
-          this.bindings.imm_rs2.next(this.bindings.rs2.value);
-        }
-
-        if (isOP(instruction.name) || isIMM(instruction.name)) {
-          this.bindings.op1.next(this.bindings.imm_rs2.value);
-          this.bindings.op2.next(this.bindings.rs1.value);
-        } else if (isJALR(instruction.name) || isJAL(instruction.name)) {
-          this.bindings.op1.next(this.bindings.pc.value);
-          this.bindings.op2.next(4);
-        } else if (isLUI(instruction.name) || isAUIPC(instruction.name)) {
-          this.bindings.op1.next(this.bindings.imm.value);
-          this.bindings.op2.next(12);
-        }
-
-        this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, instruction));
-        this.bindings.pc_aluout.next(this.bindings.aluout.value + this.bindings.pc.value);
-        this.bindings.mux_aluout.next(isAUIPC(instruction.name) ? this.bindings.pc_aluout.value : this.bindings.aluout.value);
 
         //
         // LOAD STORE
         //
 
-        this.bindings.rs1_imm.next(this.bindings.rs1.value + this.bindings.imm.value);
         if (isLOAD(instruction.name)) {
           this.bindings.memread.next(this.callMEMORYread(instruction, this.bindings.rs1_imm.value));
         } else if (isSTORE(instruction.name)) {
           this.callMEMORYwrite(instruction, this.bindings.rs1_imm.value, this.bindings.rs2.value);
-        }
-
-        if (isLOAD(instruction.name)) {
-          this.bindings.regwrite.next(this.bindings.memread.value);
-        } else if (isIMM(instruction.name) ||
-          isOP(instruction.name) ||
-          isJAL(instruction.name) ||
-          isJALR(instruction.name) ||
-          isLUI(instruction.name) ||
-          isAUIPC(instruction.name)) {
-          this.bindings.regwrite.next(this.bindings.mux_aluout.value);
-        }
-
-        //
-        // BRANCH
-        //
-
-        this.bindings.branchResultBEQ.next(this.bindings.rs1.value == this.bindings.rs2.value ? 1 : 0);
-        this.bindings.branchResultBNE.next(this.bindings.rs1.value != this.bindings.rs2.value ? 1 : 0);
-        this.bindings.branchResultBLT.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
-        this.bindings.branchResultBGE.next(this.bindings.rs1.value >= this.bindings.rs2.value ? 1 : 0);
-
-        if (instruction.name === INSTRUCTIONS.BEQ) {
-          this.bindings.branchResult.next(this.bindings.branchResultBEQ.value);
-        } else if (instruction.name === INSTRUCTIONS.BNE) {
-          this.bindings.branchResult.next(this.bindings.branchResultBNE.value);
-        } else if (instruction.name === INSTRUCTIONS.BLT || instruction.name === INSTRUCTIONS.BLTU) {
-          this.bindings.branchResult.next(this.bindings.branchResultBLT.value);
-        } else if (instruction.name === INSTRUCTIONS.BGE || instruction.name === INSTRUCTIONS.BGEU) {
-          this.bindings.branchResult.next(this.bindings.branchResultBGE.value);
         }
 
         this.bindings.cpuState.next(CPU_STATES.EXECUTE);
@@ -161,34 +110,102 @@ export class SimLibInterfaceService implements OnDestroy {
         this.bindings.nextCpuState.next(CPU_STATES.ADVANCE_PC);
         break;
       case CPU_STATES.ADVANCE_PC:
-        if (this.bindings.branchResult.value === 1) {
-          this.bindings.branchAddResult.next(this.bindings.imm.value);
-        } else {
-          this.bindings.branchAddResult.next(4);
-        }
-
-        if (isJAL(instruction.name)) {
-          this.bindings.pcAdd.next(this.bindings.imm.value);
-        } else if (isBRANCH(instruction.name)) {
-          this.bindings.pcAdd.next(this.bindings.branchAddResult.value);
-        } else {
-          this.bindings.pcAdd.next(4);
-        }
-
-        this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
-        this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
-
-        if (isJALR(instruction.name)) {
-          this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);
-        } else {
-          this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
-        }
-
         this.bindings.pc.next(this.bindings.pcAdv.value);
 
         this.bindings.cpuState.next(CPU_STATES.ADVANCE_PC);
         this.bindings.nextCpuState.next(CPU_STATES.READ_DATA_FROM_MEMORY);
         break;
+    }
+
+    // COMBINATORIAL LOGIC
+
+    //
+    // ALU
+    //
+
+    if (isIMM(instruction.name)) {
+      this.bindings.imm_rs2.next(this.bindings.imm.value);
+    } else if (isOP(instruction.name)) {
+      this.bindings.imm_rs2.next(this.bindings.rs2.value);
+    }
+
+    if (isOP(instruction.name) || isIMM(instruction.name)) {
+      this.bindings.op1.next(this.bindings.imm_rs2.value);
+      this.bindings.op2.next(this.bindings.rs1.value);
+    } else if (isJALR(instruction.name) || isJAL(instruction.name)) {
+      this.bindings.op1.next(this.bindings.pc.value);
+      this.bindings.op2.next(4);
+    } else if (isLUI(instruction.name) || isAUIPC(instruction.name)) {
+      this.bindings.op1.next(this.bindings.imm.value);
+      this.bindings.op2.next(12);
+    }
+
+    this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, instruction));
+    this.bindings.pc_aluout.next(this.bindings.aluout.value + this.bindings.pc.value);
+    this.bindings.mux_aluout.next(isAUIPC(instruction.name) ? this.bindings.pc_aluout.value : this.bindings.aluout.value);
+
+
+    //
+    // LOAD STORE
+    //
+
+    this.bindings.rs1_imm.next(this.bindings.rs1.value + this.bindings.imm.value);
+
+    if (isLOAD(instruction.name)) {
+      this.bindings.regwrite.next(this.bindings.memread.value);
+    } else if (isIMM(instruction.name) ||
+      isOP(instruction.name) ||
+      isJAL(instruction.name) ||
+      isJALR(instruction.name) ||
+      isLUI(instruction.name) ||
+      isAUIPC(instruction.name)) {
+      this.bindings.regwrite.next(this.bindings.mux_aluout.value);
+    }
+
+    //
+    // BRANCH
+    //
+
+    this.bindings.branchResultBEQ.next(this.bindings.rs1.value == this.bindings.rs2.value ? 1 : 0);
+    this.bindings.branchResultBNE.next(this.bindings.rs1.value != this.bindings.rs2.value ? 1 : 0);
+    this.bindings.branchResultBLT.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
+    this.bindings.branchResultBGE.next(this.bindings.rs1.value >= this.bindings.rs2.value ? 1 : 0);
+
+    if (instruction.name === INSTRUCTIONS.BEQ) {
+      this.bindings.branchResult.next(this.bindings.branchResultBEQ.value);
+    } else if (instruction.name === INSTRUCTIONS.BNE) {
+      this.bindings.branchResult.next(this.bindings.branchResultBNE.value);
+    } else if (instruction.name === INSTRUCTIONS.BLT || instruction.name === INSTRUCTIONS.BLTU) {
+      this.bindings.branchResult.next(this.bindings.branchResultBLT.value);
+    } else if (instruction.name === INSTRUCTIONS.BGE || instruction.name === INSTRUCTIONS.BGEU) {
+      this.bindings.branchResult.next(this.bindings.branchResultBGE.value);
+    }
+
+    //
+    // PC
+    //
+
+    if (this.bindings.branchResult.value === 1) {
+      this.bindings.branchAddResult.next(this.bindings.imm.value);
+    } else {
+      this.bindings.branchAddResult.next(4);
+    }
+
+    if (isJAL(instruction.name)) {
+      this.bindings.pcAdd.next(this.bindings.imm.value);
+    } else if (isBRANCH(instruction.name)) {
+      this.bindings.pcAdd.next(this.bindings.branchAddResult.value);
+    } else {
+      this.bindings.pcAdd.next(4);
+    }
+
+    this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
+    this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
+
+    if (isJALR(instruction.name)) {
+      this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);
+    } else {
+      this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
     }
   }
 
@@ -293,7 +310,20 @@ export class SimLibInterfaceService implements OnDestroy {
   }
 
   advanceSimulationPc() {
+    let timeout = 10;
+    this.advanceSimulationClock();
+    while (timeout > 0 && this.bindings.nextCpuState.value != CPU_STATES.EXECUTE) {
+      this.advanceSimulationClock();
+      timeout--;
+    }
+  }
 
+  runUntilBreak() {
+    let timeout = 10;
+    while (timeout > 0 && this.bindings.cpuState.value != CPU_STATES.BREAK) {
+      this.advanceSimulationClock();
+      timeout--;
+    }
   }
 
   read4BytesLittleEndian(data, location) {

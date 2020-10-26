@@ -11,12 +11,12 @@ import {BehaviorSubject} from "rxjs";
 import { Instruction } from './instructionParser';
 
 export enum CPU_STATES {
-  READ_DATA_FROM_MEMORY = "Read form memory",
-  DECODE_INSTRUCTION = "Decode instruction",
-  EXECUTE = "Execute instruction",
-  WRITE_BACK = "Write back",
-  ADVANCE_PC = "Advance PC",
-  BREAK = "Break"
+  READ_DATA_FROM_MEMORY = "Read From Memory ✅",
+  DECODE_INSTRUCTION = "Decoded Instruction ✅",
+  EXECUTE = "Executed Instruction ✅",
+  WRITE_BACK = "Wrote Back ✅",
+  ADVANCE_PC = "Advanced PC ✅",
+  BREAK = "Break ✅"
 }
 
 export class Bindings {

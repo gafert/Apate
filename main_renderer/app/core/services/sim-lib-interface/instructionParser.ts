@@ -393,3 +393,8 @@ export function isLUI(name: string): boolean {
 export function isAUIPC(name: string): boolean {
   return name === INSTRUCTIONS.AUIPC
 }
+
+export function isBREAK(name: string): boolean {
+  return name === INSTRUCTIONS.ECALL || name === INSTRUCTIONS.EBREAK;
+}
+

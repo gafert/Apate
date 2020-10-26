@@ -242,6 +242,7 @@ export class GraphService {
     this.scene.add(renderGroup);
 
     this.idFlat = this.flattenRootToIndexIdArray(this.idRoot);
+    console.log(this.idFlat);
 
     this.initHighlightingUsedPaths();
   }
@@ -316,6 +317,33 @@ export class GraphService {
               this.setVisibility(key, true);
             }
           }
+
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux') && key.includes('beq') ||
+              key.includes('mux') && key.includes('bne') ||
+              key.includes('mux') && key.includes('blt') ||
+              key.includes('mux') && key.includes('bge')) {
+              this.setVisibility(key, false);
+            }
+          }
+
+          for (const key of Object.keys(this.idFlat)) {
+            if (key.includes('mux_' + instruction.name.toLowerCase())) {
+              this.setVisibility(key, true);
+            }
+          }
+        }
+      }
+    });
+
+    this.simLibInterfaceService.bindings.branchResult.subscribe((result) => {
+      if (isBRANCH(this.simLibInterfaceService.bindings.instruction.value.name)) {
+        if (result) {
+          this.setVisibility('mux_b_true', true);
+          this.setVisibility('mux_b_false', false);
+        } else {
+          this.setVisibility('mux_b_false', true);
+          this.setVisibility('mux_b_true', false);
         }
       }
     });
@@ -398,7 +426,7 @@ export class GraphService {
 
   setVisibility(id, on) {
     this.idFlat[id].meshes.forEach((mesh) => {
-      mesh.material.opacity = on ? 1 : 0.2;
+      mesh.material.opacity = on ? 1 : 0.1;
     });
   }
 
