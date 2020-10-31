@@ -4,7 +4,7 @@ import { MeshText2D, textAlign } from 'three-text2d';
 import F_SHADER from './shader.frag';
 import V_SHADER from './shader.vert';
 import { MeshLine, MeshLineMaterial } from '../../../utils/THREE.MeshLine';
-import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 import { byteToHex } from '../../../globals';
 import { easing, styler, tween } from 'popmotion';
 
@@ -228,7 +228,7 @@ export class Panel {
     private _width: number,
     private _height: number,
     private _globalUniforms: object,
-    private _simLibInterfaceService: SimLibInterfaceService
+    private _simLibInterfaceService: CpuInterface
   ) {
     this.panelMaterial = new THREE.ShaderMaterial({
       vertexShader: V_SHADER,

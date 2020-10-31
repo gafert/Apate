@@ -197,7 +197,7 @@ export function parseElf(elf: Buffer): ELF {
 }
 
 /**
- * Parse instructions of risc-v ISA
+ * Parse instructions of rv32i ISA
  * @param parsedElf
  * @param elf
  */

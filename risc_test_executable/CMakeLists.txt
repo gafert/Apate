@@ -17,8 +17,8 @@ set(CMAKE_C_COMPILER ${RISC_COMPILER})
 set(CMAKE_CXX_COMPILER ${RISC_COMPILER})
 set(CMAKE_ASM_COMPILER ${RISC_COMPILER})
 
-set(CMAKE_C_FLAGS "-O0 -march=rv32i -mabi=ilp32")
-set(CMAKE_ASM_FLAGS "-O0 -march=rv32i -mabi=ilp32")
+set(CMAKE_C_FLAGS "-g -O0 -march=rv32i -mabi=ilp32")
+set(CMAKE_ASM_FLAGS "-g -O0 -march=rv32i -mabi=ilp32")
 
 set(CMAKE_C_LINK_FLAGS "")
 set(CMAKE_CXX_LINK_FLAGS "")

@@ -43,5 +43,3 @@ entry:
 
     call  main          # call the main function
     ecall               # halt the simluation when it returns
-end:
-    addi x30, zero, 0

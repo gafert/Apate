@@ -2,7 +2,7 @@ import { Injectable, NgZone } from '@angular/core';
 import * as THREE from 'three';
 import { Group } from 'three';
 import panzoom from '../../../utils/drag.js';
-import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 import { SVGLoader } from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
@@ -54,7 +54,7 @@ export class GraphService {
   private INTERSECTED;
   private raycaster;
 
-  constructor(private ngZone: NgZone, private simLibInterfaceService: SimLibInterfaceService) {
+  constructor(private ngZone: NgZone, private cpuInterface: CpuInterface) {
     process.on('exit', () => {
       console.log('Exit GraphService');
       this.stopRender();
@@ -213,10 +213,10 @@ export class GraphService {
                     const leftes = d3.scan(positions, (a, b) => a.x - b.x);
                     text.position.set(positions[leftes].x + 3, positions[leftes].y + 2, positions[leftes].z);
 
-                    const binding = this.simLibInterfaceService.bindings.values[signalName];
+                    const binding = this.cpuInterface.bindings.values[signalName];
                     if (binding) {
                       binding.subscribe((value) => {
-                        text.text = (value === null || value === undefined )? 'NaN' : value.toString();
+                        text.text = (value === null || value === undefined) ? 'NaN' : value.toString();
                       });
                     }
 
@@ -248,8 +248,10 @@ export class GraphService {
 
   initHighlightingUsedPaths() {
     // Show groups which are active according to the opcode
-    this.simLibInterfaceService.bindings.instruction.subscribe((instruction) => {
+    this.cpuInterface.bindings.instruction.subscribe((instruction) => {
       if (instruction) {
+        console.log('Instruction changed');
+
         // Hide all instructions
         this.setVisibility('s_c_instr', true);
 
@@ -335,8 +337,11 @@ export class GraphService {
       }
     });
 
-    this.simLibInterfaceService.bindings.branchResult.subscribe((result) => {
-      if (isBRANCH(this.simLibInterfaceService.bindings.instruction.value.name)) {
+    this.cpuInterface.bindings.branchResult.subscribe((result) => {
+      console.log('Branch result changed');
+      if (this.cpuInterface.bindings.instruction.value?.name ?
+        (isBRANCH(this.cpuInterface.bindings.instruction.value.name)
+        && this.cpuInterface.bindings.cpuState.value == CPU_STATES.DECODE_INSTRUCTION) : 0) {
         if (result) {
           this.setVisibility('mux_b_true', true);
           this.setVisibility('mux_b_false', false);
@@ -347,7 +352,7 @@ export class GraphService {
       }
     });
 
-    this.simLibInterfaceService.bindings.nextCpuState.subscribe((nextCpuState) => {
+    this.cpuInterface.bindings.nextCpuState.subscribe((nextCpuState) => {
       for (const key of Object.keys(this.idFlat)) {
         const element = this.idFlat[key];
         if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
@@ -361,7 +366,7 @@ export class GraphService {
       }
     });
 
-    this.simLibInterfaceService.bindings.cpuState.subscribe((nextCpuState) => {
+    this.cpuInterface.bindings.cpuState.subscribe((nextCpuState) => {
       for (const key of Object.keys(this.idFlat)) {
         const element = this.idFlat[key];
 
@@ -477,7 +482,7 @@ export class GraphService {
               // INTERSECTED is part of a port
               const portName = this.getPortName(this.INTERSECTED.parent.parent.name);
               if (portName == 'pc') {
-                console.log('Program Counter: ' + this.simLibInterfaceService.bindings.pc.getValue());
+                console.log('Program Counter: ' + this.cpuInterface.bindings.pc.getValue());
               } else {
                 console.log('Not found data path: ', this.INTERSECTED.parent.parent.name, portName);
               }

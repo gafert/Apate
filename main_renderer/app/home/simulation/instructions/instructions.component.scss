@@ -11,13 +11,13 @@
 ::ng-deep .assembly-info-open {
   max-height: 500px !important;
   transition: max-height 1s !important;
+  margin-bottom: 0.1em;
 }
 
 .assembly-info {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.2s;
-  margin: 0.1em;
   table {
     border-collapse: collapse;
   }

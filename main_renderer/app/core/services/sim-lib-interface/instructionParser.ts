@@ -621,7 +621,7 @@ export function parseInstruction(instruction): Instruction {
 
   let func7: number = null;
   if (type === INSTRUCTION_FORMATS.R) {
-    func7 = (instruction >> 15) & 0b1111111;
+    func7 = (instruction >> 25) & 0b1111111;
   }
 
   let rs2: number = null;
@@ -673,7 +673,7 @@ export function parseInstruction(instruction): Instruction {
     rs1: rs1,
     rs2: rs2,
     instruction: instruction,
-    name: 'STILL PROCESSING'
+    name: null
   };
 
   parsedInstruction.name = getNameFromInstruction(parsedInstruction);

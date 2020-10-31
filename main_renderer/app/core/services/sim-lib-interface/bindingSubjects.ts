@@ -32,15 +32,12 @@ export class Bindings {
 
   // Memory
   public memory = new BehaviorSubject(Buffer.alloc(512, 0));
-  public memAddress = new BehaviorSubject(null);
-  public memReadData = new BehaviorSubject(null);
-  public memWriteData = new BehaviorSubject(null);
 
   // Registers
   public cpuregs = new BehaviorSubject<number[]>(new Array(32).fill(0));
 
   // Data path
-  public instrReadMem = new BehaviorSubject<number>(0);
+  public instrMemRead = new BehaviorSubject<number>(0);
   public pc = new BehaviorSubject<number>(0);
   public rd = new BehaviorSubject<number>(0);
   public imm = new BehaviorSubject<number>(0);
@@ -103,7 +100,7 @@ export class Bindings {
     'pc_adv_other': this.pcAdvOther,
     'pc_adv_jalr': this.pcAdvJALR,
     'pc_adv': this.pcAdv,
-    'instr_read_mem': this.instrReadMem
+    'instr_mem_read': this.instrMemRead
   }
 
   // State

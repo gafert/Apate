@@ -20,7 +20,7 @@ import { parseElf, parseElfRISCVInstructions } from './elfParser';
 @Injectable({
   providedIn: 'root'
 })
-export class SimLibInterfaceService implements OnDestroy {
+export class CpuInterface implements OnDestroy {
   public bindings = new Bindings();
   public elfIsLoaded = false;
   public parsedElf;
@@ -34,7 +34,6 @@ export class SimLibInterfaceService implements OnDestroy {
     const elfBuffer = readFileSync(pathToElf);
     this.parsedElf = parseElf(elfBuffer);
     parseElfRISCVInstructions(this.parsedElf, elfBuffer);
-
     console.log(this.parsedElf);
     // Read program
     this.parsedElf.program.copy(this.bindings.memory.value, 0, 0);
@@ -52,13 +51,12 @@ export class SimLibInterfaceService implements OnDestroy {
         console.log("BREAK");
         return;
       case CPU_STATES.READ_DATA_FROM_MEMORY:
-        this.bindings.memAddress.next(this.bindings.pc.value);
-        this.bindings.memReadData.next(this.fetchDataFromMemory(this.bindings.memAddress.value));
+        this.bindings.instrMemRead.next(this.fetchDataFromMemory(this.bindings.pc.value));
         this.bindings.cpuState.next(CPU_STATES.READ_DATA_FROM_MEMORY);
         this.bindings.nextCpuState.next(CPU_STATES.DECODE_INSTRUCTION);
         break;
       case CPU_STATES.DECODE_INSTRUCTION:
-        this.bindings.instruction.next(parseInstruction(this.bindings.memReadData.value));
+        this.bindings.instruction.next(parseInstruction(this.bindings.instrMemRead.value));
 
         this.bindings.rs1addr.next(this.bindings.instruction.value.rs1);
         this.bindings.rs2addr.next(this.bindings.instruction.value.rs2);
@@ -298,14 +296,14 @@ export class SimLibInterfaceService implements OnDestroy {
       case INSTRUCTIONS.SH:
         console.log('MEMORY SH ' + value + ' at ' + address);
         memory[address] = value & 0xFF;
-        memory[address + 1] = (value >> 0xFF) & 0xFF;
+        memory[address + 1] = (value >> 8) & 0xFF;
         break;
       case INSTRUCTIONS.SW:
         console.log('MEMORY SW ' + value + ' at ' + address);
         memory[address] = value & 0xFF;
-        memory[address + 1] = (value >> 0xFF) & 0xFF;
-        memory[address + 2] = (value >> 0xFFFF) & 0xFF;
-        memory[address + 3] = (value >> 0xFFFFFF) & 0xFF;
+        memory[address + 1] = (value >> 8) & 0xFF;
+        memory[address + 2] = (value >> 16) & 0xFF;
+        memory[address + 3] = (value >> 24) & 0xFF;
         break;
     }
     this.bindings.memory.next(memory);

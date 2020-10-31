@@ -2,7 +2,7 @@ import { Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import { byteToHex, range } from '../../globals';
-import { SimLibInterfaceService } from '../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../core/services/sim-lib-interface/sim-lib-interface.service';
 import { InstructionsComponent } from './instructions/instructions.component';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -36,7 +36,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   };
 
   constructor(
-    public simLibInterfaceService: SimLibInterfaceService,
+    public simLibInterfaceService: CpuInterface,
     private dataService: DataService,
     private ngZone: NgZone
   ) {

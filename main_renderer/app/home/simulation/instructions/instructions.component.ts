@@ -1,11 +1,11 @@
-import { AfterViewInit, Component, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { byteToHex } from '../../../globals';
 import * as d3 from 'd3';
 import { easing, styler, tween } from 'popmotion';
 import { readStyleProperty } from '../../../utils/helper';
-import { ELF } from '../../../core/services/sim-lib-interface/elfParser';
+import { ELF, SHF_CONSTANTS } from '../../../core/services/sim-lib-interface/elfParser';
 import { INSTRUCTIONS_DESCRIPTIONS } from '../../../core/services/sim-lib-interface/instructionParser';
-import { SimLibInterfaceService } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
 
 class Assembly {
   opcode: string;
@@ -35,11 +35,12 @@ class Section {
   styleUrls: ['./instructions.component.scss']
 })
 export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
-  public byteToHex = byteToHex;
+  public readonly byteToHex = byteToHex;
+
   @Input() public programCounter;
   @Input() public parsedElf: ELF;
 
-  constructor(public simLibInterfaceService: SimLibInterfaceService) {
+  constructor(public cpuInterface: CpuInterface) {
   }
 
   ngOnInit(): void {
@@ -59,7 +60,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
       }
   }
 
-  public reload() {
+  reload() {
     // Emitted when the elf changed and instructions needed to be renewed
     // Save instructions
     setTimeout(() => {
@@ -68,6 +69,23 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   ngOnDestroy() {
+  }
+
+  expandInfo(pc) {
+    const infoElement = document.getElementById('assembly-info-div-' + pc);
+    if (infoElement.classList.contains('assembly-info-open')) {
+      infoElement.classList.remove('assembly-info-open');
+    } else {
+      infoElement.classList.add('assembly-info-open');
+    }
+  }
+
+  getInfoOfInstruction(instructionName) {
+    return INSTRUCTIONS_DESCRIPTIONS[instructionName];
+  }
+
+  isSHFExecInstr(flags) {
+    return flags & SHF_CONSTANTS.SHF_EXECINSTR;
   }
 
   private setInstructionColor(oldPC, newPC) {
@@ -100,18 +118,5 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
     d3.select('#assembly-code-div-pc-' + newPC).style('border-color', 'transparent');
     d3.select('#assembly-code-div-hex-' + newPC).style('background', readStyleProperty('accent-dark'));
     d3.select('#assembly-code-div-hex-' + newPC).style('border-color', 'transparent');
-  }
-
-  expandInfo(pc) {
-    const infoElement = document.getElementById('assembly-info-div-' + pc);
-    if (infoElement.classList.contains('assembly-info-open')) {
-      infoElement.classList.remove('assembly-info-open');
-    } else {
-      infoElement.classList.add('assembly-info-open');
-    }
-  }
-
-  getInfoOfInstruction(instructionName) {
-    return INSTRUCTIONS_DESCRIPTIONS[instructionName];
   }
 }
