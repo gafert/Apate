@@ -4,7 +4,7 @@ import { MeshText2D, textAlign } from 'three-text2d';
 import F_SHADER from './shader.frag';
 import V_SHADER from './shader.vert';
 import { MeshLine, MeshLineMaterial } from '../../../utils/THREE.MeshLine';
-import { CpuInterface } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
 import { byteToHex } from '../../../globals';
 import { easing, styler, tween } from 'popmotion';
 

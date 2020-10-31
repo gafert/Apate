@@ -2,7 +2,7 @@ import { Injectable, NgZone } from '@angular/core';
 import * as THREE from 'three';
 import { Group } from 'three';
 import panzoom from '../../../utils/drag.js';
-import { CpuInterface } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
 import { SVGLoader } from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
@@ -16,8 +16,8 @@ import {
   isLUI,
   isOP,
   isSTORE
-} from '../../../core/services/sim-lib-interface/instructionParser';
-import { CPU_STATES } from '../../../core/services/sim-lib-interface/bindingSubjects';
+} from '../../../core/services/cpu-interface/instructionParser';
+import { CPU_STATES } from '../../../core/services/cpu-interface/bindingSubjects';
 import { MeshText2D, textAlign } from 'three-text2d';
 import * as d3 from 'd3';
 
@@ -239,6 +239,7 @@ export class GraphService {
 
     generateChildren(this.idRoot.children, renderGroup);
     this.scene.add(renderGroup);
+    console.log(renderGroup);
 
     this.idFlat = this.flattenRootToIndexIdArray(this.idRoot);
     console.log(this.idFlat);

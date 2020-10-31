@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { CpuInterface } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
 
 @Component({
   selector: 'app-terminal',

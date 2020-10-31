@@ -2,12 +2,11 @@ import { Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import { byteToHex, range } from '../../globals';
-import { CpuInterface } from '../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../core/services/cpu-interface/cpu-interface.service';
 import { InstructionsComponent } from './instructions/instructions.component';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
-import { CPU_STATES } from '../../core/services/sim-lib-interface/bindingSubjects';
 
 @Component({
   selector: 'app-simulation',

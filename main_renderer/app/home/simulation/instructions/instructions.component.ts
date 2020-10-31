@@ -3,9 +3,9 @@ import { byteToHex } from '../../../globals';
 import * as d3 from 'd3';
 import { easing, styler, tween } from 'popmotion';
 import { readStyleProperty } from '../../../utils/helper';
-import { ELF, SHF_CONSTANTS } from '../../../core/services/sim-lib-interface/elfParser';
-import { INSTRUCTIONS_DESCRIPTIONS } from '../../../core/services/sim-lib-interface/instructionParser';
-import { CpuInterface } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { ELF, SHF_CONSTANTS } from '../../../core/services/cpu-interface/elfParser';
+import { INSTRUCTIONS_DESCRIPTIONS } from '../../../core/services/cpu-interface/instructionParser';
+import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
 
 class Assembly {
   opcode: string;

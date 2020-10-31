@@ -11,7 +11,7 @@ import { SimulationRoutingModule } from './simulation-routing.module';
 import { ChangingValueComponent } from './changing-value/changing-value.component';
 import { SharedModule } from '../../components/shared/shared.module';
 import { GraphComponent } from './graph/graph.component';
-import { CpuInterface } from '../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../core/services/cpu-interface/cpu-interface.service';
 
 @NgModule({
   declarations: [

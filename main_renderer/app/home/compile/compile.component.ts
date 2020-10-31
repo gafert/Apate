@@ -42,7 +42,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   public gccSources;
   /** Will be set by the UI but loaded with defaults */
   public gccFlags;
-  public gccFlagsDefault = '-O0 -march=rv32i -mabi=ilp32 -Triscv.ld -lgcc -nostdlib -o program.elf';
+  public gccFlagsDefault = '-O0 -march=rv32e -mabi=ilp32e -Triscv.ld -lgcc -nostdlib -o program.elf';
   /** Not changed by the user */
   public objdumpFlags = '--section .text.init --section .text --section .data --full-contents --disassemble --syms --source -z';
   /** Not changed by the user */

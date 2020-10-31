@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { byteToHex, range } from '../../../globals';
-import { CpuInterface } from '../../../core/services/sim-lib-interface/sim-lib-interface.service';
+import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
