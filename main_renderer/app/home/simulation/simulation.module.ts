@@ -12,6 +12,7 @@ import { ChangingValueComponent } from './changing-value/changing-value.componen
 import { SharedModule } from '../../components/shared/shared.module';
 import { GraphComponent } from './graph/graph.component';
 import { CpuInterface } from '../../core/services/cpu-interface/cpu-interface.service';
+import { SignalsComponent } from './signals/signals.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { CpuInterface } from '../../core/services/cpu-interface/cpu-interface.se
     RegistersComponent,
     TerminalComponent,
     GraphComponent,
+    SignalsComponent,
   ],
   imports: [CommonModule, SimulationRoutingModule, SharedModule],
   providers: [CpuInterface],

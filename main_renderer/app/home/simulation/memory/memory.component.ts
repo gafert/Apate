@@ -11,14 +11,16 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class MemoryComponent implements OnInit, OnDestroy {
   public byteToHex = byteToHex;
+  public String = String;
   public range = range;
   public memory;
+  public bytesInLine = 24;
 
   private ngUnsubscribe = new Subject();
   private onResizer = false;
 
-  constructor(private el: ElementRef, private SimLibInterfaceService: CpuInterface) {
-    SimLibInterfaceService.bindings.memory.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+  constructor(private el: ElementRef, private cpuInterface: CpuInterface) {
+    cpuInterface.bindings.memory.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.memory = value;
     });
   }

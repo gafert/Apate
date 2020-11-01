@@ -6,11 +6,22 @@
   <div class="grid-container--content">
     <div style="overflow: scroll; margin: 0.5em">
       <table style="font-size: 1em; font-family: 'Roboto Mono'; border-spacing: 0" *ngIf="memory; else noloadedmemory">
-        <tr style="display: flex" *ngFor="let i of range(0, memory.length-1, 32);">
-          <td style="padding-right: 1em; width: 3em"> {{byteToHex(i, 2)}}</td>
-          <td style="display: flex; padding-left: 0.4em" *ngFor="let r of range(0, 32-1, 4)">
-            <app-memory-cell style="margin-left: 0.2em" *ngFor="let a of range(0, 4-1, 1)"
-                             [cellIndex]="r + i + a" [cellValue]="memory[r + i + a]"></app-memory-cell>
+        <tr *ngFor="let i of range(0, memory.length-1, bytesInLine);">
+          <td style="padding-right: 0.5em; padding-bottom: 0; padding-top: 0;">{{byteToHex(i, 2)}}</td>
+          <td style="padding-right: 0.5em;padding-bottom: 0; padding-top: 0;">{{i}}</td>
+          <td style="padding-right: 0.1em;padding-bottom: 0; padding-top: 0;">|</td>
+          <td style="display: flex;padding-bottom: 0; padding-top: 0;">
+            <div style="display: flex; padding-left: 0.4em" *ngFor="let r of range(0, bytesInLine-1, 4)">
+              <app-memory-cell style="margin-left: 0.2em" *ngFor="let a of range(0, 4-1, 1)"
+                               [cellIndex]="r + i + a" [cellValue]="memory[r + i + a]"></app-memory-cell>
+            </div>
+          </td>
+          <td style="padding: 0 0.5em;">|</td>
+          <td style="display: flex; white-space: nowrap;padding-bottom: 0; padding-top: 0;">
+            <ng-container *ngFor="let r of range(0, bytesInLine-1, 1)">
+              <ng-container
+                *ngVar="memory[r + i] as m">{{m > 31 && m < 127 ? String.fromCharCode(m) : '.'}}</ng-container>
+            </ng-container>
           </td>
         </tr>
       </table>

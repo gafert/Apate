@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include "sim.h"
 
 #define UNIMPL_FUNC(_f) ".globl " #_f "\n.type " #_f ", @function\n" #_f ":\n"
 
@@ -39,44 +40,38 @@ asm (
 	"j unimplemented_syscall\n"
 );
 
-void unimplemented_syscall()
-{
+void unimplemented_syscall() {
 	const char *p = "Unimplemented system call called!\n";
 	while (*p)
-		*(volatile int*)0x10000000 = *(p++);
+		SERIAL = *(p++);
 	asm volatile ("ebreak");
 	__builtin_unreachable();
 }
 
-ssize_t _read(int file, void *ptr, size_t len)
-{
+ssize_t _read(int file, void *ptr, size_t len) {
 	// always EOF
 	return 0;
 }
 
-ssize_t _write(int file, const void *ptr, size_t len)
-{
+ssize_t _write(int file, const void *ptr, size_t len) {
 	const void *eptr = ptr + len;
 	while (ptr != eptr)
-		*(volatile int*)0x10000000 = *(char*)(ptr++);
+		SERIAL = *(char*)(ptr++);
 	return len;
 }
 
-int _close(int file)
-{
+int _close(int file) {
 	// close is called before _exit()
 	return 0;
 }
 
-int _fstat(int file, struct stat *st)
-{
+int _fstat(int file, struct stat *st) {
 	// fstat is called during libc startup
 	errno = ENOENT;
 	return -1;
 }
 
-void *_sbrk(ptrdiff_t incr)
-{
+void *_sbrk(ptrdiff_t incr) {
 	extern unsigned char _end[];	// Defined by linker
 	static unsigned long heap_end;
 
@@ -87,8 +82,7 @@ void *_sbrk(ptrdiff_t incr)
 	return (void *)(heap_end - incr);
 }
 
-void _exit(int exit_status)
-{
+void _exit(int exit_status) {
 	asm volatile ("ebreak");
 	__builtin_unreachable();
 }

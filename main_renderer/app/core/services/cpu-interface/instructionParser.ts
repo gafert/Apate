@@ -581,15 +581,20 @@ const NAME_LOOKUP_TABLE = {
 };
 
 export function getNameFromInstruction(instruction: Instruction): string {
-  let op = null;
-  if (instruction.opcode == OPCODES.SYSTEM) {
-    return NAME_LOOKUP_TABLE[instruction.opcode][instruction.func3][instruction.imm];
-  } else {
-    op = NAME_LOOKUP_TABLE[instruction.opcode];
-    if (typeof op !== 'string') op = op[instruction.func3];
-    if (typeof op !== 'string') op = op[instruction.func7];
-    return op;
+  try {
+    let op = null;
+    if (instruction.opcode == OPCODES.SYSTEM) {
+      return NAME_LOOKUP_TABLE[instruction.opcode][instruction.func3][instruction.imm];
+    } else {
+      op = NAME_LOOKUP_TABLE[instruction.opcode];
+      if (typeof op !== 'string') op = op[instruction.func3];
+      if (typeof op !== 'string') op = op[instruction.func7];
+      return op;
+    }
+  } catch (e) {
+    console.log("Could not find instruction name for", instruction, e);
   }
+  return 'unimplemented';
 }
 
 /**

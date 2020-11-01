@@ -30,9 +30,16 @@ $gridHeight: 5em;
   right: $gridWidth * 2;
 }
 
+.app-signals {
+  height: $gridHeight * 2;
+  width: $gridWidth * 2;
+  right: 0;
+  top: 0;
+}
+
 .app-registers {
   width: $gridWidth * 2;
-  height: calc(100% - (#{$gridHeight} * 2));
+  height: calc(100% - (#{$gridHeight} * 4));
   right: 0;
   bottom: 0;
 }
@@ -40,6 +47,6 @@ $gridHeight: 5em;
 .app-terminal {
   width: $gridWidth * 2;
   height: $gridHeight * 2;
-  top: 0;
+  top: $gridHeight * 2;
   right: 0;
 }

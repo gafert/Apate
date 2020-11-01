@@ -20,39 +20,14 @@ set(CMAKE_ASM_COMPILER ${RISC_COMPILER})
 set(CMAKE_C_FLAGS "-g -O0 -march=rv32i -mabi=ilp32")
 set(CMAKE_ASM_FLAGS "-g -O0 -march=rv32i -mabi=ilp32")
 
-set(CMAKE_C_LINK_FLAGS "")
-set(CMAKE_CXX_LINK_FLAGS "")
+set(CMAKE_C_LINK_FLAGS "-march=rv32i -mabi=ilp32")
+set(CMAKE_CXX_LINK_FLAGS "-march=rv32i -mabi=ilp32")
 
-add_executable(program program.c start.s)
-add_dependencies(program make_program_ld)
+add_executable(program program.c syscalls.c start_stdlib.s)
 
 set_target_properties(
         program
         PROPERTIES
         SUFFIX ".elf"
-        LINK_FLAGS "-T program.ld -lgcc -nostdlib"
+        LINK_FLAGS "-T riscv_stdlib.ld -lgcc"
 )
-
-add_custom_target(make_program_ld
-        # Application entry point is only used when stdlib riscv linker file is used
-        COMMAND less ${CMAKE_CURRENT_SOURCE_DIR}/riscv.ld > program.ld)
-
-add_custom_target(make_program_hex
-        DEPENDS program
-        COMMAND ${RISC_OBJ} -O verilog ${CMAKE_CURRENT_BINARY_DIR}/program.elf program.hex
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_custom_target(make_program_real_hex
-        DEPENDS program
-        COMMAND ${RISC_OBJ} ${CMAKE_CURRENT_BINARY_DIR}/program.elf program.hex
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_custom_target(read_elf
-        DEPENDS strip_debug
-        COMMAND ${RISC_READELF} -a ${CMAKE_CURRENT_BINARY_DIR}/program.elf > ${CMAKE_CURRENT_SOURCE_DIR}/program_readelf.txt
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_custom_target(make_program_dump
-        DEPENDS program
-        COMMAND ${RISC_DUMP} --section .text.init --section .text --section .data --full-contents --disassemble --syms --wide --source -z ${CMAKE_CURRENT_BINARY_DIR}/program.elf >  ${CMAKE_CURRENT_SOURCE_DIR}/program_objdump.txt
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
