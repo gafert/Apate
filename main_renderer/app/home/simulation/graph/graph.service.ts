@@ -47,8 +47,10 @@ export class GraphService {
   };
 
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
-  private idRoot;
-  private idFlat;
+
+  private renderGroup; // Holds the meshes in Three.js groups named according to svg names
+  private idRoot; // Holds the parsed svg and adds meshes to each element
+  private idFlat; // Takes the parsed svg with meshes and flattens all names to be a 1D array
 
   private mouse = new THREE.Vector2();
   private INTERSECTED;
@@ -64,12 +66,6 @@ export class GraphService {
       this.scene = null;
       this.clock = null;
     });
-
-    // this.runInRenderLoop((time, deltaTime) => {
-    //   this.panels.forEach((panel, index) => {
-    //     panel.changeBorderColor(new THREE.Color(Math.sin(time + index), Math.sin(time * 2.3 + index), Math.sin(time * 5.2 + index)))
-    //   });
-    // })
   }
 
   runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
@@ -96,7 +92,7 @@ export class GraphService {
         this.render();
         panzoom(this.camera, domElement);
       } else {
-        const width = domElement.clientWidth;
+        const width = domElement.clientWidth / 2;
         const height = domElement.clientHeight;
 
         this.scene = new THREE.Scene();
@@ -105,7 +101,7 @@ export class GraphService {
         domElement.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
-        this.camera.position.z = 5;
+        this.camera.position.z = 50;
 
         const color = 0xffffff;
         const intensity = 1;
@@ -116,35 +112,101 @@ export class GraphService {
         this.scene.add(light.target);
 
         this.initiateObjects();
-        this.resize();
-        panzoom(this.camera, domElement);
 
         // For intersection
         this.raycaster = new THREE.Raycaster();
         document.addEventListener('mousemove', this.onDocumentMouseMove.bind(this), false);
+        // END For intersection
 
-        if (document.readyState !== 'loading') {
-          this.render();
-        } else {
-          window.addEventListener('DOMContentLoaded', this.render.bind(this));
-        }
+        if (document.readyState !== 'loading') this.render();
+        else window.addEventListener('DOMContentLoaded', this.render.bind(this));
         window.addEventListener('resize', this.resize.bind(this));
+
+        this.resize();
+        panzoom(this.camera, domElement);
+
+        // Split areas in world and focus on the first
+        // This needs to be away from initiateObjects
+        this.separateAreas();
+        this.goToArea('overview');
 
         this.initiated = true;
       }
     });
+  }
 
+  goToArea(name) {
+    // Block if change comes too early
+    if (!this.idFlat) return;
+
+    const box = this.idFlat['areaborder_' + name].meshes[0];
+    box.geometry.computeBoundingBox();
+    box.geometry.computeBoundingSphere();
+    const bs = box.geometry.boundingSphere;
+
+    /*
+    // Test sphere
+    const geometry = new THREE.SphereGeometry(box.geometry.boundingSphere.radius, 32, 32);
+    const material = new THREE.MeshLambertMaterial({
+      color: 0xffff00
+    });
+    material.transparent = true;
+    material.opacity = 0.35;
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.copy(bs.center);
+    box.add(sphere);
+    */
+
+    const vFoV = this.camera.getEffectiveFOV();
+    const hFoV = this.camera.fov * this.camera.aspect;
+
+    const FoV = Math.min(vFoV, hFoV);
+    const FoV2 = FoV / 1.7; // divided by 2 would be the whole fov, but there are things on the side of the screen so the real fov is smaller
+
+    const a = bs.radius;
+    const A = FoV2;
+    const B = (90 - A) * Math.PI / 180.0;
+    const c = a / Math.sin(B);
+    const b = Math.sqrt(c * c - a * a);
+
+    const dir = new THREE.Vector3();
+    this.camera.getWorldDirection(dir);
+
+    const bsWorld = bs.center.clone();
+    box.localToWorld(bsWorld);
+
+    const cameraDir = new THREE.Vector3();
+    this.camera.getWorldDirection(cameraDir);
+
+    const cameraOffs = cameraDir.clone();
+    cameraOffs.multiplyScalar(-b);
+    const newCameraPos = bsWorld.clone().add(cameraOffs);
+
+    this.camera.position.copy(newCameraPos);
+    this.camera.lookAt(bsWorld);
+  }
+
+  separateAreas() {
+    const areas = ['overview', 'decoder', 'alu', 'memory', 'registers'];
+
+    let y = 0;
+    for (const area of areas) {
+      if (!this.idFlat['area_' + area]) continue;
+      const group = this.idFlat['area_' + area].group;
+      group.position.set(0, y, 0);
+      y += 1000;
+    }
   }
 
   initiateObjects() {
     const loader = new SVGLoader();
     this.idRoot = loader.parse(RISC_SVG).root;
 
-    const renderGroup = new THREE.Group();
-    renderGroup.scale.multiplyScalar(0.25);
-    renderGroup.position.x = 0;
-    renderGroup.position.y = 0;
-    renderGroup.scale.y *= -1;
+    this.renderGroup = new THREE.Group();
+    this.renderGroup.scale.multiplyScalar(0.25);
+    this.renderGroup.position.x = 0;
+    this.renderGroup.position.y = 0;
+    this.renderGroup.scale.y *= -1;
 
     const generateChildren = (children, childGroup) => {
       for (const child of children) {
@@ -227,195 +289,149 @@ export class GraphService {
               }
             }
             child.meshes = meshes;
+            child.group = childGroup;
+            child.isGroup = false;
           }
         } else {
           const newChildGroup = new Group();
           newChildGroup.name = child.id;
+          child.group = newChildGroup;
+          child.isGroup = true;
           generateChildren(child.children, newChildGroup);
           childGroup.add(newChildGroup);
         }
       }
     };
 
-    generateChildren(this.idRoot.children, renderGroup);
-    this.scene.add(renderGroup);
-    console.log(renderGroup);
-
+    this.idRoot.group = this.renderGroup;
+    generateChildren(this.idRoot.children, this.renderGroup);
     this.idFlat = this.flattenRootToIndexIdArray(this.idRoot);
+
+    console.log(this.renderGroup);
+    console.log(this.idRoot);
     console.log(this.idFlat);
 
+    this.scene.add(this.renderGroup);
     this.initHighlightingUsedPaths();
   }
 
   initHighlightingUsedPaths() {
-    // Show groups which are active according to the opcode
-    this.cpuInterface.bindings.instruction.subscribe((instruction) => {
-      if (instruction) {
-        console.log('Instruction changed');
-
-        // Hide all instructions
-        this.setVisibility('s_c_instr', true);
-
-        if (isJAL(instruction.name)) {
-          this.setVisibility('s_c_jal', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('jal') && (key.indexOf('jal') !== key.indexOf('jalr'))) {
-              this.setVisibility(key, true);
-            }
-          }
-        } else if (isJALR(instruction.name)) {
-          this.setVisibility('s_c_jalr', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('jalr')) {
-              this.setVisibility(key, true);
-            }
-          }
-        } else if (isLUI(instruction.name)) {
-          this.setVisibility('s_c_lui', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('lui')) {
-              this.setVisibility(key, true);
-            }
-          }
-        } else if (isAUIPC(instruction.name)) {
-          this.setVisibility('s_c_auipc', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('auipc')) {
-              this.setVisibility(key, true);
-            }
-          }
-        } else if (isIMM(instruction.name)) {
-          this.setVisibility('s_c_imm', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('imm')) {
-              this.setVisibility(key, true);
-            }
-          }
-        } else if (isOP(instruction.name)) {
-          this.setVisibility('s_c_op', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('op')) {
-              this.setVisibility(key, true);
-            }
-          }
-        } else if (isLOAD(instruction.name)) {
-          this.setVisibility('s_c_load', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('load')) {
-              this.setVisibility(key, true);
-            }
-          }
-        } else if (isSTORE(instruction.name)) {
-          this.setVisibility('s_c_store', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('store')) {
-              this.setVisibility(key, true);
-            }
-          }
-        } else if (isBRANCH(instruction.name)) {
-          this.setVisibility('s_c_branch', true);
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('branch')) {
-              this.setVisibility(key, true);
-            }
-          }
-
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux') && key.includes('beq') ||
-              key.includes('mux') && key.includes('bne') ||
-              key.includes('mux') && key.includes('blt') ||
-              key.includes('mux') && key.includes('bge')) {
-              this.setVisibility(key, false);
-            }
-          }
-
-          for (const key of Object.keys(this.idFlat)) {
-            if (key.includes('mux_' + instruction.name.toLowerCase())) {
-              this.setVisibility(key, true);
-            }
-          }
-        }
-      }
-    });
-
-    this.cpuInterface.bindings.branchResult.subscribe((result) => {
-      console.log('Branch result changed');
-      if (this.cpuInterface.bindings.instruction.value?.name ?
-        (isBRANCH(this.cpuInterface.bindings.instruction.value.name)
-        && this.cpuInterface.bindings.cpuState.value == CPU_STATES.DECODE_INSTRUCTION) : 0) {
-        if (result) {
-          this.setVisibility('mux_b_true', true);
-          this.setVisibility('mux_b_false', false);
-        } else {
-          this.setVisibility('mux_b_false', true);
-          this.setVisibility('mux_b_true', false);
-        }
-      }
-    });
-
-    this.cpuInterface.bindings.nextCpuState.subscribe((nextCpuState) => {
+    const checkElementsCandMUX = (element: string) => {
       for (const key of Object.keys(this.idFlat)) {
-        const element = this.idFlat[key];
-        if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
+        if (key.startsWith('mux') && key.includes(element)) {
+          this.setVisibility(key, true);
+        }
+        if (key.startsWith('c') && key.includes(element)) {
+          this.setVisibility(key, true);
+        }
+      }
+    };
+
+    this.cpuInterface.bindings.cycleComplete.subscribe((complete) => {
+      const nextCpuState = this.cpuInterface.bindings.nextCpuState.value;
+      if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
+        for (const key of Object.keys(this.idFlat)) {
+          const element = this.idFlat[key];
           // Hide all elements when the next decoding stage is incoming
-          if (key.includes('mux') || key.includes('s_c')) {
+          if (key.startsWith('mux_') || key.startsWith('c_')) {
             element.meshes.forEach((mesh) => {
               mesh.material.opacity = 0.1;
             });
           }
         }
       }
+      if (nextCpuState === CPU_STATES.EXECUTE) {
+        if (this.cpuInterface.bindings.instruction.value) {
+          const instruction = this.cpuInterface.bindings.instruction.value;
+          if (isJAL(instruction.name)) {
+            for (const key of Object.keys(this.idFlat)) {
+              if (key.startsWith('mux') && key.includes('jal') && (key.indexOf('jal') !== key.indexOf('jalr'))) {
+                this.setVisibility(key, true);
+              }
+              if (key.startsWith('c') && key.includes('jal') && (key.indexOf('jal') !== key.indexOf('jalr'))) {
+                this.setVisibility(key, true);
+              }
+            }
+          } else if (isJALR(instruction.name)) {
+            checkElementsCandMUX('jalr');
+          } else if (isLUI(instruction.name)) {
+            checkElementsCandMUX('lui');
+          } else if (isAUIPC(instruction.name)) {
+            checkElementsCandMUX('auipc');
+          } else if (isIMM(instruction.name)) {
+            checkElementsCandMUX('imm');
+          } else if (isOP(instruction.name)) {
+            checkElementsCandMUX('op');
+          } else if (isLOAD(instruction.name)) {
+            checkElementsCandMUX('load');
+          } else if (isSTORE(instruction.name)) {
+            checkElementsCandMUX('store');
+          } else if (isBRANCH(instruction.name)) {
+            checkElementsCandMUX('branch');
+
+            // Show control paths (c) of branch corresponding to instruction of branch type
+            this.setVisibility('c_beq', this.cpuInterface.bindings.branchRs1Rs2BEQ.value === 1);
+            this.setVisibility('c_blt', (
+              this.cpuInterface.bindings.branchFunc3_12.value === 1 ||
+              this.cpuInterface.bindings.branchFunc3_12.value === 2 ||
+              this.cpuInterface.bindings.branchFunc3_12.value === 3) && this.cpuInterface.bindings.branchRs1Rs2BLT.value === 1);
+            this.setVisibility('c_blt1', this.cpuInterface.bindings.branchFunc3_12.value === 1 && this.cpuInterface.bindings.branchRs1Rs2BLT.value === 1);
+            this.setVisibility('c_blt2', this.cpuInterface.bindings.branchFunc3_12.value === 2 && this.cpuInterface.bindings.branchRs1Rs2BLT.value === 1);
+            this.setVisibility('c_blt3', this.cpuInterface.bindings.branchFunc3_12.value === 3 && this.cpuInterface.bindings.branchRs1Rs2BLT.value === 1);
+            this.setVisibility('c_func3-0', this.cpuInterface.bindings.branchFunc3_0.value);
+            this.setVisibility('c_bmuxresult', this.cpuInterface.bindings.branchMuxResult.value);
+            this.setVisibility('c_branch', this.cpuInterface.bindings.branchResult.value);
+
+            if (this.cpuInterface.bindings.branchResult.value) {
+              this.setVisibility('mux_b_true', true);
+              this.setVisibility('mux_b_false', false);
+            } else {
+              this.setVisibility('mux_b_false', true);
+              this.setVisibility('mux_b_true', false);
+            }
+          }
+        }
+
+      }
     });
 
-    this.cpuInterface.bindings.cpuState.subscribe((nextCpuState) => {
+    this.cpuInterface.bindings.nextCpuState.subscribe((nextCpuState) => {
+      // Show only state borders of active state
       for (const key of Object.keys(this.idFlat)) {
         const element = this.idFlat[key];
 
-        // Show only state borders of active state
+        const showStateMeshes = (name: string): void => {
+          if (key.includes('state') && key.includes(name)) {
+            element.meshes.forEach((mesh) => {
+              mesh.material.opacity = 1;
+            });
+          }
+        };
+
+        // Hide all state meshes
         if (key.includes('state')) {
           element.meshes.forEach((mesh) => {
             mesh.material.opacity = 0.1;
           });
         }
 
-        if (nextCpuState === CPU_STATES.READ_DATA_FROM_MEMORY) {
-          if (key.includes('state') && key.includes('fetch')) {
-            element.meshes.forEach((mesh) => {
-              mesh.material.opacity = 1;
-            });
-          }
-        }
-
-        if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
-          if (key.includes('state') && key.includes('decode')) {
-            element.meshes.forEach((mesh) => {
-              mesh.material.opacity = 1;
-            });
-          }
-        }
-
-        if (nextCpuState === CPU_STATES.EXECUTE) {
-          if (key.includes('state') && key.includes('execute')) {
-            element.meshes.forEach((mesh) => {
-              mesh.material.opacity = 1;
-            });
-          }
-        }
-
-        if (nextCpuState === CPU_STATES.WRITE_BACK) {
-          if (key.includes('state') && key.includes('writeback')) {
-            element.meshes.forEach((mesh) => {
-              mesh.material.opacity = 1;
-            });
-          }
-        }
-
-        if (nextCpuState === CPU_STATES.ADVANCE_PC) {
-          if (key.includes('state') && key.includes('advpc')) {
-            element.meshes.forEach((mesh) => {
-              mesh.material.opacity = 1;
-            });
-          }
+        // Show the meshes
+        switch (nextCpuState) {
+          case CPU_STATES.READ_DATA_FROM_MEMORY:
+            showStateMeshes('fetch');
+            break;
+          case CPU_STATES.DECODE_INSTRUCTION:
+            showStateMeshes('decode');
+            break;
+          case CPU_STATES.EXECUTE:
+            showStateMeshes('execute');
+            break;
+          case  CPU_STATES.WRITE_BACK:
+            showStateMeshes('writeback');
+            break;
+          case CPU_STATES.ADVANCE_PC:
+            showStateMeshes('advpc');
+            break;
         }
       }
 
@@ -430,6 +446,7 @@ export class GraphService {
 
 
   setVisibility(id, on) {
+    console.log('Setting visibility of ', id);
     this.idFlat[id].meshes.forEach((mesh) => {
       mesh.material.opacity = on ? 1 : 0.1;
     });
@@ -442,7 +459,7 @@ export class GraphService {
       const meshes = [];
       if (child.meshes) meshes.push(...child.meshes);
       if (child.children) for (const deeperChild of child.children) meshes.push(...traverseChildren(deeperChild));
-      if (child.id) ids[child.id] = { meshes: meshes };
+      if (child.id) ids[child.id] = { meshes: meshes, group: child.group };
       return meshes;
     };
 

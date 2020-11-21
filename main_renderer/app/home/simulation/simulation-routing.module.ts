@@ -5,6 +5,11 @@ import { SimulationComponent } from './simulation.component';
 const routes: Routes = [
   {
     path: '',
+    redirectTo: 'overview',
+    pathMatch: 'full',
+  },
+  {
+    path: '**',
     component: SimulationComponent,
   },
 ];

@@ -1,4 +1,5 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const ClosureCompilerPlugin = require('webpack-closure-compiler');
 
 const arch = process.env.ARCH || process.arch;
 const platform = process.env.PLATFORM || process.platform;

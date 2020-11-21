@@ -8,6 +8,31 @@ $gridHeight: 5em;
   top: -1px;
 }
 
+.tabs.simulation-tabs {
+  position: absolute;
+  top: 0;
+  left: $gridWidth * 2;
+  right: $gridWidth * 2;
+
+  border-bottom: $border;
+  border-top: $border;
+
+  // Overwrite default tab height to make padding
+  padding-top: 0.4em;
+  height: $sectionsHeight + 0.4em + 0.2em; // More padding because of borders
+
+  // Overwrite default color
+  background-color: $grey3;
+
+  button {
+    background-color: $grey3;
+
+    &[selected=true] {
+      background-color: $grey2;
+    }
+  }
+}
+
 .grid-stack-item {
   pointer-events: all;
 }

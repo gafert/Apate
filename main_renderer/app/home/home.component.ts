@@ -46,7 +46,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       skipTaskbar: true,
       minimizable: false,
       maximizable: false,
-      frame: false,
+      fullscreenable: false,
+      frame: true,
       parent: electron.remote.getCurrentWindow(),
       autoHideMenuBar: true,
       webPreferences: {

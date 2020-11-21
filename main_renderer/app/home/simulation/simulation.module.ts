@@ -13,6 +13,7 @@ import { SharedModule } from '../../components/shared/shared.module';
 import { GraphComponent } from './graph/graph.component';
 import { CpuInterface } from '../../core/services/cpu-interface/cpu-interface.service';
 import { SignalsComponent } from './signals/signals.component';
+import { GraphService } from './graph/graph.service';
 
 @NgModule({
   declarations: [
@@ -27,6 +28,6 @@ import { SignalsComponent } from './signals/signals.component';
     SignalsComponent,
   ],
   imports: [CommonModule, SimulationRoutingModule, SharedModule],
-  providers: [CpuInterface],
+  providers: [CpuInterface, GraphService],
 })
 export class SimulationModule {}

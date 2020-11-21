@@ -4,7 +4,8 @@ import { readFileSync } from 'fs';
 import {
   INSTRUCTIONS,
   isAUIPC,
-  isBRANCH, isBREAK,
+  isBRANCH,
+  isBREAK,
   isIMM,
   isJAL,
   isJALR,
@@ -48,7 +49,7 @@ export class CpuInterface implements OnDestroy {
     switch (this.bindings.nextCpuState.value) {
       case CPU_STATES.BREAK:
         this.bindings.cpuState.next(CPU_STATES.BREAK);
-        console.log("BREAK");
+        console.log('BREAK');
         return;
       case CPU_STATES.READ_DATA_FROM_MEMORY:
         this.bindings.instrMemRead.next(this.fetchDataFromMemory(this.bindings.pc.value));
@@ -60,14 +61,19 @@ export class CpuInterface implements OnDestroy {
 
         this.bindings.rs1addr.next(this.bindings.instruction.value.rs1);
         this.bindings.rs2addr.next(this.bindings.instruction.value.rs2);
-        this.bindings.rs1.next(this.bindings.cpuregs.value[this.bindings.instruction.value.rs1]);
-        this.bindings.rs2.next(this.bindings.cpuregs.value[this.bindings.instruction.value.rs2]);
+        this.bindings.rs1.next(this.bindings.instruction.value.rs1 !== null ? this.bindings.cpuregs.value[this.bindings.instruction.value.rs1] : null);
+        this.bindings.rs2.next(this.bindings.instruction.value.rs2 !== null ? this.bindings.cpuregs.value[this.bindings.instruction.value.rs2] : null);
         this.bindings.rd.next(this.bindings.instruction.value.rd);
         this.bindings.imm.next(this.bindings.instruction.value.imm);
+        this.bindings.func3.next(this.bindings.instruction.value.func3);
+        this.bindings.func7.next(this.bindings.instruction.value.func7);
+
+        this.bindings.branchFunc3_0.next(this.bindings.func3.value !== null ? this.bindings.func3.value & 0b001 : null);
+        this.bindings.branchFunc3_12.next(this.bindings.func3.value !== null ? this.bindings.func3.value & 0b110 : null);
 
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
 
-        if(isBREAK(this.bindings.instruction.value.name)) {
+        if (isBREAK(this.bindings.instruction.value.name)) {
           this.bindings.nextCpuState.next(CPU_STATES.BREAK);
         } else {
           this.bindings.nextCpuState.next(CPU_STATES.EXECUTE);
@@ -79,9 +85,9 @@ export class CpuInterface implements OnDestroy {
         //
 
         if (isLOAD(this.bindings.instruction.value.name)) {
-          this.bindings.memread.next(this.callMEMORYread(this.bindings.instruction.value, this.bindings.rs1_imm.value));
+          this.bindings.memread.next(this.callMEMORYread(this.bindings.instruction.value, this.bindings.rs1Imm.value));
         } else if (isSTORE(this.bindings.instruction.value.name)) {
-          this.callMEMORYwrite(this.bindings.instruction.value, this.bindings.rs1_imm.value, this.bindings.rs2.value);
+          this.callMEMORYwrite(this.bindings.instruction.value, this.bindings.rs1Imm.value, this.bindings.rs2.value);
         }
 
         this.bindings.cpuState.next(CPU_STATES.EXECUTE);
@@ -95,7 +101,7 @@ export class CpuInterface implements OnDestroy {
           isLUI(this.bindings.instruction.value.name) ||
           isAUIPC(this.bindings.instruction.value.name) ||
           isLOAD(this.bindings.instruction.value.name)) {
-          if(this.bindings.rd.value) {
+          if (this.bindings.rd.value) {
             const cpuregs = this.bindings.cpuregs.value;
             cpuregs[this.bindings.rd.value] = this.bindings.regwrite.value;
             this.bindings.cpuregs.next(cpuregs);
@@ -121,13 +127,13 @@ export class CpuInterface implements OnDestroy {
 
     try {
       if (isIMM(this.bindings.instruction.value.name)) {
-        this.bindings.imm_rs2.next(this.bindings.imm.value);
+        this.bindings.immRs2.next(this.bindings.imm.value);
       } else if (isOP(this.bindings.instruction.value.name)) {
-        this.bindings.imm_rs2.next(this.bindings.rs2.value);
+        this.bindings.immRs2.next(this.bindings.rs2.value);
       }
 
       if (isOP(this.bindings.instruction.value.name) || isIMM(this.bindings.instruction.value.name)) {
-        this.bindings.op1.next(this.bindings.imm_rs2.value);
+        this.bindings.op1.next(this.bindings.immRs2.value);
         this.bindings.op2.next(this.bindings.rs1.value);
       } else if (isJALR(this.bindings.instruction.value.name) || isJAL(this.bindings.instruction.value.name)) {
         this.bindings.op1.next(this.bindings.pc.value);
@@ -138,15 +144,15 @@ export class CpuInterface implements OnDestroy {
       }
 
       this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, this.bindings.instruction.value));
-      this.bindings.pc_aluout.next(this.bindings.aluout.value + this.bindings.pc.value);
-      this.bindings.mux_aluout.next(isAUIPC(this.bindings.instruction.value.name) ? this.bindings.pc_aluout.value : this.bindings.aluout.value);
+      this.bindings.pcAluout.next(this.bindings.aluout.value + this.bindings.pc.value);
+      this.bindings.muxAluout.next(isAUIPC(this.bindings.instruction.value.name) ? this.bindings.pcAluout.value : this.bindings.aluout.value);
 
 
       //
       // LOAD STORE
       //
 
-      this.bindings.rs1_imm.next(this.bindings.rs1.value + this.bindings.imm.value);
+      this.bindings.rs1Imm.next(this.bindings.rs1.value + this.bindings.imm.value);
 
       if (isLOAD(this.bindings.instruction.value.name)) {
         this.bindings.regwrite.next(this.bindings.memread.value);
@@ -156,26 +162,29 @@ export class CpuInterface implements OnDestroy {
         isJALR(this.bindings.instruction.value.name) ||
         isLUI(this.bindings.instruction.value.name) ||
         isAUIPC(this.bindings.instruction.value.name)) {
-        this.bindings.regwrite.next(this.bindings.mux_aluout.value);
+        this.bindings.regwrite.next(this.bindings.muxAluout.value);
       }
 
       //
       // BRANCH
       //
 
-      this.bindings.branchResultBEQ.next(this.bindings.rs1.value == this.bindings.rs2.value ? 1 : 0);
-      this.bindings.branchResultBNE.next(this.bindings.rs1.value != this.bindings.rs2.value ? 1 : 0);
-      this.bindings.branchResultBLT.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
-      this.bindings.branchResultBGE.next(this.bindings.rs1.value >= this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchRs1Rs2BEQ.next(this.bindings.rs1.value == this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchRs1Rs2BLT.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
 
-      if (this.bindings.instruction.value.name === INSTRUCTIONS.BEQ) {
-        this.bindings.branchResult.next(this.bindings.branchResultBEQ.value);
-      } else if (this.bindings.instruction.value.name === INSTRUCTIONS.BNE) {
-        this.bindings.branchResult.next(this.bindings.branchResultBNE.value);
-      } else if (this.bindings.instruction.value.name === INSTRUCTIONS.BLT || this.bindings.instruction.value.name === INSTRUCTIONS.BLTU) {
-        this.bindings.branchResult.next(this.bindings.branchResultBLT.value);
-      } else if (this.bindings.instruction.value.name === INSTRUCTIONS.BGE || this.bindings.instruction.value.name === INSTRUCTIONS.BGEU) {
-        this.bindings.branchResult.next(this.bindings.branchResultBGE.value);
+      if (this.bindings.branchFunc3_12.value === 0) {
+        // BEQ, BNE
+        this.bindings.branchMuxResult.next(this.bindings.branchRs1Rs2BEQ.value);
+      } else if (this.bindings.branchFunc3_12.value >= 1) {
+        // BLT, BLTU, BGE, BGEU
+        this.bindings.branchMuxResult.next(this.bindings.branchRs1Rs2BEQ.value);
+      }
+
+      // Invert if 0 bit is 1 -> this bit means its a BGE or BGEU function
+      if (this.bindings.branchFunc3_0.value === 0) {
+        this.bindings.branchResult.next(this.bindings.branchMuxResult.value);
+      } else {
+        this.bindings.branchResult.next(Number(!this.bindings.branchMuxResult.value));
       }
 
       //
@@ -205,8 +214,10 @@ export class CpuInterface implements OnDestroy {
         this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
       }
     } catch (e) {
-      console.log("Some value was not initiated yet", e)
+      console.log('Some value was not initiated yet', e);
     }
+
+    this.bindings.cycleComplete.next(1);
   }
 
   callALU(op1, op2, instruction): number {
@@ -327,9 +338,9 @@ export class CpuInterface implements OnDestroy {
           this.advanceSimulationClock();
           timeout--;
           advance();
-        }, 5);
+        }, 1);
       }
-    }
+    };
 
     advance();
   }

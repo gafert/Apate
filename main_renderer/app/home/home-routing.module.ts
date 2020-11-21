@@ -7,11 +7,11 @@ const routes: Routes = [
     path: '',
     component: HomeComponent,
     children: [
-      {
-        path: 'simulation',
+      { path: 'simulation',
         loadChildren: () => import('./simulation/simulation.module').then((m) => m.SimulationModule),
       },
-      { path: 'compile', loadChildren: () => import('./compile/compile.module').then((m) => m.CompileModule) },
+      { path: 'compile',
+        loadChildren: () => import('./compile/compile.module').then((m) => m.CompileModule) },
       {
         path: '**',
         redirectTo: 'compile',

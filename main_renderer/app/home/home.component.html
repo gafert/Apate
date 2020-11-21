@@ -4,8 +4,8 @@
 </div>
 
 <div class="tabs">
-  <button [routerLink]="'compile'" [attr.selected]="isSelectedButton('compile')" id="button-tab-compile">Compile</button>
-  <button [routerLink]="'simulation'" [attr.selected]="isSelectedButton('simulation')" id="button-tab-simulate">Simulation</button>
+  <button [routerLink]="['./compile']" [attr.selected]="isSelectedButton('compile')" id="button-tab-compile">Compile</button>
+  <button [routerLink]="['./simulation']" [attr.selected]="isSelectedButton('simulation')" id="button-tab-simulate">Simulation</button>
 </div>
 
 <div class="container">

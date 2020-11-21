@@ -11,12 +11,12 @@ import {BehaviorSubject} from "rxjs";
 import { Instruction } from './instructionParser';
 
 export enum CPU_STATES {
-  READ_DATA_FROM_MEMORY = "Read From Memory ✅",
-  DECODE_INSTRUCTION = "Decoded Instruction ✅",
-  EXECUTE = "Executed Instruction ✅",
-  WRITE_BACK = "Wrote Back ✅",
-  ADVANCE_PC = "Advanced PC ✅",
-  BREAK = "Break ✅"
+  READ_DATA_FROM_MEMORY = "Read From Memory",
+  DECODE_INSTRUCTION = "Decode Instruction",
+  EXECUTE = "Execute Instruction",
+  WRITE_BACK = "Write Back",
+  ADVANCE_PC = "Advanced PC",
+  BREAK = "Break"
 }
 
 export class Bindings {
@@ -45,25 +45,29 @@ export class Bindings {
   public rs2addr = new BehaviorSubject<number>(0);
   public rs1 = new BehaviorSubject<number>(0);
   public rs2 = new BehaviorSubject<number>(0);
+  public func3 = new BehaviorSubject<number>(0);
+  public func7 = new BehaviorSubject<number>(0);
 
   // At ALU
-  public imm_rs2 = new BehaviorSubject<number>(0);
+  public immRs2 = new BehaviorSubject<number>(0);
   public op1 = new BehaviorSubject<number>(0);
   public op2 = new BehaviorSubject<number>(0);
   public aluout = new BehaviorSubject<number>(0);
-  public pc_aluout = new BehaviorSubject<number>(0);
-  public mux_aluout = new BehaviorSubject<number>(0);
+  public pcAluout = new BehaviorSubject<number>(0);
+  public muxAluout = new BehaviorSubject<number>(0);
   public regwrite = new BehaviorSubject<number>(0);
 
   // At load store
-  public rs1_imm = new BehaviorSubject<number>(0);
+  public rs1Imm = new BehaviorSubject<number>(0);
   public memread = new BehaviorSubject<number>(0);
 
   // Branch
-  public branchResultBEQ = new BehaviorSubject<number>(0);
-  public branchResultBNE = new BehaviorSubject<number>(0);
-  public branchResultBLT = new BehaviorSubject<number>(0);
-  public branchResultBGE = new BehaviorSubject<number>(0);
+  public branchRs1Rs2BEQ = new BehaviorSubject<number>(0);
+  public branchRs1Rs2BLT = new BehaviorSubject<number>(0);
+  public branchRs2Rs1BGR = new BehaviorSubject<number>(0);
+  public branchFunc3_0 = new BehaviorSubject<number>(0);
+  public branchFunc3_12 = new BehaviorSubject<number>(0);
+  public branchMuxResult = new BehaviorSubject<number>(0);
   public branchResult = new BehaviorSubject<number>(0);
 
   // PC
@@ -81,31 +85,32 @@ export class Bindings {
     'rs2addr': this.rs2addr,
     'rs1': this.rs1,
     'rs2': this.rs2,
-    'imm_rs2': this.imm_rs2,
+    'immrs2': this.immRs2,
     'op1': this.op1,
     'op2': this.op2,
     'aluout': this.aluout,
-    'pc_aluout': this.pc_aluout,
-    'mux_aluout': this.mux_aluout,
+    'pcaluout': this.pcAluout,
+    'muxaluout': this.muxAluout,
     'regwrite': this.regwrite,
-    'rs1_imm': this.rs1_imm,
+    'rs1imm': this.rs1Imm,
     'memread': this.memread,
-    'beq': this.branchResultBEQ,
-    'bne': this.branchResultBNE,
-    'blt': this.branchResultBLT,
-    'bge': this.branchResultBGE,
+    'func3': this.func3,
+    'func7': this.func7,
+    'func3-0': this.branchFunc3_0,
+    'func3-12': this.branchFunc3_12,
     'branch': this.branchResult,
-    'branch_add': this.branchAddResult,
-    'pc_add': this.pcAdd,
-    'pc_adv_other': this.pcAdvOther,
-    'pc_adv_jalr': this.pcAdvJALR,
-    'pc_adv': this.pcAdv,
-    'instr_mem_read': this.instrMemRead
+    'branchadd': this.branchAddResult,
+    'pcadd': this.pcAdd,
+    'pcadvother': this.pcAdvOther,
+    'pcadvjalr': this.pcAdvJALR,
+    'pcadv': this.pcAdv,
+    'instrmemread': this.instrMemRead
   }
 
   // State
   public nextCpuState = new BehaviorSubject<CPU_STATES>(null);
   public cpuState = new BehaviorSubject<CPU_STATES>(CPU_STATES.READ_DATA_FROM_MEMORY);
+  public cycleComplete = new BehaviorSubject<number>(0);
 
   // Decoder
   public instruction = new BehaviorSubject<Instruction>(null);

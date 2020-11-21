@@ -7,6 +7,8 @@ import { InstructionsComponent } from './instructions/instructions.component';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DataService } from '../../core/services/data.service';
+import { Router } from '@angular/router';
+import { GraphService } from './graph/graph.service';
 
 @Component({
   selector: 'app-simulation',
@@ -15,14 +17,10 @@ import { DataService } from '../../core/services/data.service';
 })
 export class SimulationComponent implements OnInit, OnDestroy {
   @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
-  private ngUnsubscribe = new Subject();
-
   public byteToHex = byteToHex;
   public range = range;
-
   /** Is set by loading settings input */
   public simulationElfPath;
-
   public stepOptions = {
     clock: {
       name: 'Clock',
@@ -33,11 +31,13 @@ export class SimulationComponent implements OnInit, OnDestroy {
       selected: true
     }
   };
+  private ngUnsubscribe = new Subject();
+  public selectedTab = 'overview';
 
   constructor(
     public simLibInterfaceService: CpuInterface,
     private dataService: DataService,
-    private ngZone: NgZone
+    private router: Router
   ) {
   }
 
@@ -48,16 +48,17 @@ export class SimulationComponent implements OnInit, OnDestroy {
         fs.readdir(value, (err, files) => {
           for (const file of files) {
             if (file.split('.').pop().includes('elf')) {
-              // Possible fix for elf not beeing loaded
-              this.ngZone.run(() => {
-                this.simulationElfPath = path.join(value, file);
-              });
+              this.simulationElfPath = path.join(value, file);
               break;
             }
           }
         });
       }
     });
+  }
+
+  isSelectedButton(pathName) {
+    return this.router.url.includes(pathName);
   }
 
   initiateSimulation() {
