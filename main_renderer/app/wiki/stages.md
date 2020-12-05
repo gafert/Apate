@@ -117,4 +117,105 @@ The last stage is to advance the program counter. Depending on the instruction t
 The PC is changed when the stage has been executed. Once the PC is changed you will immediately see that the signal of the PC also changed and ready for the next instruction.
 
 
+# Register                                                   
+                                                             
+The RV32I instruction set has 32 registers each containing 32 bits.                 
+                                                             
+| Register   | ABI Name  | Description            |        | 
+|------------|-----------|------------------------|--------| 
+| x0         | zero      | Zero constant          |        | 
+| x1         | ra        | Return address         | Caller | 
+| x2         | sp        | Stack pointer          |        | 
+| x3         | gp        | Global pointer         |        | 
+| x4         | tp        | Thread pointer         | Callee | 
+| x5-x7      | t0-t2     | Temporaries            | Caller | 
+| x8         | s0 / fp   | Saved / frame pointer  | Callee | 
+| x9         | s1        | Saved register         | Callee | 
+| x10-x11    | a0-a1     | Fn args/return values  | Caller | 
+| x12-x17    | a2-a7     | Fn args                | Caller | 
+| x18-x27    | s2-s11    | Saved registers        | Callee | 
+| x28-x31    | t3-t6     | Temporaries            | Caller | 
 
+# Instruction
+
+The raw instruction code is 32 bits long and consists depending on the type of: Opcode, IMM, RD, RS1, RS2, FUNC3, FUNC7.
+
+**Opcode**: Constant bits to get instruction type
+
+**IMM (Immediate value)**: Value saved directly in the instruction. E.g. when using: a = b + 5. The value 5 is saved in the instruction.
+
+**RD (Return register)**: The register index the computed value will be written to in the write back stage.
+
+**RS1 (Register source 1)**: From which register a value should be used. E.g. ADD RS1=15 RS2=16 RD=16. Value in register x15 will be added to value in register x16 and saved in register x16.
+
+**RS2 (Register source 2)**: From which register a value should be used.
+
+**FUNC3 and FUNC7**: Differentiates between instructions. See table beneath.
+
+Depending on the opcode the instruction format can be inferred. The instruction format is used as a map at which locations values such as RD, IMM are stored.
+FUNC3 and FUNC7 are used to differentiate between instructions with the same opcode. FUNC3 and FUNC7 are used by for example the [ALU](alu.md) to distinguish the arithmetical or logical operation. 
+
+To control the MUXs in the CPU signals with the type (OP, IMM, LOAD, STORE, BRANCH, JAL, JALR, LUI, AUIPC, BREAK) are set corresponding to each instruction. The type can also be inferred from the opcode.
+                                                                                                                                                             
+| Type   | Uses ALU  | Inst   |  Name                     | FMT | Opcode     | FUNC3  | FUNC7          | Description                  | Note                                                           
+|--------|-----------|--------|---------------------------|-----|------------|--------|----------------|------------------------------|-----------------                                               
+| OP     | yes       | add    | ADD                       | R   | 0110011    | 0x0    | 0x00           | rd = rs1 + rs2               |                                                                
+| OP     | yes       | sub    | SUB                       | R   | 0110011    | 0x0    | 0x20           | rd = rs1 - rs2               |                                                                
+| OP     | yes       | xor    | XOR                       | R   | 0110011    | 0x4    | 0x00           | rd = rs1 ^ rs2               |                                                                
+| OP     | yes       | or     | OR                        | R   | 0110011    | 0x6    | 0x00           | rd = rs1 &#124; rs2          |                                                                
+| OP     | yes       | and    | AND                       | R   | 0110011    | 0x7    | 0x00           | rd = rs1 & rs2               |                                                                
+| OP     | yes       | sll    | Shift Left Logical        | R   | 0110011    | 0x1    | 0x00           | rd = rs1 << rs2              |                                                                
+| OP     | yes       | srl    | Shift Right Logical       | R   | 0110011    | 0x5    | 0x00           | rd = rs1 >> rs2              |                                                                
+| OP     | yes       | sra    | Shift Right Arith*        | R   | 0110011    | 0x5    | 0x20           | rd = rs1 >> rs2              | msb-extends                                                    
+| OP     | yes       | slt    | Set Less Than             | R   | 0110011    | 0x2    | 0x00           | rd = (rs1 < rs2)?1:0         |                                                                
+| OP     | yes       | sltu   | Set Less Than (U)         | R   | 0110011    | 0x3    | 0x00           | rd = (rs1 < rs2)?1:0         | zero-extends                                                   
+| IMM    | yes       | addi   | ADD Immediate             | I   | 0010011    | 0x0    |                | rd = rs1 + imm               |                                                                
+| IMM    | yes       | xori   | XOR Immediate             | I   | 0010011    | 0x4    |                | rd = rs1 ^ imm               |                                                                
+| IMM    | yes       | ori    | OR Immediate              | I   | 0010011    | 0x6    |                | rd = rs1 &#124; imm          |                                                                
+| IMM    | yes       | andi   | AND Immediate             | I   | 0010011    | 0x7    |                | rd = rs1 & imm               |                                                                
+| IMM    | yes       | slli   | Shift Left Logical Imm    | I   | 0010011    | 0x1    | imm[5:11]=0x00 | rd = rs1 << imm[0:4]         |                                                                
+| IMM    | yes       | srli   | Shift Right Logical Imm   | I   | 0010011    | 0x5    | imm[5:11]=0x00 | rd = rs1 >> imm[0:4]         |                                                                
+| IMM    | yes       | srai   | Shift Right Arith Imm     | I   | 0010011    | 0x5    | imm[5:11]=0x20 | rd = rs1 >> imm[0:4]         | msb-extends                                                    
+| IMM    | yes       | slti   | Set Less Than Imm         | I   | 0010011    | 0x2    |                | rd = (rs1 < imm)?1:0         |                                                                
+| IMM    | yes       | sltiu  | Set Less Than Imm (U)     | I   | 0010011    | 0x3    |                | rd = (rs1 < imm)?1:0         | zero-extends                                                   
+| LOAD   |           | lb     | Load Byte                 | I   | 0000011    | 0x0    |                | rd = M[rs1+imm][0:7]         |                                                                
+| LOAD   |           | lh     | Load Half                 | I   | 0000011    | 0x1    |                | rd = M[rs1+imm][0:15]        |                                                                
+| LOAD   |           | lw     | Load Word                 | I   | 0000011    | 0x2    |                | rd = M[rs1+imm][0:31]        |                                                                
+| LOAD   |           | lbu    | Load Byte (U)             | I   | 0000011    | 0x4    |                | rd = M[rs1+imm][0:7]         | zero-extends                                                   
+| LOAD   |           | lhu    | Load Half (U)             | I   | 0000011    | 0x5    |                | rd = M[rs1+imm][0:15]        | zero-extends                                                   
+| STORE  |           | sb     | Store Byte                | S   | 0100011    | 0x0    |                | M[rs1+imm][0:7]  = rs2[0:7]  |                                                                
+| STORE  |           | sh     | Store Half                | S   | 0100011    | 0x1    |                | M[rs1+imm][0:15] = rs2[0:15] |                                                                
+| STORE  |           | sw     | Store Word                | S   | 0100011    | 0x2    |                | M[rs1+imm][0:31] = rs2[0:31] |                                                                
+| BRANCH |           | beq    | Branch ==                 | B   | 1100011    | 0x0    |                | if(rs1 == rs2) PC += imm     |                                                                
+| BRANCH |           | bne    | Branch !=                 | B   | 1100011    | 0x1    |                | if(rs1 != rs2) PC += imm     |                                                                
+| BRANCH |           | blt    | Branch <                  | B   | 1100011    | 0x4    |                | if(rs1 < rs2) PC += imm      |                                                                
+| BRANCH |           | bge    | Branch $\leq$             | B   | 1100011    | 0x5    |                | if(rs1 >= rs2) PC += imm     |                                                                
+| BRANCH |           | bltu   | Branch < (U)              | B   | 1100011    | 0x6    |                | if(rs1 < rs2) PC += imm      | zero-extends                                                   
+| BRANCH |           | bgeu   | Branch $\geq$ (U)         | B   | 1100011    | 0x7    |                | if(rs1 >= rs2) PC += imm     | zero-extends                                                   
+| JAL    | yes       | jal    | Jump And Link             | J   | 1101111    |        |                | rd = PC+4; PC += imm         |                                                                
+| JALR   | yes       | jalr   | Jump And Link Reg         | I   | 1100111    | 0x0    |                | rd = PC+4; PC = rs1 + imm    |                                                                
+| LUI    | yes       | lui    | Load Upper Imm            | U   | 0110111    |        |                | rd = imm << 12               |                                                                
+| AUIPC  | yes       | auipc  | Add Upper Imm to PC       | U   | 0010111    |        |                | rd = PC + (imm << 12)        |                                                                
+| BREAK  |           | ecall  | Environment Call          | I   | 1110011    | 0x0    | imm=0x0        | Transfer control to OS       |                                                                
+| BREAK  |           | ebreak | Environment Break         | I   | 1110011    | 0x0    | imm=0x1        | Transfer control to debugger |                                                                
+                                                                                                                                                                                           
+# Memory
+
+The internal memory is XX bytes big and contains program memory and ram.
+
+## Special memory locations
+
+Special memory locations enable special functions like printing to a terminal or accessing different interfaces.
+
+### Print
+
+Data written to the memory location _0x2345_ is printed to the terminal and not stored inside the internal memory.
+The value will be printed as an ASCII character.
+
+### Display
+
+Size of memory ...
+
+How to read memory
+
+How to write memory

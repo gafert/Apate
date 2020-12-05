@@ -102,6 +102,12 @@ export const OPCODE_INSTRUCTION_FORMAT = {
 
 export interface Instruction {
   imm: number;
+  immI: number;
+  immS: number;
+  immB: number;
+  immU: number;
+  immJ: number;
+
   rd: number;
   opcode: OPCODES;
   func3: OP_FUNC3 | BRANCH_FUNC | STORE_FUNC | LOAD_FUNC | IMM_FUNC;
@@ -636,33 +642,50 @@ export function parseInstruction(instruction): Instruction {
     rs2 = (instruction >> 20) & 0b11111;
   }
 
-  let imm: number;
+  // All possible immediate values
+  let immI: number = null;
+  immI = (instruction >> 20) & 0b111111111111;
+  immI = convertToSigned(immI, 12);
+
+  let immS: number = null;
+  immS = ((instruction >> 7) & 0b11111) + (((instruction >> 25) & 0b1111111) << 5);
+  immS = convertToSigned(immS, 12);
+
+  let immB: number = null;
+  immB = (((instruction >> 31) & 0b1) << 12)
+    + (((instruction >> 25) & 0b111111) << 5)
+    + (((instruction >> 7) & 0b1) << 11)
+    + (((instruction >> 8) & 0b1111) << 1);
+  immB = convertToSigned(immB, 13);
+
+  let immU: number = null;
+  immU = (instruction >> 12) & 0b11111111111111111111;
+  immU = convertToSigned(immU, 32);
+
+  let immJ: number = null;
+  immJ = (((instruction >> 31) & 0b1) << 20)
+    + (((instruction >> 21) & 0b1111111111) << 1)
+    + (((instruction >> 20) & 0b1) << 11)
+    + (((instruction >> 12) & 0b11111111) << 12);
+  immJ = convertToSigned(immJ, 21);
+
+  // The immediate value selected corresponding to the instruction
+  let imm: number = null;
   switch (type) {
     case INSTRUCTION_FORMATS.I:
-      imm = (instruction >> 20) & 0b111111111111;
-      imm = convertToSigned(imm, 12);
+      imm = immI;
       break;
     case INSTRUCTION_FORMATS.S:
-      imm = ((instruction >> 7) & 0b11111) + (((instruction >> 25) & 0b1111111) << 5);
-      imm = convertToSigned(imm, 12);
+      imm = immS;
       break;
     case INSTRUCTION_FORMATS.B:
-      imm = (((instruction >> 31) & 0b1) << 12)
-        + (((instruction >> 25) & 0b111111) << 5)
-        + (((instruction >> 7) & 0b1) << 11)
-        + (((instruction >> 8) & 0b1111) << 1);
-      imm = convertToSigned(imm, 13);
+      imm = immB;
       break;
     case INSTRUCTION_FORMATS.U:
-      imm = (instruction >> 12) & 0b11111111111111111111;
-      imm = convertToSigned(imm, 32);
+      imm = immU;
       break;
     case INSTRUCTION_FORMATS.J:
-      imm = (((instruction >> 31) & 0b1) << 20)
-        + (((instruction >> 21) & 0b1111111111) << 1)
-        + (((instruction >> 20) & 0b1) << 11)
-        + (((instruction >> 12) & 0b11111111) << 12);
-      imm = convertToSigned(imm, 21);
+      imm = immJ;
       break;
     default:
       imm = null;
@@ -674,6 +697,11 @@ export function parseInstruction(instruction): Instruction {
     func3: func3,
     func7: func7,
     imm: imm,
+    immI: immI,
+    immS: immS,
+    immB: immB,
+    immU: immU,
+    immJ: immJ,
     rd: rd,
     rs1: rs1,
     rs2: rs2,
