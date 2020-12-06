@@ -1,6 +1,3 @@
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ClosureCompilerPlugin = require('webpack-closure-compiler');
-
 const arch = process.env.ARCH || process.arch;
 const platform = process.env.PLATFORM || process.platform;
 
@@ -47,9 +44,7 @@ module.exports = (config, options) => {
     url: 'require(\'url\')',
     util: 'require(\'util\')',
     zlib: 'require(\'zlib\')',
-    'electron-is-dev': 'require(\'electron-is-dev\')',
-    'ffi-napi': 'require(\'ffi-napi\')',
-    'ref-napi': 'require(\'ref-napi\')'
+    'electron-is-dev': 'require(\'electron-is-dev\')'
   };
 
   // yaml unsafe to load js functions from yaml

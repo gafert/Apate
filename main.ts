@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 
@@ -19,6 +19,7 @@ function createWindow(): BrowserWindow {
     minHeight: 600,
     autoHideMenuBar: true,
     webPreferences: {
+      enableRemoteModule: true,
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
       allowRunningInsecureContent: serve ? true : false

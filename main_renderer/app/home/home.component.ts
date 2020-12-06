@@ -51,6 +51,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       parent: electron.remote.getCurrentWindow(),
       autoHideMenuBar: true,
       webPreferences: {
+        enableRemoteModule: true,
         nodeIntegration: true,
         nodeIntegrationInWorker: true,
       },
