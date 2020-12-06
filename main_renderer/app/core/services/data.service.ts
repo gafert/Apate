@@ -4,42 +4,61 @@ import * as fs from 'fs';
 import * as Store from 'electron-store';
 import SparkMD5 from 'spark-md5';
 
+export enum DataKeys {
+  TOOLCHAIN_PREFIX,
+  TOOLCHAIN_PATH,
+  FOLDER_PATH,
+  TOOLCHAIN_DOWNLOADED,
+  ACTIVE_FILE,
+  ACTIVE_FILE_CONTENT ,
+  ACTIVE_FILE_IS_SAVEABLE,
+  GCC_FLAGS ,
+  OBJDUMP_FLAGS,
+  GCC_SOURCES,
+  READ_ELF_FLAGS,
+  ELF_PATH
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
+  public data = {};
+
   // Temporary Variables set by the application
   public instructionsSections: any;
-  toolchainPath: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
-  folderPath: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
-  toolchainDownloaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(undefined);
-  activeFile: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
-  activeFileContent: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
-  activeFileIsSaveable: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(undefined);
-  toolchainPrefix: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
+
   /** Only save to file if the hash of the element which should be saved changed */
-  hashList = [];
+  private hashList = [];
   private store = new Store();
 
   constructor() {
-    this.loadSettings();
-    this.subscribeToSetting(this.toolchainPrefix, 'toolchainPrefix');
-    this.subscribeToSetting(this.toolchainPath, 'toolchainPath');
-    this.subscribeToSetting(this.folderPath, 'folderPath');
-    this.subscribeToSetting(this.toolchainDownloaded, 'toolchainDownloaded');
-    this.subscribeToSetting(this.activeFile, 'activeFile');
-    this.subscribeToSetting(this.activeFileContent, 'activeFileContent');
-    this.subscribeToSetting(this.activeFileIsSaveable, 'activeFileIsSaveable');
+    for (const dataKeysKey in DataKeys) {
+      if (isNaN(Number(dataKeysKey))) {
+        this.data[DataKeys[dataKeysKey]] = new BehaviorSubject<any>(undefined);
+        this.data[DataKeys[dataKeysKey]].next(this.store.get(dataKeysKey));
+        this.subscribeToSetting(this.data[DataKeys[dataKeysKey]], dataKeysKey);
+      }
+    }
+
+    console.log(DataKeys.TOOLCHAIN_DOWNLOADED);
+    console.log(this.data);
   }
 
-  public loadSettings() {
-    this.toolchainPath.next(this.store.get('toolchainPath'));
-    this.folderPath.next(this.store.get('folderPath'));
-    this.toolchainDownloaded.next(this.store.get('toolchainDownloaded'));
-    this.activeFileContent.next(this.store.get('activeFileContent'));
-    this.activeFile.next(this.store.get('activeFile'));
-    this.activeFileIsSaveable.next(this.store.get('activeFileIsSaveable'));
-    this.toolchainPrefix.next(this.store.get('toolchainPrefix'));
+  getSetting(key: DataKeys) {
+    return this.data[key].value;
+  }
+
+  setSetting(key: DataKeys, value) {
+    this.data[key].next(value);
+  }
+
+  public reloadSettings() {
+    for (const dataKeysKey in DataKeys) {
+      if (isNaN(Number(dataKeysKey))) {
+        this.data[DataKeys[dataKeysKey]].next(this.store.get(dataKeysKey));
+      }
+    }
   }
 
   public clearSettingsFile() {

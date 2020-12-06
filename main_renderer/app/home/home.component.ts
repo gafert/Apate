@@ -6,7 +6,7 @@ import * as url from 'url';
 import * as isDev from 'electron-is-dev';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { DataService } from '../core/services/data.service';
+import { DataKeys, DataService } from '../core/services/data.service';
 
 @Component({
   selector: 'app-home',
@@ -20,7 +20,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   private ngUnsubscribe = new Subject();
 
   constructor(private dataService: DataService, private router: Router) {
-    dataService.folderPath.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    dataService.data[DataKeys.FOLDER_PATH].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.folderPath = value;
     });
   }
@@ -36,7 +36,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       })
       .then((result) => {
         if (!result.canceled) {
-          this.dataService.folderPath.next(result.filePaths[0]);
+          this.dataService.data[DataKeys.FOLDER_PATH].next(result.filePaths[0]);
         }
       });
   }
@@ -73,7 +73,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       child.show();
     });
     child.once('close', () => {
-      this.dataService.loadSettings();
+      this.dataService.reloadSettings();
     });
   }
 

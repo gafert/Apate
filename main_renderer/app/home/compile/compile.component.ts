@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  NgZone,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { spawn } from 'child_process';
 import { byteToHex } from '../../globals';
 import { promises as fs } from 'fs';
@@ -15,7 +6,7 @@ import * as path from 'path';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CodemirrorComponent } from '@ctrl/ngx-codemirror';
-import { DataService } from '../../core/services/data.service';
+import { DataKeys, DataService } from '../../core/services/data.service';
 import Timeout = NodeJS.Timeout;
 
 declare let CodeMirror: any;
@@ -30,23 +21,13 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   @ViewChild('terminalOutputElement') terminalOutputElement: ElementRef<HTMLDivElement>;
   @ViewChild('fileAreaContainer') fileAreaContainer: ElementRef<HTMLDivElement>;
   @ViewChild('codemirrorComponent') codemirrorComponent: CodemirrorComponent;
-  /** Set by user to local path or downloaded path */
-  public toolchainPath;
+
+  public DataKeys = DataKeys;
 
   //region Variables
 
   // Compiling
-  /** Set by the user but loads defaults e.g. riscv64-unkown-elf- */
-  public toolchainPrefix;
-  /** Will be set by the UI */
-  public gccSources;
-  /** Will be set by the UI but loaded with defaults */
-  public gccFlags;
-  public gccFlagsDefault = '-O0 -march=rv32e -mabi=ilp32e -Triscv.ld -lgcc -nostdlib -o program.elf';
-  /** Not changed by the user */
-  public objdumpFlags = '--section .text.init --section .text --section .data --full-contents --disassemble --syms --source -z';
-  /** Not changed by the user */
-  public readelfFlags = '-a';
+
   /** True currently compiling */
   public compiling = false;
   /** Text of the terminal */
@@ -98,24 +79,17 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   //endregion
   private timeout: Timeout;
 
-  constructor(private changeDetection: ChangeDetectorRef, private dataService: DataService, private ngZone: NgZone) {
+  constructor(private changeDetection: ChangeDetectorRef, private dataService: DataService) {
 
   }
 
   ngOnInit() {
-    // Get stored settings
-    this.dataService.toolchainPath
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((value) => (this.toolchainPath = value));
-    this.dataService.toolchainPrefix
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((value) => (this.toolchainPrefix = value));
-    this.dataService.activeFile.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => (this.activeFile = value));
-    this.dataService.activeFileIsSaveable.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    this.dataService.data[DataKeys.ACTIVE_FILE].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => (this.activeFile = value));
+    this.dataService.data[DataKeys.ACTIVE_FILE_IS_SAVEABLE].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.fileIsSavable = value;
       this.editorOptions.readOnly = !value;
     });
-    this.dataService.folderPath.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    this.dataService.data[DataKeys.FOLDER_PATH].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.folderPath = value;
       if (this.folderPath) this.reloadFolderContents();
     });
@@ -127,7 +101,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
       }
     });
 
-    this.dataService.activeFileContent.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    this.dataService.data[DataKeys.ACTIVE_FILE_CONTENT].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       if (this.fileContent !== value && value !== null) {
         this.fileContent = value;
         this.fileLoadedIntoEditor = true;
@@ -144,7 +118,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   //region Editor
 
   ngAfterViewInit() {
-    this.dataService.activeFile.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    this.dataService.data[DataKeys.ACTIVE_FILE].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       if (this.activeFile) {
         const modeObj = this.codemirrorComponent.codeMirrorGlobal.findModeByFileName(value);
         const mode = modeObj ? modeObj.mode : null;
@@ -254,19 +228,19 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
         k++;
       }
 
-      this.dataService.activeFileIsSaveable.next(false);
-      this.dataService.activeFile.next(this.selectedFile);
-      this.dataService.activeFileContent.next(tempContent);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, false);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE, this.selectedFile);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, tempContent);
       this.changeDetection.detectChanges();
     });
   }
 
   openFileAsObjectDump() {
-    this.dataService.activeFile.next(this.selectedFile);
+    this.dataService.data[DataKeys.ACTIVE_FILE].next(this.selectedFile);
     let tempContent = '';
     const dump = spawn(
-      path.join(this.toolchainPath, this.toolchainPrefix + 'objdump'),
-      [...`${this.objdumpFlags} ${this.selectedFile}`.split(' ')],
+      path.join(this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH), this.dataService.getSetting(DataKeys.TOOLCHAIN_PREFIX) + 'objdump'),
+      [...`${this.dataService.getSetting(DataKeys.OBJDUMP_FLAGS)} ${this.selectedFile}`.split(' ')],
       { cwd: this.folderPath }
     );
     dump.stdout.on('data', (data) => (tempContent += data));
@@ -274,8 +248,8 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
     dump.on('error', (err) => console.error('Failed to start objdump', err));
     dump.on('close', (code) => {
       this.terminalOutput += 'objdump exited with code: ' + code + '\n';
-      this.dataService.activeFileContent.next(tempContent);
-      this.dataService.activeFileIsSaveable.next(false);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, tempContent);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, false);
       this.changeDetection.detectChanges();
       this.reloadFolderContents();
       this.scrollTerminaltoBottom();
@@ -283,12 +257,12 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   }
 
   openFileAsReadElf() {
-    this.dataService.activeFile.next(this.selectedFile);
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE, this.selectedFile);
 
     let tempContent = '';
     const readelf = spawn(
-      path.join(this.toolchainPath, this.toolchainPrefix + 'readelf'),
-      [...`${this.readelfFlags} ${this.selectedFile}`.split(' ')],
+      path.join(this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH), this.dataService.getSetting(DataKeys.TOOLCHAIN_PREFIX) + 'readelf'),
+      [...`${this.dataService.getSetting(DataKeys.READ_ELF_FLAGS)} ${this.selectedFile}`.split(' ')],
       { cwd: this.folderPath }
     );
     readelf.stdout.on('data', (data) => (tempContent += data));
@@ -296,8 +270,8 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
     readelf.on('error', (err) => console.error('Failed to start readelf', err));
     readelf.on('close', (code) => {
       this.terminalOutput += 'readelf exited with code: ' + code + '\n';
-      this.dataService.activeFileContent.next(tempContent);
-      this.dataService.activeFileIsSaveable.next(false);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, tempContent);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, false);
       this.changeDetection.detectChanges();
       this.reloadFolderContents();
       this.scrollTerminaltoBottom();
@@ -306,16 +280,16 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
 
   openFileAsText() {
     fs.readFile(path.join(this.folderPath, this.selectedFile), { encoding: 'utf-8' }).then((data: string) => {
-      this.dataService.activeFile.next(this.selectedFile);
-      this.dataService.activeFileIsSaveable.next(true);
-      this.dataService.activeFileContent.next(data);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE, this.selectedFile);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, true);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, data);
     });
   }
 
   fileContentEdited(code) {
     if (this.fileIsSavable && this.activeFile && this.folderPath) {
       fs.writeFile(path.join(this.folderPath, this.activeFile), code);
-      this.dataService.activeFileContent.next(code);
+      this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, code);
     }
   }
 
@@ -339,15 +313,15 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   //region Compile
 
   compile() {
-    if (!this.toolchainPath) {
+    if (!this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH)) {
       this.terminalOutput += 'Toolchain folder not specified!';
       this.scrollTerminaltoBottom();
       return;
     }
     this.compiling = true;
     const gcc = spawn(
-      path.join(this.toolchainPath, this.toolchainPrefix + 'gcc'),
-      [...`${this.gccSources} ${this.gccFlags}`.split(' ')],
+      path.join(this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH), this.dataService.getSetting(DataKeys.TOOLCHAIN_PREFIX) + 'gcc'),
+      [...`${this.dataService.getSetting(DataKeys.GCC_SOURCES)} ${this.dataService.getSetting(DataKeys.GCC_FLAGS)}`.split(' ')],
       { cwd: this.folderPath }
     );
     gcc.stdout.on('data', (data) => (this.terminalOutput += data));

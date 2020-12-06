@@ -1,9 +1,4 @@
 <div class="main-tab-header">
-  <div style="display: flex; align-items: center">
-    <div style="margin-left: 1em; margin-right: 1em">Elf Path</div>
-    <app-setting [settingDefault]="'Enter Manually'" settingKey="elfPath" [(setting)]="simulationElfPath"></app-setting>
-  </div>
-
   <app-action-button style="margin-left: 1em" (activate)="initiateSimulation()" text="Initiate"></app-action-button>
 
   <app-action-button style="margin-left: 1em" (activate)="runSimulation()"

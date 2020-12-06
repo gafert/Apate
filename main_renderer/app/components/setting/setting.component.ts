@@ -1,38 +1,38 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import * as Store from 'electron-store';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { DataKeys, DataService } from '../../core/services/data.service';
 
 @Component({
   selector: 'app-setting',
   templateUrl: './setting.component.html',
-  styleUrls: ['./setting.component.scss'],
+  styleUrls: ['./setting.component.scss']
 })
-export class SettingComponent implements OnInit, AfterViewInit, OnChanges {
-  @Input() setting: string;
-  @Output() settingChange = new EventEmitter<string>();
-  @Input() settingKey: string;
+export class SettingComponent implements OnInit {
+  public setting: string;
+  @Input() settingKey: DataKeys;
   @Input() settingDefault: string;
 
-  private store = new Store();
+  constructor(private dataService: DataService) {
+
+  }
 
   ngOnInit(): void {
-    if (!this.setting) {
-      this.setting = this.store.get(this.settingKey, this.settingDefault);
-    } else if (this.settingDefault) {
-      // If the setting is not set set the default setting to
-      this.settingChanged(this.settingDefault);
+    try {
+      if (!this.dataService.data[this.settingKey].value) {
+        this.setting = this.settingDefault;
+      } else {
+        this.setting = this.dataService.data[this.settingKey].value;
+      }
+
+    } catch (e) {
+      console.error("Could not load setting " + this.settingKey);
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.setting.currentValue) this.settingChanged(changes.setting.currentValue);
+  public save() {
+    this.dataService.setSetting(this.settingKey, this.setting);
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => this.settingChange.emit(this.setting), 100);
-  }
-
-  settingChanged(event) {
-    this.store.set(this.settingKey, event);
-    this.settingChange.emit(event);
+  public refresh() {
+    this.setting = this.dataService.data[this.settingKey].value;
   }
 }

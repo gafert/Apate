@@ -1,7 +1,8 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ToolchainDownEnum, ToolchainDownloaderService } from '../core/services/toolchain-downloader.service';
-import { DataService } from '../core/services/data.service';
+import { DataKeys, DataService } from '../core/services/data.service';
 import * as electron from 'electron';
+import { SettingComponent } from '../components/setting/setting.component';
 
 @Component({
   selector: 'app-settings',
@@ -10,12 +11,16 @@ import * as electron from 'electron';
 })
 export class SettingsComponent implements OnInit, AfterViewInit {
   @ViewChild('toolchainPathOptions') toolchainPathOptions: ElementRef<HTMLDivElement>;
+  @ViewChild('toolchain') toolchain: SettingComponent;
 
-  /** Set by user to local path or downloaded path */
+  public DataKeys = DataKeys;
+
   public toolchainPath;
-  /** Set by the user but loads defaults e.g. riscv64-unknown-elf- */
-  public toolchainPrefix;
+
   public toolchainPrefixDefault = 'riscv64-unknown-elf-';
+  public gccFlagsDefault = '-O0 -march=rv32e -mabi=ilp32e -Triscv.ld -lgcc -nostdlib -o program.elf';
+  public readElfDefault = '-a';
+  public objdumpFlagsDefault = '--section .text.init --section .text --section .data --full-contents --disassemble --syms --source -z';
 
   public toolchainPercentDownloaded;
   public toolchainDownloaderState;
@@ -33,25 +38,24 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     this.toolchainDownloaderService.state.subscribe((state) => {
       switch (state.state) {
         case ToolchainDownEnum.DOWNLOADING:
-          // TODO: State is not updated in layout in first call
           this.toolchainPercentDownloaded = state.reason as number;
           this.toolchainDownloaderState = state.state;
           break;
         case ToolchainDownEnum.DOWNLOADED:
           // Save toolchain path and set it in the vis
           // Only set the path if the path was empty
-          this.dataService.toolchainPath.next(state.reason as string);
-          this.toolchainPath = state.reason as string;
+          this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, state.reason as string);
           this.toolchainDownloaderState = state.state;
+          this.toolchain.refresh();
           break;
         default:
           this.toolchainDownloaderState = state.state;
       }
     });
 
-    this.dataService.toolchainPath.subscribe((value) => {
-      this.toolchainPath = value;
-    });
+    this.dataService.data[DataKeys.TOOLCHAIN_PATH].subscribe((d) => {
+      this.toolchainPath = d;
+    })
   }
 
   ngAfterViewInit() {}
@@ -73,26 +77,26 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       })
       .then((result) => {
         if (!result.canceled) {
-          this.toolchainPath = result.filePaths[0];
-          this.dataService.toolchainPath.next(this.toolchainPath);
+          this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, result.filePaths[0]);
+          this.toolchain.refresh();
         }
       });
   }
 
   downloadToolchain() {
-    this.toolchainPath = '';
+    this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, '');
     this.toolchainDownloaderService.downloadToolchain();
   }
 
   useDownloadedToolchain() {
-    this.toolchainPath = this.toolchainDownloaderService.toolchainDownloadPath;
-    this.dataService.toolchainPath.next(this.toolchainPath);
+    this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, this.toolchainDownloaderService.toolchainDownloadPath);
+    this.toolchain.refresh();
   }
 
   removeToolchain() {
     this.toolchainDownloaderService.removeToolchain();
-    this.toolchainPath = '';
-    this.dataService.toolchainPath.next(this.toolchainPath);
+    this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, '');
+    this.toolchain.refresh();
   }
 
   closeWindow() {
@@ -103,5 +107,9 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     this.dataService.clearSettingsFile();
     electron.remote.app.relaunch();
     electron.remote.app.exit(0);
+  }
+
+  saveSettings(settingToSave: SettingComponent[]) {
+    settingToSave.forEach((s) => s.save());
   }
 }

@@ -9,6 +9,17 @@
   </div>
 
   <div class="setting-box">
+    <div class="title">Source files</div>
+    <app-setting [settingKey]="DataKeys.GCC_SOURCES" #sources></app-setting>
+  </div>
+
+  <div class="setting-box">
+    <div class="title">ELF to simulate (will be set to elf in folder)</div>
+    <app-setting [settingDefault]="'Enter Manually when no ELF was detected'"
+                 [settingKey]="DataKeys.ELF_PATH" #elf></app-setting>
+  </div>
+
+  <div class="setting-box">
     <div class="title">RISC-V Toolchain</div>
     <div
       *ngIf="!toolchainPath || toolchainDownloaderState === ToolchainDownEnum.UNZIPPING || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING; else toolchainPathSetting"
@@ -28,19 +39,38 @@
       </div>
     </div>
     <ng-template #toolchainPathSetting>
-      <app-setting
-        [(setting)]="toolchainPath" settingKey="toolchainPath"></app-setting>
+      <app-setting [settingKey]="DataKeys.TOOLCHAIN_PATH" #toolchain></app-setting>
     </ng-template>
     <i (click)="clickToolchainPath($event)" class="fas fa-chevron-down" style="top: 2em;"></i>
   </div>
   <div class="setting-box">
     <div class="title">Prefix</div>
-    <app-setting [(setting)]="toolchainPrefix" [settingDefault]="toolchainPrefixDefault"
-                 settingKey="toolchainPrefix"></app-setting>
+    <app-setting [settingDefault]="toolchainPrefixDefault"
+                 [settingKey]="DataKeys.TOOLCHAIN_PREFIX" #prefix></app-setting>
   </div>
 
   <div class="setting-box">
-    <app-action-button text="Clear settings and restart" (activate)="clearSettingsAndRestart()"></app-action-button>
+    <div class="title">GCC flags</div>
+    <app-setting [settingDefault]="gccFlagsDefault"
+                 [settingKey]="DataKeys.GCC_FLAGS" #gccflags></app-setting>
+  </div>
+
+  <div class="setting-box">
+    <div class="title">Objdump flags</div>
+    <app-setting [settingDefault]="objdumpFlagsDefault"
+                 [settingKey]="DataKeys.OBJDUMP_FLAGS" #objdumpflags></app-setting>
+  </div>
+
+  <div class="setting-box">
+    <div class="title">Readelf flags</div>
+    <app-setting [settingDefault]="readElfDefault"
+                 [settingKey]="DataKeys.READ_ELF_FLAGS" #reafelfflags></app-setting>
+  </div>
+
+  <div class="setting-box">
+    <app-action-button text="Reset" (activate)="clearSettingsAndRestart()"></app-action-button>
+    <app-action-button text="Save"
+                       (activate)="saveSettings([reafelfflags, objdumpflags, gccflags, sources, prefix, elf, toolchain])"></app-action-button>
   </div>
 
 </div>

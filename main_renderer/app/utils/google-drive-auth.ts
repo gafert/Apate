@@ -10,7 +10,7 @@ export function authorize() {
   return new Promise<any>((resolve) => {
     let appPath = path.join(app.getAppPath(), 'dist', 'static');
     if (isDev) {
-      appPath = path.join(app.getAppPath(), 'src', 'static');
+      appPath = path.join(app.getAppPath(), 'main_renderer', 'static');
     }
     console.log('Reading secret from', appPath);
 

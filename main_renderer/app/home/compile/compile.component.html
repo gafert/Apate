@@ -1,10 +1,4 @@
 <div class="main-tab-header">
-  <div style="margin-left: 1em">Source Files</div>
-  <app-setting [(setting)]="gccSources" [settingDefault]="" settingKey="gccSources"
-               style="margin-left: 1em"></app-setting>
-  <div style="margin-left: 1em">GCC FLAGS</div>
-  <app-setting [(setting)]="gccFlags" [settingDefault]="gccFlagsDefault" settingKey="gccFlags"
-               style="margin-left: 1em"></app-setting>
   <app-action-button style="margin-left: 1em" (activate)="compile()" [disabled]="compiling" iconClass="fas fa-play"
                      text="Compile"></app-action-button>
 </div>

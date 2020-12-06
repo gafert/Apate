@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import * as https from 'https';
-import { DataService } from './data.service';
+import { DataKeys, DataService } from './data.service';
 import { authorize } from '../../utils/google-drive-auth';
 import * as fs from 'fs';
 import * as zlib from 'zlib';
@@ -56,7 +56,7 @@ export class ToolchainDownloaderService {
     this.toolchainDownloadZipFile = path.join(this.downloadPath, 'riscv.tar.gz');
     this.toolchainDownloadPath = path.join(this.downloadPath, this.toolchainFolder, 'bin');
 
-    dataService.toolchainDownloaded.subscribe((value) => {
+    dataService.data[DataKeys.TOOLCHAIN_DOWNLOADED].subscribe((value) => {
       if (value === true) {
         this.state.next(new ToolchainDownState(ToolchainDownEnum.WAS_DOWNLOADED, this.toolchainDownloadPath));
       }
@@ -133,7 +133,7 @@ export class ToolchainDownloaderService {
                 // Delete downloaded zip after it was unpacked
                 fs.unlink(this.toolchainDownloadZipFile, () => null);
 
-                this.dataService.toolchainDownloaded.next(true);
+                this.dataService.data[DataKeys.TOOLCHAIN_DOWNLOADED].next(true);
                 this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADED, this.toolchainDownloadPath));
               });
             });
@@ -152,7 +152,7 @@ export class ToolchainDownloaderService {
       this.ngZone.run(() => {
         console.log('Removed toolchain ' + this.downloadPath + '/' + this.toolchainFolder);
         this.state.next(new ToolchainDownState(ToolchainDownEnum.NOT_DOWNLOADED, 'Removed Toolchain from ' + this.downloadPath + '/' + this.toolchainFolder));
-        this.dataService.toolchainDownloaded.next(false);
+        this.dataService.data[DataKeys.TOOLCHAIN_DOWNLOADED].next(false);
       });
     });
   }
