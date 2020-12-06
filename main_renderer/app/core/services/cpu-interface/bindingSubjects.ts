@@ -37,45 +37,45 @@ export class Bindings {
   public cpuregs = new BehaviorSubject<number[]>(new Array(32).fill(0));
 
   // Data path
-  public instrMemRead = new BehaviorSubject<number>(0);
+  public instrMemRead = new BehaviorSubject<number>(null);
   public pc = new BehaviorSubject<number>(0);
-  public rd = new BehaviorSubject<number>(0);
-  public imm = new BehaviorSubject<number>(0);
-  public rs1addr = new BehaviorSubject<number>(0);
-  public rs2addr = new BehaviorSubject<number>(0);
-  public rs1 = new BehaviorSubject<number>(0);
-  public rs2 = new BehaviorSubject<number>(0);
-  public func3 = new BehaviorSubject<number>(0);
-  public func7 = new BehaviorSubject<number>(0);
+  public rd = new BehaviorSubject<number>(null);
+  public imm = new BehaviorSubject<number>(null);
+  public rs1addr = new BehaviorSubject<number>(null);
+  public rs2addr = new BehaviorSubject<number>(null);
+  public rs1 = new BehaviorSubject<number>(null);
+  public rs2 = new BehaviorSubject<number>(null);
+  public func3 = new BehaviorSubject<number>(null);
+  public func7 = new BehaviorSubject<number>(null);
 
   // At ALU
-  public immRs2 = new BehaviorSubject<number>(0);
-  public op1 = new BehaviorSubject<number>(0);
-  public op2 = new BehaviorSubject<number>(0);
-  public aluout = new BehaviorSubject<number>(0);
-  public pcAluout = new BehaviorSubject<number>(0);
-  public muxAluout = new BehaviorSubject<number>(0);
-  public regwrite = new BehaviorSubject<number>(0);
+  public immRs2 = new BehaviorSubject<number>(null);
+  public op1 = new BehaviorSubject<number>(null);
+  public op2 = new BehaviorSubject<number>(null);
+  public aluout = new BehaviorSubject<number>(null);
+  public pcAluout = new BehaviorSubject<number>(null);
+  public muxAluout = new BehaviorSubject<number>(null);
+  public regwrite = new BehaviorSubject<number>(null);
 
   // At load store
-  public rs1Imm = new BehaviorSubject<number>(0);
-  public memread = new BehaviorSubject<number>(0);
+  public rs1Imm = new BehaviorSubject<number>(null);
+  public memread = new BehaviorSubject<number>(null);
 
   // Branch
-  public branchRs1Rs2BEQ = new BehaviorSubject<number>(0);
-  public branchRs1Rs2BLT = new BehaviorSubject<number>(0);
-  public branchRs2Rs1BGR = new BehaviorSubject<number>(0);
-  public branchFunc3_0 = new BehaviorSubject<number>(0);
-  public branchFunc3_12 = new BehaviorSubject<number>(0);
-  public branchMuxResult = new BehaviorSubject<number>(0);
-  public branchResult = new BehaviorSubject<number>(0);
+  public branchRs1Rs2BEQ = new BehaviorSubject<number>(null);
+  public branchRs1Rs2BLT = new BehaviorSubject<number>(null);
+  public branchRs2Rs1BGR = new BehaviorSubject<number>(null);
+  public branchFunc3_0 = new BehaviorSubject<number>(null);
+  public branchFunc3_12 = new BehaviorSubject<number>(null);
+  public branchMuxResult = new BehaviorSubject<number>(null);
+  public branchResult = new BehaviorSubject<number>(null);
 
   // PC
-  public branchAddResult = new BehaviorSubject<number>(0);
-  public pcAdd = new BehaviorSubject<number>(0);
-  public pcAdvOther = new BehaviorSubject<number>(0);
-  public pcAdvJALR = new BehaviorSubject<number>(0);
-  public pcAdv = new BehaviorSubject<number>(0);
+  public branchAddResult = new BehaviorSubject<number>(null);
+  public pcAdd = new BehaviorSubject<number>(null);
+  public pcAdvOther = new BehaviorSubject<number>(null);
+  public pcAdvJALR = new BehaviorSubject<number>(null);
+  public pcAdv = new BehaviorSubject<number>(null);
 
   public values = {
     'pc': this.pc,

@@ -1,6 +1,6 @@
 @import "../../../import";
 
-$gridWidth: 10em;
+$gridWidth: 11em;
 $gridHeight: 5em;
 
 #simulation-container {
@@ -64,7 +64,7 @@ $gridHeight: 5em;
 
 .app-registers {
   width: $gridWidth * 2;
-  height: calc(100% - (#{$gridHeight} * 4));
+  height: calc(100% - (#{$gridHeight} * 0));
   right: 0;
   bottom: 0;
 }

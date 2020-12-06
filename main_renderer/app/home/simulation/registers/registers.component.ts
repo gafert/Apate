@@ -1,14 +1,14 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { easing, styler, tween } from 'popmotion';
 import { byteToHex } from '../../../globals';
+import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
 
 @Component({
   selector: 'app-registers',
   templateUrl: './registers.component.html',
-  styleUrls: ['./registers.component.css'],
+  styleUrls: ['./registers.component.scss']
 })
 export class RegistersComponent implements OnInit {
-  @Input('registers') cpuRegisters;
   public byteToHex = byteToHex;
   public fromCharCode = String.fromCharCode;
   public cpuRegDefinitions = [
@@ -43,11 +43,12 @@ export class RegistersComponent implements OnInit {
     ['t3', 'Temporary'],
     ['t4', 'Temporary'],
     ['t5', 'Temporary'],
-    ['t6', 'Temporary'],
+    ['t6', 'Temporary']
   ];
   private hoverTooltipId = 'register-hover-id';
 
-  constructor() {}
+  constructor(public cpuInterface: CpuInterface) {
+  }
 
   ngOnInit(): void {
     // Generate a hover element if there is none in the dom tree
@@ -76,11 +77,11 @@ export class RegistersComponent implements OnInit {
     tween({
       from: {
         top: hoverElement.style.top,
-        left: hoverElement.style.left,
+        left: hoverElement.style.left
       },
       to: { top: top, left: left },
       ease: easing.easeOut,
-      duration: 100,
+      duration: 100
     }).start((v) => styler(hoverElement).set(v));
 
     hoverElement.style.display = 'block';

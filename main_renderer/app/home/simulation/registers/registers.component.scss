@@ -1,0 +1,74 @@
+@import "../../../../import";
+
+.active-reg-rs2 {
+  @extend .active-reg;
+  background: #1a0077;
+}
+
+.active-reg-rs1 {
+  @extend .active-reg;
+  background: #00776d;
+}
+
+.active-reg-rd {
+  @extend .active-reg;
+  background: #167700;
+}
+
+.active-reg {
+  @extend .active-reg;
+  height: 1.5em;
+
+  td:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+  }
+
+  td:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+}
+
+.reg-table {
+  font-size: 1em;
+  width: calc(100% - (1em));
+  line-height: 1em;
+  table-layout: fixed;
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+
+  td {
+    overflow-y: scroll;
+  }
+
+  td:first-child {
+    padding-left: 0.5em;
+  }
+
+  td:nth-child(2) {
+    border-right: $border;
+  }
+
+  td:nth-child(3) {
+    border-right: $border;
+    padding-right: 0.5em;
+  }
+
+  td:nth-child(4) {
+    border-right: $border;
+    padding-right: 0.5em;
+  }
+
+  td:last-child {
+    padding-right: 0.5em;
+    border-left: $border;
+  }
+
+  th {
+    border-bottom: $border;
+    line-height: 1.5em;
+  }
+}

@@ -5,25 +5,17 @@
   </div>
 
   <app-action-button style="margin-left: 1em" (activate)="initiateSimulation()" text="Initiate"></app-action-button>
+
+  <app-action-button style="margin-left: 1em" (activate)="runSimulation()"
+                     [disabled]="!simLibInterfaceService.elfIsLoaded"
+                     text="Run to end"></app-action-button>
+
   <app-action-button style="margin-left: 1em" (activate)="stepSimulation()"
                      [disabled]="!simLibInterfaceService.elfIsLoaded"
                      text="Step"></app-action-button>
 
-  <app-action-button style="margin-left: 1em" (activate)="runSimulation()"
-                     [disabled]="!simLibInterfaceService.elfIsLoaded"
-                     text="Run"></app-action-button>
-
   <app-selecto-option [(options)]="stepOptions"></app-selecto-option>
 
-  <div style="display: flex; align-items: center">
-    <div style="margin-left: 1em; margin-right: 1em">Program Counter</div>
-    <div>{{simLibInterfaceService.bindings.pc  | async}}</div>
-  </div>
-
-  <div style="display: flex; align-items: center">
-    <div style="margin-left: 1em; margin-right: 1em">CPU State</div>
-    <div>{{cpuStateToString(simLibInterfaceService.bindings.nextCpuState  | async)}}</div>
-  </div>
 </div>
 
 <div class="main-tab-container" id="simulation-container">
@@ -43,11 +35,6 @@
                     [programCounter]="simLibInterfaceService.bindings.pc | async"
                     [parsedElf]="simLibInterfaceService.parsedElf"
                     class="simulation-item-content app-instruction"></app-instructions>
-  <app-registers
-    class="simulation-item-content app-registers"
-    [registers]="simLibInterfaceService.bindings.cpuregs | async"></app-registers>
 
-  <app-terminal class="simulation-item-content app-terminal"></app-terminal>
-  <app-memory class="simulation-item-content app-memory"></app-memory>
-  <app-signals class="simulation-item-content app-signals"></app-signals>
+  <app-registers class="simulation-item-content app-registers"></app-registers>
 </div>

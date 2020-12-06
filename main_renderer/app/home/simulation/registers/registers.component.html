@@ -1,8 +1,11 @@
 <div class="grid-container">
   <div class="grid-container--header">Registers</div>
   <div class="grid-container--content">
-    <table style="font-size: 1em; width: 100%; line-height: 1em; table-layout: fixed">
+    <table class="reg-table">
       <tr>
+        <th style="width: 20%">
+          Signal
+        </th>
         <th style="width: 22%">
           Reg
         </th>
@@ -12,25 +15,52 @@
         <th style="width: 25%">
           Dec
         </th>
-        <th style="width: 13%">
+        <th style="width: 10%">
           Char
         </th>
       </tr>
-      <tr *ngFor="let item of [].constructor(32); let i = index">
-        <td (mouseenter)="hoverEnterRegister($event, i)"
-            (mouseout)="mouseOutRegister($event)">
-          <div class="text-rounded-container grey1">{{i}} </div>
-          {{cpuRegDefinitions[i][0]}} </td>
-        <td>
-          <app-changing-value [cellValue]="byteToHex(cpuRegisters[i], 2)"></app-changing-value>
-        </td>
-        <td>
-          <app-changing-value [cellValue]="cpuRegisters[i]"></app-changing-value>
-        </td>
-        <td>
-          <app-changing-value [cellValue]="fromCharCode(cpuRegisters[i])"></app-changing-value>
-        </td>
-      </tr>
+      <ng-container *ngFor="let item of [].constructor(32); let i = index">
+        <ng-container *ngTemplateOutlet="(cpuInterface.bindings.rd.value == i ||
+                      cpuInterface.bindings.rs1addr.value == i ||
+                      cpuInterface.bindings.rs2addr.value == i) ? hasActiveRegister : hasNoActiveRegister; context: { i: i, rd: cpuInterface.bindings.rd.value == i, rs1: cpuInterface.bindings.rs1addr.value == i , rs2: cpuInterface.bindings.rs2addr.value == i  }">
+        </ng-container>
+      </ng-container>
     </table>
   </div>
 </div>
+
+<ng-template #hasActiveRegister let-i="i" let-rd="rd" let-rs1="rs1" let-rs2="rs2">
+  <tr [class.active-reg-rs1]="rs1" [class.active-reg-rs2]="rs2" [class.active-reg-rd]="rd" >
+    <td>
+      <span *ngIf="rd">RD</span>
+      <span *ngIf="rd && rs1">/</span>
+      <span *ngIf="rs1">RS1</span>
+      <span *ngIf="rs1 && rs2">/</span>
+      <span *ngIf="rs2">RS2</span>
+    </td>
+    <ng-container *ngTemplateOutlet="line; context: { i: i }"></ng-container>
+  </tr>
+</ng-template>
+
+<ng-template #hasNoActiveRegister let-i="i">
+  <tr>
+    <td></td>
+    <ng-container *ngTemplateOutlet="line; context: { i: i }"></ng-container>
+  </tr>
+</ng-template>
+
+<ng-template #line let-i="i">
+  <td (mouseenter)="hoverEnterRegister($event, i)"
+      (mouseout)="mouseOutRegister($event)">
+    <div class="text-rounded-container grey1">{{i}} </div>
+    {{cpuRegDefinitions[i][0]}} </td>
+  <td>
+    <app-changing-value [cellValue]="byteToHex(cpuInterface.bindings.cpuregs.value[i], 2)"></app-changing-value>
+  </td>
+  <td>
+    <app-changing-value [cellValue]="cpuInterface.bindings.cpuregs.value[i]"></app-changing-value>
+  </td>
+  <td>
+    <app-changing-value [cellValue]="fromCharCode(cpuInterface.bindings.cpuregs.value[i])"></app-changing-value>
+  </td>
+</ng-template>
