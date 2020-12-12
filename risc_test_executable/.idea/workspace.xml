@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated>
+      <config projectName="riscv-exe" targetName="program" />
+    </generated>
+  </component>
+  <component name="CMakeSettings" AUTO_RELOAD="true">
+    <configurations>
+      <configuration PROFILE_NAME="Default" GENERATION_DIR="." />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="fd82cd40-02ed-4652-bfc1-c66df33919c7" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../main_renderer/app/components/ngVar.directive.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../main_renderer/app/app.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../main_renderer/app/app.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../main_renderer/app/components/shared/shared.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../main_renderer/app/components/shared/shared.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../main_renderer/app/home/simulation/memory/memory.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/../main_renderer/app/home/simulation/memory/memory.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../main_renderer/app/home/simulation/memory/memory.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../main_renderer/app/home/simulation/memory/memory.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/program.c" beforeDir="false" afterPath="$PROJECT_DIR$/program.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/riscv_stdlib.ld" beforeDir="false" afterPath="$PROJECT_DIR$/riscv_stdlib.ld" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/start.s" beforeDir="false" afterPath="$PROJECT_DIR$/start.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/start_stdlib.s" beforeDir="false" afterPath="$PROJECT_DIR$/start_stdlib.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/syscalls.c" beforeDir="false" afterPath="$PROJECT_DIR$/syscalls.c" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Default" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1iS3qXgYxKYnM2g8dKGnj4IJYNY" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.appearance" />
+  </component>
+  <component name="RunManager">
+    <configuration name="program" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="riscv-exe" TARGET_NAME="program" CONFIG_NAME="Default" RUN_TARGET_PROJECT_NAME="riscv-exe" RUN_TARGET_NAME="program">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fd82cd40-02ed-4652-bfc1-c66df33919c7" name="Default Changelist" comment="" />
+      <created>1601887356485</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1601887356485</updated>
+      <workItem from="1601887358024" duration="4196000" />
+      <workItem from="1601913624045" duration="49000" />
+      <workItem from="1602169510246" duration="156000" />
+      <workItem from="1603895645050" duration="5870000" />
+      <workItem from="1604245290572" duration="5311000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="430" y="260" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1601887967850">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="430" y="260" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1440.900@0.0.1440.900" timestamp="1601887967850" />
+    <state x="100" y="100" width="1240" height="700" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1604246982556">
+      <screen x="0" y="23" width="1440" height="806" />
+    </state>
+    <state x="100" y="100" width="1240" height="700" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1440.900@0.0.1440.900" timestamp="1604246744837" />
+    <state x="100" y="100" width="1240" height="700" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.23.1440.806@0.23.1440.806" timestamp="1604246982556" />
+  </component>
+</project>
