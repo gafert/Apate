@@ -4,6 +4,10 @@
 @import "~codemirror/lib/codemirror";
 @import "~codemirror/theme/dracula";
 
+@import '~tippy.js/dist/tippy.css';
+@import '~tippy.js/themes/light.css';
+
+
 .cm-s-dracula.CodeMirror {
   height: 100%;
 }

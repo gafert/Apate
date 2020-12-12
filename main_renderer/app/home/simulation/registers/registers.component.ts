@@ -12,7 +12,7 @@ export class RegistersComponent implements OnInit {
   public byteToHex = byteToHex;
   public fromCharCode = String.fromCharCode;
   public cpuRegDefinitions = [
-    ['zero', 'Always Zero'],
+    ['zero', 'Fixed Zero'],
     ['ra', 'Return address'],
     ['sp', 'Stack pointer'],
     ['gp', 'Global pointer'],

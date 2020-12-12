@@ -75,3 +75,10 @@ $gridHeight: 5em;
   top: $gridHeight * 2;
   right: 0;
 }
+
+.app-graph {
+  width: calc(100% - (#{$gridWidth} * 4));
+  height: 100%;
+  left: $gridWidth * 2;
+  outline: none;
+}

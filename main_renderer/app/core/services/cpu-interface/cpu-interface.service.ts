@@ -16,7 +16,6 @@ import {
   parseInstruction
 } from './instructionParser';
 import { parseElf, parseElfRISCVInstructions } from './elfParser';
-import { isNumeric } from 'rxjs/internal-compatibility';
 
 
 @Injectable({
@@ -41,8 +40,8 @@ export class CpuInterface implements OnDestroy {
     this.parsedElf.program.copy(this.bindings.memory.value, 0, 0);
     // this.bindings.memory.next();
     this.bindings.pc.next(0);
-    this.bindings.cpuState.next(CPU_STATES.READ_DATA_FROM_MEMORY);
-    this.bindings.nextCpuState.next(CPU_STATES.READ_DATA_FROM_MEMORY);
+    this.bindings.cpuState.next(CPU_STATES.FETCH);
+    this.bindings.nextCpuState.next(CPU_STATES.FETCH);
     this.elfIsLoaded = true;
   }
 
@@ -52,9 +51,9 @@ export class CpuInterface implements OnDestroy {
         this.bindings.cpuState.next(CPU_STATES.BREAK);
         console.log('BREAK');
         return;
-      case CPU_STATES.READ_DATA_FROM_MEMORY:
+      case CPU_STATES.FETCH:
         this.bindings.instrMemRead.next(this.fetchDataFromMemory(this.bindings.pc.value));
-        this.bindings.cpuState.next(CPU_STATES.READ_DATA_FROM_MEMORY);
+        this.bindings.cpuState.next(CPU_STATES.FETCH);
         this.bindings.nextCpuState.next(CPU_STATES.DECODE_INSTRUCTION);
         break;
       case CPU_STATES.DECODE_INSTRUCTION:
@@ -114,9 +113,8 @@ export class CpuInterface implements OnDestroy {
         break;
       case CPU_STATES.ADVANCE_PC:
         this.bindings.pc.next(this.bindings.pcAdv.value);
-
         this.bindings.cpuState.next(CPU_STATES.ADVANCE_PC);
-        this.bindings.nextCpuState.next(CPU_STATES.READ_DATA_FROM_MEMORY);
+        this.bindings.nextCpuState.next(CPU_STATES.FETCH);
         break;
     }
 
@@ -207,12 +205,8 @@ export class CpuInterface implements OnDestroy {
       }
 
 
-      if(!isNumeric(this.bindings.pc.value) || !isNumeric(this.bindings.pcAdd.value)) {
-        this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
-      }
-      if(!isNumeric(this.bindings.rs1.value) || !isNumeric(this.bindings.imm.value)) {
-        this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
-      }
+      this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
+      this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
 
       if (isJALR(this.bindings.instruction.value?.name)) {
         this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);

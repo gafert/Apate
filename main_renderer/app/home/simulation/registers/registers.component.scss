@@ -46,25 +46,23 @@
 
   td:first-child {
     padding-left: 0.5em;
+    text-align: center;
   }
 
-  td:nth-child(2) {
-    border-right: $border;
+  td:nth-last-child(4) {
+    text-align: center;
   }
 
-  td:nth-child(3) {
-    border-right: $border;
-    padding-right: 0.5em;
+  td:nth-last-child(3) {
+    text-align: left;
   }
 
-  td:nth-child(4) {
-    border-right: $border;
-    padding-right: 0.5em;
+  td:nth-last-child(2) {
+    text-align: right;
   }
 
-  td:last-child {
-    padding-right: 0.5em;
-    border-left: $border;
+  td:nth-last-child(1) {
+    text-align: center;
   }
 
   th {

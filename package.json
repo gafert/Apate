@@ -96,6 +96,7 @@
     "three": "0.117.1",
     "three-text2d": "0.6.0",
     "tinycolor2": "1.4.2",
+    "tippy.js": "6.2.7",
     "ts-loader": "8.0.1"
   }
 }

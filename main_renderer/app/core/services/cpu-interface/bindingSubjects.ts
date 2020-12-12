@@ -11,7 +11,7 @@ import {BehaviorSubject} from "rxjs";
 import { Instruction } from './instructionParser';
 
 export enum CPU_STATES {
-  READ_DATA_FROM_MEMORY = "Read From Memory",
+  FETCH = "Read From Memory",
   DECODE_INSTRUCTION = "Decode Instruction",
   EXECUTE = "Execute Instruction",
   WRITE_BACK = "Write Back",
@@ -79,7 +79,7 @@ export class Bindings {
 
   // State
   public nextCpuState = new BehaviorSubject<CPU_STATES>(null);
-  public cpuState = new BehaviorSubject<CPU_STATES>(CPU_STATES.READ_DATA_FROM_MEMORY);
+  public cpuState = new BehaviorSubject<CPU_STATES>(CPU_STATES.FETCH);
   public cycleComplete = new BehaviorSubject<number>(0);
 
   // Decoder

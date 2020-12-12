@@ -5,10 +5,11 @@ import { SelectoOptionComponent } from '../selecto-option/selecto-option.compone
 import { SettingComponent } from '../setting/setting.component';
 import { FormsModule } from '@angular/forms';
 import { VarDirective } from '../ngVar.directive';
+import { TippyDirective } from '../tippy.directive';
 
 @NgModule({
-  declarations: [ActionButtonComponent, SelectoOptionComponent, SettingComponent, VarDirective],
-  exports: [ActionButtonComponent, SelectoOptionComponent, SettingComponent, VarDirective],
+  declarations: [ActionButtonComponent, SelectoOptionComponent, SettingComponent, VarDirective, TippyDirective],
+  exports: [ActionButtonComponent, SelectoOptionComponent, SettingComponent, VarDirective, TippyDirective],
   imports: [CommonModule, FormsModule],
 })
 export class SharedModule {}

@@ -330,8 +330,12 @@ function panzoom(camera, owner) {
 	function onMouseWheel(e) {
 		const scaleMultiplier = getScaleMultiplier(e.deltaY);
 
+		const mouse = {};
+		// TODO: This seems fishy
+    mouse.x = (e.clientX - owner.offsetLeft);
+    mouse.y = (e.clientY - owner.offsetTop);
 		// smoothScroll.cancel();
-		zoomTo(e.clientX, e.clientY, scaleMultiplier);
+		zoomTo(mouse.x, mouse.y, scaleMultiplier);
 	}
 
 	function zoomTo(offsetX, offsetY, scaleMultiplier) {

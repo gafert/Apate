@@ -54,7 +54,7 @@ export class GraphService {
 
   private mouse = new THREE.Vector2();
   private INTERSECTED;
-  private raycaster;
+  private raycaster: THREE.Raycaster;
 
   constructor(private ngZone: NgZone, private cpuInterface: CpuInterface) {
     process.on('exit', () => {
@@ -92,12 +92,13 @@ export class GraphService {
         this.render();
         panzoom(this.camera, domElement);
       } else {
-        const width = domElement.clientWidth / 2;
+        const width = domElement.clientWidth;
         const height = domElement.clientHeight;
 
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.domElement.style.outline = 'none';
         domElement.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
@@ -135,33 +136,39 @@ export class GraphService {
     });
   }
 
+  goToState(state) {
+    // Block if change comes too early
+    if (!this.idFlat) return;
+    this.focusCameraOnMesh(this.idFlat['state_' + state].meshes[0]);
+  }
+
   goToArea(name) {
     // Block if change comes too early
     if (!this.idFlat) return;
+    this.focusCameraOnMesh(this.idFlat['areaborder_' + name].meshes[0]);
+  }
 
-    const box = this.idFlat['areaborder_' + name].meshes[0];
-    box.geometry.computeBoundingBox();
-    box.geometry.computeBoundingSphere();
-    const bs = box.geometry.boundingSphere;
+  private focusCameraOnMesh(mesh) {
+    mesh.geometry.computeBoundingBox();
+    mesh.geometry.computeBoundingSphere();
+    const bs = mesh.geometry.boundingSphere;
 
-    /*
-    // Test sphere
-    const geometry = new THREE.SphereGeometry(box.geometry.boundingSphere.radius, 32, 32);
-    const material = new THREE.MeshLambertMaterial({
-      color: 0xffff00
-    });
-    material.transparent = true;
-    material.opacity = 0.35;
-    const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.copy(bs.center);
-    box.add(sphere);
-    */
+    // // Test sphere
+    // const geometry = new THREE.CircleGeometry(mesh.geometry.boundingSphere.radius, 32, 32);
+    // const material = new THREE.MeshLambertMaterial({
+    //   color: 0xffff00
+    // });
+    // material.transparent = true;
+    // material.opacity = 0.05;
+    // const sphere = new THREE.Mesh(geometry, material);
+    // sphere.position.copy(bs.center);
+    // mesh.add(sphere);
 
     const vFoV = this.camera.getEffectiveFOV();
     const hFoV = this.camera.fov * this.camera.aspect;
 
     const FoV = Math.min(vFoV, hFoV);
-    const FoV2 = FoV / 1.7; // divided by 2 would be the whole fov, but there are things on the side of the screen so the real fov is smaller
+    const FoV2 = FoV * 1.2; // divided by 2 would be the whole fov, but there are things on the side of the screen so the real fov is smaller
 
     const a = bs.radius;
     const A = FoV2;
@@ -173,7 +180,7 @@ export class GraphService {
     this.camera.getWorldDirection(dir);
 
     const bsWorld = bs.center.clone();
-    box.localToWorld(bsWorld);
+    mesh.localToWorld(bsWorld);
 
     const cameraDir = new THREE.Vector3();
     this.camera.getWorldDirection(cameraDir);
@@ -329,7 +336,11 @@ export class GraphService {
 
     this.cpuInterface.bindings.cycleComplete.subscribe((complete) => {
       const nextCpuState = this.cpuInterface.bindings.nextCpuState.value;
-      if (nextCpuState === CPU_STATES.READ_DATA_FROM_MEMORY) {
+      const cpuState = this.cpuInterface.bindings.cpuState.value;
+
+      // Reset all lines
+      // Dont show any active lines
+      if (nextCpuState === CPU_STATES.FETCH) {
         for (const key of Object.keys(this.idFlat)) {
           const element = this.idFlat[key];
           // Hide all elements when the next decoding stage is incoming
@@ -342,7 +353,9 @@ export class GraphService {
         // Reset all values
         Object.values(this.cpuInterface.bindings.volatileValues).forEach((value) => value.next(null));
       }
-      if (nextCpuState === CPU_STATES.EXECUTE) {
+
+      // Show decoded active lines if the current executed state was decoding
+      if (cpuState === CPU_STATES.DECODE_INSTRUCTION) {
         if (this.cpuInterface.bindings.instruction.value) {
           const instruction = this.cpuInterface.bindings.instruction.value;
           if (isJAL(instruction.name)) {
@@ -395,55 +408,56 @@ export class GraphService {
         }
 
       }
-    });
 
-    this.cpuInterface.bindings.nextCpuState.subscribe((nextCpuState) => {
+      // Hide all state meshes
       // Show only state borders of active state
       for (const key of Object.keys(this.idFlat)) {
-        const element = this.idFlat[key];
-
-        const showStateMeshes = (name: string): void => {
-          if (key.includes('state') && key.includes(name)) {
-            element.meshes.forEach((mesh) => {
-              mesh.material.opacity = 1;
-            });
-          }
-        };
-
-        // Hide all state meshes
         if (key.includes('state')) {
-          element.meshes.forEach((mesh) => {
+          this.idFlat[key].meshes.forEach((mesh) => {
             mesh.material.opacity = 0.1;
           });
         }
-
-        // Show the meshes
-        switch (nextCpuState) {
-          case CPU_STATES.READ_DATA_FROM_MEMORY:
-            showStateMeshes('fetch');
-            break;
-          case CPU_STATES.DECODE_INSTRUCTION:
-            showStateMeshes('decode');
-            break;
-          case CPU_STATES.EXECUTE:
-            showStateMeshes('execute');
-            break;
-          case  CPU_STATES.WRITE_BACK:
-            showStateMeshes('writeback');
-            break;
-          case CPU_STATES.ADVANCE_PC:
-            showStateMeshes('advpc');
-            break;
-        }
       }
 
+      // Activate new state meshes and focus on them in the following switch
+      const showStateMesh = (name: string): void => {
+        const element = this.idFlat['state_' + name];
+        element.meshes.forEach((mesh) => {
+          mesh.material.opacity = 1;
+        });
+      };
+
+      switch (nextCpuState) {
+        case CPU_STATES.DECODE_INSTRUCTION:
+          this.goToState('decode');
+          showStateMesh('decode');
+          break;
+        case CPU_STATES.EXECUTE:
+          this.goToState('execute');
+          showStateMesh('execute');
+          break;
+        case CPU_STATES.WRITE_BACK:
+          this.goToState('writeback');
+          showStateMesh('writeback');
+          break;
+        case CPU_STATES.ADVANCE_PC:
+          this.goToState('advpc');
+          showStateMesh('advpc');
+          break;
+        case CPU_STATES.BREAK:
+          break;
+        case CPU_STATES.FETCH:
+          this.goToState('fetch');
+          showStateMesh('fetch');
+          break;
+      }
     });
   }
 
   onDocumentMouseMove(event) {
     event.preventDefault();
-    this.mouse.x = (event.clientX / this.domElement.clientWidth) * 2 - 1;
-    this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.clientHeight)) / this.domElement.clientHeight) * 2 + 1;
+    this.mouse.x = ((event.clientX + this.domElement.offsetLeft - (window.innerWidth - this.domElement.clientWidth)) / this.domElement.clientWidth) * 2 - 1 ;
+    this.mouse.y = -((event.clientY + this.domElement.offsetTop - (window.innerHeight - this.domElement.clientHeight)) / this.domElement.clientHeight) * 2 + 1;
   }
 
 
@@ -495,7 +509,7 @@ export class GraphService {
       const intersects = this.raycaster.intersectObjects(this.scene.children, true);
       if (intersects.length > 0) {
         if (this.INTERSECTED != intersects[0].object) {
-          //if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
+          if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
           this.INTERSECTED = intersects[0].object;
           if (this.INTERSECTED.parent.name.indexOf('p') == 0) {
             if (this.INTERSECTED.parent.parent.name.indexOf('p_') == 0) {
@@ -511,11 +525,11 @@ export class GraphService {
             // This is a signal wire
             console.log('Signal not found: ', this.INTERSECTED.name, this.getSignalName(this.INTERSECTED.name));
           }
-          //this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
-          //this.INTERSECTED.material.color.setHex(0xff0000);
+          this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
+          this.INTERSECTED.material.color.setHex(0xff0000);
         }
       } else {
-        //if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
+        if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
         this.INTERSECTED = null;
       }
 
