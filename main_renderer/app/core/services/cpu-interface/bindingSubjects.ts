@@ -77,7 +77,15 @@ export class Bindings {
   public pcAdvJALR = new BehaviorSubject<number>(null);
   public pcAdv = new BehaviorSubject<number>(null);
 
-  public values = {
+  // State
+  public nextCpuState = new BehaviorSubject<CPU_STATES>(null);
+  public cpuState = new BehaviorSubject<CPU_STATES>(CPU_STATES.READ_DATA_FROM_MEMORY);
+  public cycleComplete = new BehaviorSubject<number>(0);
+
+  // Decoder
+  public instruction = new BehaviorSubject<Instruction>(null);
+
+  public allValues = {
     'pc': this.pc,
     'rd': this.rd,
     'imm': this.imm,
@@ -107,13 +115,31 @@ export class Bindings {
     'instrmemread': this.instrMemRead
   }
 
-  // State
-  public nextCpuState = new BehaviorSubject<CPU_STATES>(null);
-  public cpuState = new BehaviorSubject<CPU_STATES>(CPU_STATES.READ_DATA_FROM_MEMORY);
-  public cycleComplete = new BehaviorSubject<number>(0);
+  public volatileValues = {
+    'rd': this.rd,
+    'imm': this.imm,
+    'rs1addr': this.rs1addr,
+    'rs2addr': this.rs2addr,
+    'rs1': this.rs1,
+    'rs2': this.rs2,
+    'immrs2': this.immRs2,
+    'op1': this.op1,
+    'op2': this.op2,
+    'aluout': this.aluout,
+    'muxaluout': this.muxAluout,
+    'regwrite': this.regwrite,
+    'rs1imm': this.rs1Imm,
+    'memread': this.memread,
+    'func3': this.func3,
+    'func7': this.func7,
+    'func3-0': this.branchFunc3_0,
+    'func3-12': this.branchFunc3_12,
+    'branch': this.branchResult,
+    'branchadd': this.branchAddResult,
+    'instrmemread': this.instrMemRead,
+    'noval': this.instruction
+  }
 
-  // Decoder
-  public instruction = new BehaviorSubject<Instruction>(null);
 
   constructor() {
 

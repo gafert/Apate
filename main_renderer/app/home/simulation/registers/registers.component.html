@@ -36,6 +36,7 @@
       <span *ngIf="rd && rs1">/</span>
       <span *ngIf="rs1">RS1</span>
       <span *ngIf="rs1 && rs2">/</span>
+      <span *ngIf="rd && rs2 && !rs1">/</span>
       <span *ngIf="rs2">RS2</span>
     </td>
     <ng-container *ngTemplateOutlet="line; context: { i: i }"></ng-container>

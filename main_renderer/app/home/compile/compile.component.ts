@@ -44,7 +44,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   public activeFile;
   /** The file which is selected but its content is not yet displayed */
   public selectedFile;
-  /** The default settings the editor uses. Changes in these values to not affect the editor */
+  /** The default settings the editor uses. Changes in these allValues to not affect the editor */
   public editorOptions = {
     lineNumbers: true,
     theme: 'dracula',

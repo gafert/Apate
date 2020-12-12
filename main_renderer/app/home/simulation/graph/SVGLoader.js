@@ -707,7 +707,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       var dot = ux * vx + uy * vy;
       var len = Math.sqrt(ux * ux + uy * uy) * Math.sqrt(vx * vx + vy * vy);
-      var ang = Math.acos(Math.max(-1, Math.min(1, dot / len))); // floating point precision, slightly over values appear
+      var ang = Math.acos(Math.max(-1, Math.min(1, dot / len))); // floating point precision, slightly over allValues appear
       if ((ux * vy - uy * vx) < 0) ang = -ang;
       return ang;
 
@@ -959,7 +959,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
         var number = array[i];
 
-        // Handle values like 48.6037.7.8
+        // Handle allValues like 48.6037.7.8
         // TODO Find a regex for this
 
         if (number.indexOf('.') !== number.lastIndexOf('.')) {

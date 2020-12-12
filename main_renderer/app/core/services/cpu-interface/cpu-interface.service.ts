@@ -16,6 +16,7 @@ import {
   parseInstruction
 } from './instructionParser';
 import { parseElf, parseElfRISCVInstructions } from './elfParser';
+import { isNumeric } from 'rxjs/internal-compatibility';
 
 
 @Injectable({
@@ -126,26 +127,26 @@ export class CpuInterface implements OnDestroy {
     //
 
     try {
-      if (isIMM(this.bindings.instruction.value.name)) {
+      if (isIMM(this.bindings.instruction.value?.name)) {
         this.bindings.immRs2.next(this.bindings.imm.value);
-      } else if (isOP(this.bindings.instruction.value.name)) {
+      } else if (isOP(this.bindings.instruction.value?.name)) {
         this.bindings.immRs2.next(this.bindings.rs2.value);
       }
 
-      if (isOP(this.bindings.instruction.value.name) || isIMM(this.bindings.instruction.value.name)) {
+      if (isOP(this.bindings.instruction.value?.name) || isIMM(this.bindings.instruction.value?.name)) {
         this.bindings.op1.next(this.bindings.immRs2.value);
         this.bindings.op2.next(this.bindings.rs1.value);
-      } else if (isJALR(this.bindings.instruction.value.name) || isJAL(this.bindings.instruction.value.name)) {
+      } else if (isJALR(this.bindings.instruction.value?.name) || isJAL(this.bindings.instruction.value?.name)) {
         this.bindings.op1.next(this.bindings.pc.value);
         this.bindings.op2.next(4);
-      } else if (isLUI(this.bindings.instruction.value.name) || isAUIPC(this.bindings.instruction.value.name)) {
+      } else if (isLUI(this.bindings.instruction.value?.name) || isAUIPC(this.bindings.instruction.value?.name)) {
         this.bindings.op1.next(this.bindings.imm.value);
         this.bindings.op2.next(12);
       }
 
       this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, this.bindings.instruction.value));
       this.bindings.pcAluout.next(this.bindings.aluout.value + this.bindings.pc.value);
-      this.bindings.muxAluout.next(isAUIPC(this.bindings.instruction.value.name) ? this.bindings.pcAluout.value : this.bindings.aluout.value);
+      this.bindings.muxAluout.next(isAUIPC(this.bindings.instruction.value?.name) ? this.bindings.pcAluout.value : this.bindings.aluout.value);
 
 
       //
@@ -154,14 +155,14 @@ export class CpuInterface implements OnDestroy {
 
       this.bindings.rs1Imm.next(this.bindings.rs1.value + this.bindings.imm.value);
 
-      if (isLOAD(this.bindings.instruction.value.name)) {
+      if (isLOAD(this.bindings.instruction.value?.name)) {
         this.bindings.regwrite.next(this.bindings.memread.value);
-      } else if (isIMM(this.bindings.instruction.value.name) ||
-        isOP(this.bindings.instruction.value.name) ||
-        isJAL(this.bindings.instruction.value.name) ||
-        isJALR(this.bindings.instruction.value.name) ||
-        isLUI(this.bindings.instruction.value.name) ||
-        isAUIPC(this.bindings.instruction.value.name)) {
+      } else if (isIMM(this.bindings.instruction.value?.name) ||
+        isOP(this.bindings.instruction.value?.name) ||
+        isJAL(this.bindings.instruction.value?.name) ||
+        isJALR(this.bindings.instruction.value?.name) ||
+        isLUI(this.bindings.instruction.value?.name) ||
+        isAUIPC(this.bindings.instruction.value?.name)) {
         this.bindings.regwrite.next(this.bindings.muxAluout.value);
       }
 
@@ -193,24 +194,29 @@ export class CpuInterface implements OnDestroy {
 
       if (this.bindings.branchResult.value === 1) {
         this.bindings.branchAddResult.next(this.bindings.imm.value);
-      } else {
+      } else if(this.bindings.branchResult.value === 0) {
         this.bindings.branchAddResult.next(4);
       }
 
-      if (isJAL(this.bindings.instruction.value.name)) {
+      if (isJAL(this.bindings.instruction.value?.name)) {
         this.bindings.pcAdd.next(this.bindings.imm.value);
-      } else if (isBRANCH(this.bindings.instruction.value.name)) {
+      } else if (isBRANCH(this.bindings.instruction.value?.name)) {
         this.bindings.pcAdd.next(this.bindings.branchAddResult.value);
-      } else {
+      } else if(this.bindings.instruction.value?.name) {
         this.bindings.pcAdd.next(4);
       }
 
-      this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
-      this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
 
-      if (isJALR(this.bindings.instruction.value.name)) {
+      if(!isNumeric(this.bindings.pc.value) || !isNumeric(this.bindings.pcAdd.value)) {
+        this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
+      }
+      if(!isNumeric(this.bindings.rs1.value) || !isNumeric(this.bindings.imm.value)) {
+        this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
+      }
+
+      if (isJALR(this.bindings.instruction.value?.name)) {
         this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);
-      } else {
+      } else if(this.bindings.instruction.value?.name) {
         this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
       }
     } catch (e) {
@@ -221,7 +227,7 @@ export class CpuInterface implements OnDestroy {
   }
 
   callALU(op1, op2, instruction): number {
-    switch (instruction.name) {
+    switch (instruction?.name) {
       case INSTRUCTIONS.JAL:
       case INSTRUCTIONS.JALR:
       case INSTRUCTIONS.ADDI:

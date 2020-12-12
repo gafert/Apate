@@ -642,7 +642,7 @@ export function parseInstruction(instruction): Instruction {
     rs2 = (instruction >> 20) & 0b11111;
   }
 
-  // All possible immediate values
+  // All possible immediate allValues
   let immI: number = null;
   immI = (instruction >> 20) & 0b111111111111;
   immI = convertToSigned(immI, 12);

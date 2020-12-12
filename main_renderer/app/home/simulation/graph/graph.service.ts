@@ -275,7 +275,7 @@ export class GraphService {
                     const leftes = d3.scan(positions, (a, b) => a.x - b.x);
                     text.position.set(positions[leftes].x + 3, positions[leftes].y + 2, positions[leftes].z);
 
-                    const binding = this.cpuInterface.bindings.values[signalName];
+                    const binding = this.cpuInterface.bindings.allValues[signalName];
                     if (binding) {
                       binding.subscribe((value) => {
                         text.text = (value === null || value === undefined) ? 'NaN' : value.toString();
@@ -329,7 +329,7 @@ export class GraphService {
 
     this.cpuInterface.bindings.cycleComplete.subscribe((complete) => {
       const nextCpuState = this.cpuInterface.bindings.nextCpuState.value;
-      if (nextCpuState === CPU_STATES.DECODE_INSTRUCTION) {
+      if (nextCpuState === CPU_STATES.READ_DATA_FROM_MEMORY) {
         for (const key of Object.keys(this.idFlat)) {
           const element = this.idFlat[key];
           // Hide all elements when the next decoding stage is incoming
@@ -339,6 +339,8 @@ export class GraphService {
             });
           }
         }
+        // Reset all values
+        Object.values(this.cpuInterface.bindings.volatileValues).forEach((value) => value.next(null));
       }
       if (nextCpuState === CPU_STATES.EXECUTE) {
         if (this.cpuInterface.bindings.instruction.value) {
@@ -493,7 +495,7 @@ export class GraphService {
       const intersects = this.raycaster.intersectObjects(this.scene.children, true);
       if (intersects.length > 0) {
         if (this.INTERSECTED != intersects[0].object) {
-          if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
+          //if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
           this.INTERSECTED = intersects[0].object;
           if (this.INTERSECTED.parent.name.indexOf('p') == 0) {
             if (this.INTERSECTED.parent.parent.name.indexOf('p_') == 0) {
@@ -509,11 +511,11 @@ export class GraphService {
             // This is a signal wire
             console.log('Signal not found: ', this.INTERSECTED.name, this.getSignalName(this.INTERSECTED.name));
           }
-          this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
-          this.INTERSECTED.material.color.setHex(0xff0000);
+          //this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
+          //this.INTERSECTED.material.color.setHex(0xff0000);
         }
       } else {
-        if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
+        //if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
         this.INTERSECTED = null;
       }
 
@@ -528,6 +530,11 @@ export class GraphService {
 
   getSignalName(id) {
     const regex = /(?:s_)(.*?)(?:-|$)/g;
+    return this.getFirstGroup(regex, id);
+  }
+
+  getControlName(id) {
+    const regex = /(?:c_)(.*?)(?:-|$)/g;
     return this.getFirstGroup(regex, id);
   }
 
