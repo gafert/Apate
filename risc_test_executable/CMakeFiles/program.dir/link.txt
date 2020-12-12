@@ -1,0 +1,1 @@
+/Users/gafert/opt/riscv64-toolchain/bin/riscv64-unknown-elf-gcc -g -O0 -march=rv32i -mabi=ilp32 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk -march=rv32i -mabi=ilp32 -T riscv_stdlib.ld -lgcc CMakeFiles/program.dir/program.o CMakeFiles/program.dir/syscalls.o CMakeFiles/program.dir/start_stdlib.o  -o program.elf 

@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/gafert/Documents/RISC-V-Simulation/risc_test_executable/program.c
+stdint.h
+-
+syscalls.c
+/Users/gafert/Documents/RISC-V-Simulation/risc_test_executable/syscalls.c
+sim.h
+/Users/gafert/Documents/RISC-V-Simulation/risc_test_executable/sim.h
+
+/Users/gafert/Documents/RISC-V-Simulation/risc_test_executable/sim.h
+
+/Users/gafert/Documents/RISC-V-Simulation/risc_test_executable/syscalls.c
+sys/stat.h
+-
+unistd.h
+-
+errno.h
+-
+sim.h
+/Users/gafert/Documents/RISC-V-Simulation/risc_test_executable/sim.h
+
