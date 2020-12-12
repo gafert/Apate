@@ -42,9 +42,10 @@ function panzoom(camera, owner) {
 	owner = owner || document.body;
 	owner.setAttribute('tabindex', 1); // TODO: not sure if this is really polite
 
-	const smoothScroll = kinetic(getCameraPosition, {
-		scrollCallback: onSmoothScroll,
-	});
+  // Makes scrolling continue when mouse up
+	// const smoothScroll = kinetic(getCameraPosition, {
+	// 	scrollCallback: onSmoothScroll,
+	// });
 
 	owner.addEventListener('wheel', onMouseWheel);
 
@@ -134,7 +135,7 @@ function panzoom(camera, owner) {
 
 		const tap = e.touches[0];
 
-		smoothScroll.cancel();
+		// smoothScroll.cancel();
 
 		smoothZoom(tap.clientX, tap.clientY, -1);
 	}
@@ -281,13 +282,13 @@ function panzoom(camera, owner) {
 		if (!panstartFired) {
 			api.fire('panstart');
 			panstartFired = true;
-			smoothScroll.start();
+			// smoothScroll.start();
 		}
 	}
 
 	function triggerPanEnd() {
 		if (panstartFired) {
-			smoothScroll.stop();
+			// smoothScroll.stop();
 			api.fire('panend');
 			panstartFired = false;
 		}
@@ -303,7 +304,7 @@ function panzoom(camera, owner) {
 		disposeWindowEvents();
 		disposeTouchEvents();
 
-		smoothScroll.cancel();
+		// smoothScroll.cancel();
 		triggerPanEnd();
 
 		owner.removeEventListener('mousedown', handleMouseDown);
@@ -329,7 +330,7 @@ function panzoom(camera, owner) {
 	function onMouseWheel(e) {
 		const scaleMultiplier = getScaleMultiplier(e.deltaY);
 
-		smoothScroll.cancel();
+		// smoothScroll.cancel();
 		zoomTo(e.clientX, e.clientY, scaleMultiplier);
 	}
 
