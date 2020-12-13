@@ -78,7 +78,8 @@ $gridHeight: 5em;
 
 .app-graph {
   width: calc(100% - (#{$gridWidth} * 4));
-  height: 100%;
+  height: calc(100% - (#{$sectionsHeight} + 0.4em + 0.2em));
   left: $gridWidth * 2;
+  top: $sectionsHeight + 0.4em + 0.2em;
   outline: none;
 }

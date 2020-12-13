@@ -1,11 +1,12 @@
 import { Injectable, NgZone } from '@angular/core';
 import * as THREE from 'three';
-import { Group } from 'three';
+import { Group, MathUtils } from 'three';
 import panzoom from '../../../utils/drag.js';
 import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
 import { SVGLoader } from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
+import { easing, tween } from 'popmotion';
 import {
   isAUIPC,
   isBRANCH,
@@ -20,6 +21,7 @@ import {
 import { CPU_STATES } from '../../../core/services/cpu-interface/bindingSubjects';
 import { MeshText2D, textAlign } from 'three-text2d';
 import * as d3 from 'd3';
+import DEG2RAD = MathUtils.DEG2RAD;
 
 interface ThreeNode {
   meshes: THREE.Mesh[];
@@ -55,6 +57,8 @@ export class GraphService {
   private mouse = new THREE.Vector2();
   private INTERSECTED;
   private raycaster: THREE.Raycaster;
+
+  private activeArea: 'overview' | 'decoder'| 'alu'| 'memory'| 'registers';
 
   constructor(private ngZone: NgZone, private cpuInterface: CpuInterface) {
     process.on('exit', () => {
@@ -139,58 +143,77 @@ export class GraphService {
   goToState(state) {
     // Block if change comes too early
     if (!this.idFlat) return;
-    this.focusCameraOnMesh(this.idFlat['state_' + state].meshes[0]);
+    if(this.activeArea !== 'overview') return;
+    this.focusCameraOnMesh(this.idFlat['state_' + state].meshes[0], true);
   }
 
   goToArea(name) {
     // Block if change comes too early
     if (!this.idFlat) return;
+    this.activeArea = name;
     this.focusCameraOnMesh(this.idFlat['areaborder_' + name].meshes[0]);
+    if(this.activeArea === 'overview') {
+      // Focus on state
+      this.updateAndFocusState(this.cpuInterface.bindings.nextCpuState.value);
+    }
   }
 
-  private focusCameraOnMesh(mesh) {
+  private focusCameraOnMesh(mesh, animate = false) {
     mesh.geometry.computeBoundingBox();
     mesh.geometry.computeBoundingSphere();
-    const bs = mesh.geometry.boundingSphere;
+    const bb = mesh.geometry.boundingBox;
+    const center = new THREE.Vector3();
+    bb.getCenter(center);
+    const size = new THREE.Vector3();
+    bb.getSize(size);
 
-    // // Test sphere
-    // const geometry = new THREE.CircleGeometry(mesh.geometry.boundingSphere.radius, 32, 32);
+
+    // Test sphere
+    // const geometry = new THREE.PlaneGeometry(size.x, size.y);
     // const material = new THREE.MeshLambertMaterial({
     //   color: 0xffff00
     // });
     // material.transparent = true;
     // material.opacity = 0.05;
     // const sphere = new THREE.Mesh(geometry, material);
-    // sphere.position.copy(bs.center);
+    // sphere.position.copy(center);
     // mesh.add(sphere);
+
 
     const vFoV = this.camera.getEffectiveFOV();
     const hFoV = this.camera.fov * this.camera.aspect;
-
     const FoV = Math.min(vFoV, hFoV);
-    const FoV2 = FoV * 1.2; // divided by 2 would be the whole fov, but there are things on the side of the screen so the real fov is smaller
 
-    const a = bs.radius;
-    const A = FoV2;
-    const B = (90 - A) * Math.PI / 180.0;
-    const c = a / Math.sin(B);
-    const b = Math.sqrt(c * c - a * a);
+    const distance = Math.max( size.x, size.y, size.z );
+    // var distance = boundingBox.getBoundingSphere().radius * 2;
 
-    const dir = new THREE.Vector3();
-    this.camera.getWorldDirection(dir);
+    // const cameraZ = distance / 2 / Math.tan(Math.PI * FOV / 360);
+    // TODO: Why does this need to be divided by 7.5? Why is the camera too far away without that?
+    const cameraZ = distance / Math.sin( FoV / 2 * DEG2RAD ) / 7.5;
+    console.log(distance, cameraZ);
 
-    const bsWorld = bs.center.clone();
-    mesh.localToWorld(bsWorld);
-
-    const cameraDir = new THREE.Vector3();
-    this.camera.getWorldDirection(cameraDir);
+    const dir = new THREE.Vector3(); this.camera.getWorldDirection(dir);
+    const bsWorld = center.clone(); mesh.localToWorld(bsWorld);
+    const cameraDir = new THREE.Vector3(); this.camera.getWorldDirection(cameraDir);
 
     const cameraOffs = cameraDir.clone();
-    cameraOffs.multiplyScalar(-b);
+
+    cameraOffs.setZ(cameraZ);
+
     const newCameraPos = bsWorld.clone().add(cameraOffs);
 
-    this.camera.position.copy(newCameraPos);
-    this.camera.lookAt(bsWorld);
+    if(animate) {
+      tween({
+        from: 0,
+        to: 1,
+        ease: easing.easeOut,
+        duration: 300,
+      }).start((v) => {
+        this.camera.position.lerp(newCameraPos, v);
+      });
+    } else {
+      this.camera.position.copy(newCameraPos);
+    }
   }
 
   separateAreas() {
@@ -406,64 +429,70 @@ export class GraphService {
             }
           }
         }
-
       }
 
-      // Hide all state meshes
-      // Show only state borders of active state
-      for (const key of Object.keys(this.idFlat)) {
-        if (key.includes('state')) {
-          this.idFlat[key].meshes.forEach((mesh) => {
-            mesh.material.opacity = 0.1;
-          });
-        }
-      }
-
-      // Activate new state meshes and focus on them in the following switch
-      const showStateMesh = (name: string): void => {
-        const element = this.idFlat['state_' + name];
-        element.meshes.forEach((mesh) => {
-          mesh.material.opacity = 1;
-        });
-      };
-
-      switch (nextCpuState) {
-        case CPU_STATES.DECODE_INSTRUCTION:
-          this.goToState('decode');
-          showStateMesh('decode');
-          break;
-        case CPU_STATES.EXECUTE:
-          this.goToState('execute');
-          showStateMesh('execute');
-          break;
-        case CPU_STATES.WRITE_BACK:
-          this.goToState('writeback');
-          showStateMesh('writeback');
-          break;
-        case CPU_STATES.ADVANCE_PC:
-          this.goToState('advpc');
-          showStateMesh('advpc');
-          break;
-        case CPU_STATES.BREAK:
-          break;
-        case CPU_STATES.FETCH:
-          this.goToState('fetch');
-          showStateMesh('fetch');
-          break;
-      }
+      this.updateAndFocusState(nextCpuState);
     });
+  }
+
+  updateAndFocusState(nextCpuState) {
+    // Hide all state meshes
+    // Show only state borders of active state
+    for (const key of Object.keys(this.idFlat)) {
+      if (key.includes('state')) {
+        this.idFlat[key].meshes.forEach((mesh) => {
+          mesh.material.opacity = 0.1;
+        });
+      }
+    }
+
+    // Activate new state meshes and focus on them in the following switch
+    const showStateMesh = (name: string): void => {
+      const element = this.idFlat['state_' + name];
+      element.meshes.forEach((mesh) => {
+        mesh.material.opacity = 1;
+      });
+    };
+
+    switch (nextCpuState) {
+      case CPU_STATES.DECODE_INSTRUCTION:
+        this.goToState('decode');
+        showStateMesh('decode');
+        break;
+      case CPU_STATES.EXECUTE:
+        this.goToState('execute');
+        showStateMesh('execute');
+        break;
+      case CPU_STATES.WRITE_BACK:
+        this.goToState('writeback');
+        showStateMesh('writeback');
+        break;
+      case CPU_STATES.ADVANCE_PC:
+        this.goToState('advpc');
+        showStateMesh('advpc');
+        break;
+      case CPU_STATES.BREAK:
+        break;
+      case CPU_STATES.FETCH:
+        this.goToState('fetch');
+        showStateMesh('fetch');
+        break;
+    }
   }
 
   onDocumentMouseMove(event) {
     event.preventDefault();
+    // TODO: Depends on where the dom is in relation to the other elements
+    // Offset left because the dom does not start on the left border
     this.mouse.x = ((event.clientX + this.domElement.offsetLeft - (window.innerWidth - this.domElement.clientWidth)) / this.domElement.clientWidth) * 2 - 1 ;
-    this.mouse.y = -((event.clientY + this.domElement.offsetTop - (window.innerHeight - this.domElement.clientHeight)) / this.domElement.clientHeight) * 2 + 1;
+    // Offset top because the dom does not start on the edge, additional - offset top because there is a header over all simulation elements
+    this.mouse.y = -((event.clientY - this.domElement.offsetTop - (window.innerHeight - this.domElement.clientHeight - this.domElement.offsetTop)) / this.domElement.clientHeight) * 2 + 1;
   }
 
 
   setVisibility(id, on) {
     console.log('Setting visibility of ', id);
-    this.idFlat[id].meshes.forEach((mesh) => {
+    this.idFlat[id]?.meshes.forEach((mesh) => {
       mesh.material.opacity = on ? 1 : 0.1;
     });
   }
