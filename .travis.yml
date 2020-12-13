@@ -9,76 +9,32 @@ matrix:
     - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
   - os: linux
     sudo: required
-    services: docker
     language: node_js
     node_js: '12'
   - os: windows
-    services: docker
     language: node_js
     node_js: '12'
 before_script:
 - export DISPLAY=:99.0
-before_install:
-  - |-
-    case $TRAVIS_OS_NAME in
-      windows)
-        [[ ! -f C:/tools/msys64/msys2_shell.cmd ]] && rm -rf C:/tools/msys64
-        choco uninstall -y mingw
-        choco install make
-        choco upgrade --no-progress -y msys2
-        export msys2='cmd //C RefreshEnv.cmd '
-        export msys2+='& set MSYS=winsymlinks:nativestrict '
-        export msys2+='& C:\\tools\\msys64\\msys2_shell.cmd -defterm -no-start'
-        export mingw64="$msys2 -mingw64 -full-path -here -c "\"\$@"\" --"
-        export msys2+=" -msys2 -c "\"\$@"\" --"
-        $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-toolchain
-        ## Install more MSYS2 packages from https://packages.msys2.org/base here
-        taskkill //IM gpg-agent.exe //F  # https://travis-ci.community/t/4967
-        export PATH=/C/tools/msys64/mingw64/bin:$PATH
-        export C=/C/tools/msys64/mingw64/bin/gcc.exe
-        export CXX=/C/tools/msys64/mingw64/bin/g++.exe
-        echo $(make)
-        ;;
-    esac
 install:
 - npm set progress=false
-- |
-  if [ $TRAVIS_OS_NAME = linux ]; then
-    echo "2.7.15" > .python-version
-    echo "3.7.1" > ./simulation_library/bindgen/.python-version
-  fi
 - npm install
 script:
 - |
   if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    npm run build:simlib:linux_docker
     npm run electron:linux
   elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    npm run build:simlib:local
     npm run electron:mac
   else
-    echo $(make)
-    echo $($CXX)
-    npm run build:simlib:local
     npm run electron:windows
   fi
 before_cache:
   - rm -rf $HOME/.cache/electron-builder/win
-  - rm -rf ./node_modules/ffi-napi/build
-  - |-
-    case $TRAVIS_OS_NAME in
-      windows)
-        # https://unix.stackexchange.com/a/137322/107554
-        $msys2 pacman --sync --clean --noconfirm
-        ;;
-    esac
 cache:
   directories:
   - node_modules
   - "$HOME/.cache/electron"
   - "$HOME/.cache/electron-builder"
-  - $HOME/AppData/Local/Temp/chocolatey
-  - /C/tools/msys64
 branches:
   except:
     - /^untagged/
