@@ -22,6 +22,7 @@ import { CPU_STATES } from '../../../core/services/cpu-interface/bindingSubjects
 import { MeshText2D, textAlign } from 'three-text2d';
 import * as d3 from 'd3';
 import DEG2RAD = MathUtils.DEG2RAD;
+import tippy, { Instance, Props, Tippy } from 'tippy.js';
 
 interface ThreeNode {
   meshes: THREE.Mesh[];
@@ -54,11 +55,14 @@ export class GraphService {
   private idRoot; // Holds the parsed svg and adds meshes to each element
   private idFlat; // Takes the parsed svg with meshes and flattens all names to be a 1D array
 
+  private centeredMouse = new THREE.Vector2();
   private mouse = new THREE.Vector2();
   private INTERSECTED;
   private raycaster: THREE.Raycaster;
 
-  private activeArea: 'overview' | 'decoder'| 'alu'| 'memory'| 'registers';
+  private activeArea: 'overview' | 'decoder' | 'alu' | 'memory' | 'registers';
+
+  private tippyTooltip: Instance<Props>;
 
   constructor(private ngZone: NgZone, private cpuInterface: CpuInterface) {
     process.on('exit', () => {
@@ -91,6 +95,7 @@ export class GraphService {
     this.ngZone.runOutsideAngular(() => {
       this.domElement = domElement;
       if (this.initiated) {
+        // Service already loaded scene, only set dom element again and start rendering
         domElement.appendChild(this.renderer.domElement);
         this.resize();
         this.render();
@@ -99,15 +104,18 @@ export class GraphService {
         const width = domElement.clientWidth;
         const height = domElement.clientHeight;
 
+        // Setup renderer
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.domElement.style.outline = 'none';
         domElement.appendChild(this.renderer.domElement);
 
+        // Setup camera
         this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
         this.camera.position.z = 50;
 
+        // Setup scene with light
         const color = 0xffffff;
         const intensity = 1;
         const light = new THREE.DirectionalLight(color, intensity);
@@ -116,18 +124,18 @@ export class GraphService {
         this.scene.add(light);
         this.scene.add(light.target);
 
+        // Initiate objects from svg
         this.initiateObjects();
 
         // For intersection
         this.raycaster = new THREE.Raycaster();
         document.addEventListener('mousemove', this.onDocumentMouseMove.bind(this), false);
-        // END For intersection
 
-        if (document.readyState !== 'loading') this.render();
-        else window.addEventListener('DOMContentLoaded', this.render.bind(this));
+        // Enable resizing
         window.addEventListener('resize', this.resize.bind(this));
-
         this.resize();
+
+        // Enable zooming
         panzoom(this.camera, domElement);
 
         // Split areas in world and focus on the first
@@ -135,6 +143,21 @@ export class GraphService {
         this.separateAreas();
         this.goToArea('overview');
 
+        // Add tooltips
+        this.tippyTooltip = tippy(this.renderer.domElement, {
+          content: 'Context menu',
+          trigger: 'manual',
+          theme: 'light',
+          interactive: true,
+          arrow: true,
+          offset: [0, 10]
+        });
+
+        // Start rendering
+        if (document.readyState !== 'loading') this.render();
+        else window.addEventListener('DOMContentLoaded', this.render.bind(this));
+
+        // Set initiated to true to not reload settings if init was called again by component using the service
         this.initiated = true;
       }
     });
@@ -143,7 +166,7 @@ export class GraphService {
   goToState(state) {
     // Block if change comes too early
     if (!this.idFlat) return;
-    if(this.activeArea !== 'overview') return;
+    if (this.activeArea !== 'overview') return;
     this.focusCameraOnMesh(this.idFlat['state_' + state].meshes[0], true);
   }
 
@@ -152,7 +175,7 @@ export class GraphService {
     if (!this.idFlat) return;
     this.activeArea = name;
     this.focusCameraOnMesh(this.idFlat['areaborder_' + name].meshes[0]);
-    if(this.activeArea === 'overview') {
+    if (this.activeArea === 'overview') {
       // Focus on state
       this.updateAndFocusState(this.cpuInterface.bindings.nextCpuState.value);
     }
@@ -184,17 +207,20 @@ export class GraphService {
     const hFoV = this.camera.fov * this.camera.aspect;
     const FoV = Math.min(vFoV, hFoV);
 
-    const distance = Math.max( size.x, size.y, size.z );
+    const distance = Math.max(size.x, size.y, size.z);
     // var distance = boundingBox.getBoundingSphere().radius * 2;
 
     // const cameraZ = distance / 2 / Math.tan(Math.PI * FOV / 360);
     // TODO: Why does this need to be divided by 7.5? Why is the camera too far away without that?
-    const cameraZ = distance / Math.sin( FoV / 2 * DEG2RAD ) / 7.5;
+    const cameraZ = distance / Math.sin(FoV / 2 * DEG2RAD) / 7.5;
     console.log(distance, cameraZ);
 
-    const dir = new THREE.Vector3(); this.camera.getWorldDirection(dir);
-    const bsWorld = center.clone(); mesh.localToWorld(bsWorld);
-    const cameraDir = new THREE.Vector3(); this.camera.getWorldDirection(cameraDir);
+    const dir = new THREE.Vector3();
+    this.camera.getWorldDirection(dir);
+    const bsWorld = center.clone();
+    mesh.localToWorld(bsWorld);
+    const cameraDir = new THREE.Vector3();
+    this.camera.getWorldDirection(cameraDir);
 
     const cameraOffs = cameraDir.clone();
 
@@ -202,12 +228,12 @@ export class GraphService {
 
     const newCameraPos = bsWorld.clone().add(cameraOffs);
 
-    if(animate) {
+    if (animate) {
       tween({
         from: 0,
         to: 1,
         ease: easing.easeOut,
-        duration: 300,
+        duration: 300
       }).start((v) => {
         this.camera.position.lerp(newCameraPos, v);
       });
@@ -482,11 +508,14 @@ export class GraphService {
 
   onDocumentMouseMove(event) {
     event.preventDefault();
+    this.mouse.x = event.clientX;
+    this.mouse.y = event.clientY;
+
     // TODO: Depends on where the dom is in relation to the other elements
     // Offset left because the dom does not start on the left border
-    this.mouse.x = ((event.clientX + this.domElement.offsetLeft - (window.innerWidth - this.domElement.clientWidth)) / this.domElement.clientWidth) * 2 - 1 ;
+    this.centeredMouse.x = ((event.clientX + this.domElement.offsetLeft - (window.innerWidth - this.domElement.clientWidth)) / this.domElement.clientWidth) * 2 - 1;
     // Offset top because the dom does not start on the edge, additional - offset top because there is a header over all simulation elements
-    this.mouse.y = -((event.clientY - this.domElement.offsetTop - (window.innerHeight - this.domElement.clientHeight - this.domElement.offsetTop)) / this.domElement.clientHeight) * 2 + 1;
+    this.centeredMouse.y = -((event.clientY - this.domElement.offsetTop - (window.innerHeight - this.domElement.clientHeight - this.domElement.offsetTop)) / this.domElement.clientHeight) * 2 + 1;
   }
 
 
@@ -533,33 +562,76 @@ export class GraphService {
       this.globalUniforms.u_time.value = this.time;
 
       // Intersection
-      this.raycaster.setFromCamera(this.mouse, this.camera);
+      this.raycaster.setFromCamera(this.centeredMouse, this.camera);
+
+      const removeTooltip = () => {
+        if (this.INTERSECTED) {
+          // this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
+          this.tippyTooltip.hide();
+        }
+        this.tippyTooltip.hide();
+        this.INTERSECTED = null;
+      };
 
       const intersects = this.raycaster.intersectObjects(this.scene.children, true);
       if (intersects.length > 0) {
-        if (this.INTERSECTED != intersects[0].object) {
-          if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
-          this.INTERSECTED = intersects[0].object;
-          if (this.INTERSECTED.parent.name.indexOf('p') == 0) {
-            if (this.INTERSECTED.parent.parent.name.indexOf('p_') == 0) {
-              // INTERSECTED is part of a port
-              const portName = this.getPortName(this.INTERSECTED.parent.parent.name);
-              if (portName == 'pc') {
-                console.log('Program Counter: ' + this.cpuInterface.bindings.pc.getValue());
-              } else {
-                console.log('Not found data path: ', this.INTERSECTED.parent.parent.name, portName);
-              }
+        const object = intersects.find((i) => {
+          if (i.object.name.startsWith('s_')) return true;
+          if (i.object.name.startsWith('c_')) return true;
+          if (i.object.parent.parent.name.startsWith('p_')) return true;
+        })?.object;
+
+        if (object) {
+          if (this.INTERSECTED != object) {
+            if (this.INTERSECTED) {
+              //this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
+              this.tippyTooltip.hide();
             }
-          } else if (this.INTERSECTED.name.indexOf('s') == 0) {
-            // This is a signal wire
-            console.log('Signal not found: ', this.INTERSECTED.name, this.getSignalName(this.INTERSECTED.name));
+            this.INTERSECTED = object;
+
+            this.tippyTooltip.setProps({
+              getReferenceClientRect: () => ({
+                width: 0,
+                height: 0,
+                top: this.mouse.y,
+                bottom: this.mouse.y,
+                left: this.mouse.x,
+                right: this.mouse.x
+              })
+            });
+
+            if (this.INTERSECTED.parent.parent.name.startsWith('p_')) {
+              // This is part of a port
+              const portName = this.getPortName(this.INTERSECTED.parent.parent.name);
+              this.tippyTooltip.setContent('Port ' + portName);
+            } else if (this.INTERSECTED.name.startsWith('s_')) {
+              // This is a signal wire
+              this.tippyTooltip.setContent('Signal ' + this.getSignalName(this.INTERSECTED.name));
+            } else if (this.INTERSECTED.name.startsWith('c_')) {
+              this.tippyTooltip.setContent('Signal with no value ' + this.getSignalName(this.INTERSECTED.name));
+            }
+
+            this.tippyTooltip.show();
+
+            // this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
+            // this.INTERSECTED.material.color.setHex(0xff0000);
+          } else {
+            this.tippyTooltip.setProps({
+              getReferenceClientRect: () => ({
+                width: 0,
+                height: 0,
+                top: this.mouse.y,
+                bottom: this.mouse.y,
+                left: this.mouse.x,
+                right: this.mouse.x
+              })
+            });
           }
-          this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
-          this.INTERSECTED.material.color.setHex(0xff0000);
+        } else {
+          removeTooltip();
         }
       } else {
-        if (this.INTERSECTED) this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
-        this.INTERSECTED = null;
+        removeTooltip();
       }
 
       this.renderer.render(this.scene, this.camera);
