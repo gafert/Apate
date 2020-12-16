@@ -106,7 +106,7 @@ export class Bindings {
     'func7': this.func7,
     'func3-0': this.branchFunc3_0,
     'func3-12': this.branchFunc3_12,
-    'branch': this.branchResult,
+    'branchresult': this.branchResult,
     'branchadd': this.branchAddResult,
     'pcadd': this.pcAdd,
     'pcadvother': this.pcAdvOther,

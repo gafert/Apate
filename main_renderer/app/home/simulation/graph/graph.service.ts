@@ -23,6 +23,7 @@ import { MeshText2D, textAlign } from 'three-text2d';
 import * as d3 from 'd3';
 import DEG2RAD = MathUtils.DEG2RAD;
 import tippy, { Instance, Props, Tippy } from 'tippy.js';
+import RISCV_DEFINITIONS from './risc.yml';
 
 interface ThreeNode {
   meshes: THREE.Mesh[];
@@ -31,16 +32,22 @@ interface ThreeNode {
   children: ThreeNode[];
 }
 
+type areas = 'overview' | 'decoder' | 'alu' | 'memory' | 'registers';
+
 @Injectable()
 export class GraphService {
   public initiated = false;
-  private domElement;
+
+  // Target where the canvas will be put
+  // Canvas will fill this dom
+  private renderDom;
 
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
 
-  private frameId;
+  // Set by requestAnimationFrame to render next frame
+  private frameId: number;
 
   private time = 0;
   private clock = new THREE.Clock();
@@ -55,14 +62,16 @@ export class GraphService {
   private idRoot; // Holds the parsed svg and adds meshes to each element
   private idFlat; // Takes the parsed svg with meshes and flattens all names to be a 1D array
 
-  private centeredMouse = new THREE.Vector2();
-  private mouse = new THREE.Vector2();
-  private INTERSECTED;
+  // Intersection related
+  // centeredMouse is update once the mouse is moved, so set start to value which never could be to prevent
+  // intersection on 0,0 before mouse is moved
+  private centeredMouse = new THREE.Vector2(-10000, -10000);
+  private mouse = new THREE.Vector2(-10000, -10000);
+  private intersectedElement;
   private raycaster: THREE.Raycaster;
-
-  private activeArea: 'overview' | 'decoder' | 'alu' | 'memory' | 'registers';
-
   private tippyTooltip: Instance<Props>;
+
+  private activeArea: areas;
 
   constructor(private ngZone: NgZone, private cpuInterface: CpuInterface) {
     process.on('exit', () => {
@@ -74,6 +83,8 @@ export class GraphService {
       this.scene = null;
       this.clock = null;
     });
+
+    console.log(RISCV_DEFINITIONS);
   }
 
   runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
@@ -81,8 +92,8 @@ export class GraphService {
   }
 
   resize() {
-    const width = this.domElement.clientWidth;
-    const height = this.domElement.clientHeight;
+    const width = this.renderDom.clientWidth;
+    const height = this.renderDom.clientHeight;
 
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
@@ -93,7 +104,7 @@ export class GraphService {
 
   init(domElement: HTMLElement) {
     this.ngZone.runOutsideAngular(() => {
-      this.domElement = domElement;
+      this.renderDom = domElement;
       if (this.initiated) {
         // Service already loaded scene, only set dom element again and start rendering
         domElement.appendChild(this.renderer.domElement);
@@ -138,11 +149,6 @@ export class GraphService {
         // Enable zooming
         panzoom(this.camera, domElement);
 
-        // Split areas in world and focus on the first
-        // This needs to be away from initiateObjects
-        this.separateAreas();
-        this.goToArea('overview');
-
         // Add tooltips
         this.tippyTooltip = tippy(this.renderer.domElement, {
           content: 'Context menu',
@@ -150,12 +156,18 @@ export class GraphService {
           theme: 'light',
           interactive: true,
           arrow: true,
+          allowHTML: true,
           offset: [0, 10]
         });
 
         // Start rendering
         if (document.readyState !== 'loading') this.render();
         else window.addEventListener('DOMContentLoaded', this.render.bind(this));
+
+        // Split areas in world and focus on the first
+        // This needs to be away from initiateObjects
+        this.separateAreas();
+        this.goToArea('overview');
 
         // Set initiated to true to not reload settings if init was called again by component using the service
         this.initiated = true;
@@ -221,19 +233,17 @@ export class GraphService {
     mesh.localToWorld(bsWorld);
     const cameraDir = new THREE.Vector3();
     this.camera.getWorldDirection(cameraDir);
-
     const cameraOffs = cameraDir.clone();
-
     cameraOffs.setZ(cameraZ);
-
     const newCameraPos = bsWorld.clone().add(cameraOffs);
 
+    // Lerp to new position if animate is true, otherwise move instantly
     if (animate) {
       tween({
         from: 0,
         to: 1,
-        ease: easing.easeOut,
-        duration: 300
+        ease: easing.easeIn,
+        duration: 1000
       }).start((v) => {
         this.camera.position.lerp(newCameraPos, v);
       });
@@ -243,7 +253,7 @@ export class GraphService {
   }
 
   separateAreas() {
-    const areas = ['overview', 'decoder', 'alu', 'memory', 'registers'];
+    const areas: areas[] = ['overview', 'decoder', 'alu', 'memory', 'registers'];
 
     let y = 0;
     for (const area of areas) {
@@ -309,7 +319,7 @@ export class GraphService {
                   mesh.name = child.id;
                   meshes.push(mesh);
 
-                  const signalName = this.getSignalName(child.id);
+                  const signalName = this.getSName(child.id);
                   if (signalName) {
                     const text = new MeshText2D(signalName, {
                       align: textAlign.left,
@@ -372,12 +382,9 @@ export class GraphService {
   }
 
   initHighlightingUsedPaths() {
-    const checkElementsCandMUX = (element: string) => {
+    const checkActiveElementsInGraph = (element: string) => {
       for (const key of Object.keys(this.idFlat)) {
         if (key.startsWith('mux') && key.includes(element)) {
-          this.setVisibility(key, true);
-        }
-        if (key.startsWith('c') && key.includes(element)) {
           this.setVisibility(key, true);
         }
       }
@@ -417,21 +424,21 @@ export class GraphService {
               }
             }
           } else if (isJALR(instruction.name)) {
-            checkElementsCandMUX('jalr');
+            checkActiveElementsInGraph('jalr');
           } else if (isLUI(instruction.name)) {
-            checkElementsCandMUX('lui');
+            checkActiveElementsInGraph('lui');
           } else if (isAUIPC(instruction.name)) {
-            checkElementsCandMUX('auipc');
+            checkActiveElementsInGraph('auipc');
           } else if (isIMM(instruction.name)) {
-            checkElementsCandMUX('imm');
+            checkActiveElementsInGraph('imm');
           } else if (isOP(instruction.name)) {
-            checkElementsCandMUX('op');
+            checkActiveElementsInGraph('op');
           } else if (isLOAD(instruction.name)) {
-            checkElementsCandMUX('load');
+            checkActiveElementsInGraph('load');
           } else if (isSTORE(instruction.name)) {
-            checkElementsCandMUX('store');
+            checkActiveElementsInGraph('store');
           } else if (isBRANCH(instruction.name)) {
-            checkElementsCandMUX('branch');
+            checkActiveElementsInGraph('branch');
 
             // Show control paths (c) of branch corresponding to instruction of branch type
             this.setVisibility('c_beq', this.cpuInterface.bindings.branchRs1Rs2BEQ.value === 1);
@@ -513,9 +520,9 @@ export class GraphService {
 
     // TODO: Depends on where the dom is in relation to the other elements
     // Offset left because the dom does not start on the left border
-    this.centeredMouse.x = ((event.clientX + this.domElement.offsetLeft - (window.innerWidth - this.domElement.clientWidth)) / this.domElement.clientWidth) * 2 - 1;
+    this.centeredMouse.x = ((event.clientX + this.renderDom.offsetLeft - (window.innerWidth - this.renderDom.clientWidth)) / this.renderDom.clientWidth) * 2 - 1;
     // Offset top because the dom does not start on the edge, additional - offset top because there is a header over all simulation elements
-    this.centeredMouse.y = -((event.clientY - this.domElement.offsetTop - (window.innerHeight - this.domElement.clientHeight - this.domElement.offsetTop)) / this.domElement.clientHeight) * 2 + 1;
+    this.centeredMouse.y = -((event.clientY - this.renderDom.offsetTop - (window.innerHeight - this.renderDom.clientHeight - this.renderDom.offsetTop)) / this.renderDom.clientHeight) * 2 + 1;
   }
 
 
@@ -553,103 +560,152 @@ export class GraphService {
   render() {
     this.ngZone.runOutsideAngular(() => {
       this.frameId = requestAnimationFrame(this.render.bind(this));
+
       // update time
       const deltaTime = this.clock.getDelta();
       this.time += deltaTime;
       for (const func of this.renderLoopFunctions) {
         func(this.time, deltaTime);
       }
+
+      // Set uniforms for shaders
       this.globalUniforms.u_time.value = this.time;
 
-      // Intersection
-      this.raycaster.setFromCamera(this.centeredMouse, this.camera);
-
-      const removeTooltip = () => {
-        if (this.INTERSECTED) {
-          // this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
-          this.tippyTooltip.hide();
-        }
-        this.tippyTooltip.hide();
-        this.INTERSECTED = null;
-      };
-
-      const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-      if (intersects.length > 0) {
-        const object = intersects.find((i) => {
-          if (i.object.name.startsWith('s_')) return true;
-          if (i.object.name.startsWith('c_')) return true;
-          if (i.object.parent.parent.name.startsWith('p_')) return true;
-        })?.object;
-
-        if (object) {
-          if (this.INTERSECTED != object) {
-            if (this.INTERSECTED) {
-              //this.INTERSECTED.material.color.setHex(this.INTERSECTED.currentHex);
-              this.tippyTooltip.hide();
-            }
-            this.INTERSECTED = object;
-
-            this.tippyTooltip.setProps({
-              getReferenceClientRect: () => ({
-                width: 0,
-                height: 0,
-                top: this.mouse.y,
-                bottom: this.mouse.y,
-                left: this.mouse.x,
-                right: this.mouse.x
-              })
-            });
-
-            if (this.INTERSECTED.parent.parent.name.startsWith('p_')) {
-              // This is part of a port
-              const portName = this.getPortName(this.INTERSECTED.parent.parent.name);
-              this.tippyTooltip.setContent('Port ' + portName);
-            } else if (this.INTERSECTED.name.startsWith('s_')) {
-              // This is a signal wire
-              this.tippyTooltip.setContent('Signal ' + this.getSignalName(this.INTERSECTED.name));
-            } else if (this.INTERSECTED.name.startsWith('c_')) {
-              this.tippyTooltip.setContent('Signal with no value ' + this.getSignalName(this.INTERSECTED.name));
-            }
-
-            this.tippyTooltip.show();
-
-            // this.INTERSECTED.currentHex = this.INTERSECTED.material.color.getHex();
-            // this.INTERSECTED.material.color.setHex(0xff0000);
-          } else {
-            this.tippyTooltip.setProps({
-              getReferenceClientRect: () => ({
-                width: 0,
-                height: 0,
-                top: this.mouse.y,
-                bottom: this.mouse.y,
-                left: this.mouse.x,
-                right: this.mouse.x
-              })
-            });
-          }
-        } else {
-          removeTooltip();
-        }
-      } else {
-        removeTooltip();
-      }
+      // Handle interactability via intersections
+      this.handleIntersection();
 
       this.renderer.render(this.scene, this.camera);
     });
   }
 
+  handleIntersection() {
+    // Intersection
+    this.raycaster.setFromCamera(this.centeredMouse, this.camera);
+
+    // Show Tooltip on intersection
+    const removeTooltip = () => {
+      if (this.intersectedElement) {
+        // this.intersectedElement.material.color.setHex(this.intersectedElement.currentHex);
+        this.tippyTooltip.hide();
+      }
+      this.tippyTooltip.hide();
+      this.intersectedElement = null;
+    };
+    const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+    if (intersects.length > 0) {
+      const getName = (i) => {
+        if (i.parent.parent.name.startsWith('p_')) return { name: i.parent.parent.name, type: 'p' };
+        if (i.parent.parent.name.startsWith('m_')) return { name: i.parent.parent.name, type: 'm' };
+        if (i.parent.parent.name.startsWith('w_')) return { name: i.parent.parent.name, type: 'w' };
+        if (i.parent.name.startsWith('p_')) return { name: i.parent.name, type: 'p' };
+        if (i.parent.name.startsWith('m_')) return { name: i.parent.name, type: 'm' };
+        if (i.parent.name.startsWith('w_')) return { name: i.parent.name, type: 'w' };
+        if (i.name.startsWith('s_')) return { name: i.name, type: 's' };
+        if (i.name.startsWith('w_')) return { name: i.name, type: 'w' };
+        if (i.name.startsWith('m_')) return { name: i.name, type: 'm' };
+      }
+
+      let object;
+      for (const intersection of intersects) {
+        object = getName(intersection.object);
+        if(object) break;
+      }
+
+      if (object) {
+        if (JSON.stringify(this.intersectedElement) != JSON.stringify(object)) {
+          if (this.intersectedElement) {
+            //this.intersectedElement.material.color.setHex(this.intersectedElement.currentHex);
+            this.tippyTooltip.hide();
+          }
+          this.intersectedElement = object;
+
+          this.tippyTooltip.setProps({
+            getReferenceClientRect: () => ({
+              width: 0,
+              height: 0,
+              top: this.mouse.y,
+              bottom: this.mouse.y,
+              left: this.mouse.x,
+              right: this.mouse.x
+            })
+          });
+
+          let name;
+          let id;
+          let prevalue;
+          let value;
+          let desc;
+          switch (object.type) {
+            case 'w':
+            case 's':
+              id = this.getSName(object.name) || this.getWName(object.name);
+              prevalue = this.cpuInterface.bindings.allValues[id]?.value === undefined ? id : this.cpuInterface.bindings.allValues[id]?.value;
+              name = RISCV_DEFINITIONS.signals[id]?.name;
+              value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
+              desc = RISCV_DEFINITIONS.signals[id]?.desc;
+              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
+              console.log(object.name, id, name, prevalue, value);
+              break;
+            case 'm':
+              id = this.getModuleName(object.name);
+              name = RISCV_DEFINITIONS.modules[id]?.name;
+              desc = RISCV_DEFINITIONS.modules[id]?.desc;
+              this.tippyTooltip.setContent('<strong>' + name + '</strong>' + (desc ? '<br>' + desc : ''));
+              console.log(object.name, id, name);
+              break;
+            case 'p':
+              id = this.getPortName(object.name);
+              prevalue = this.cpuInterface.bindings.allValues[id]?.value === undefined ? id : this.cpuInterface.bindings.allValues[id]?.value;
+              name = RISCV_DEFINITIONS.ports[id]?.name;
+              value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
+              desc = RISCV_DEFINITIONS.ports[id]?.desc;
+              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value  + (desc ? '<br>' + desc : ''));
+              console.log(object.name, id, name, prevalue, value);
+              break;
+          }
+
+          this.tippyTooltip.show();
+
+          // this.intersectedElement.currentHex = this.intersectedElement.material.color.getHex();
+          // this.intersectedElement.material.color.setHex(0xff0000);
+        } else {
+          this.tippyTooltip.setProps({
+            getReferenceClientRect: () => ({
+              width: 0,
+              height: 0,
+              top: this.mouse.y,
+              bottom: this.mouse.y,
+              left: this.mouse.x,
+              right: this.mouse.x
+            })
+          });
+        }
+      } else {
+        removeTooltip();
+      }
+    } else {
+      removeTooltip();
+    }
+  }
+
   getPortName(id) {
-    const regex = /(?:p_)(.*?)(?:[-\n$\s])/g;
+    const regex = /(?:p_)(.*?)(?:-|$)/g;
     return this.getFirstGroup(regex, id);
   }
 
-  getSignalName(id) {
+  getSName(id) {
     const regex = /(?:s_)(.*?)(?:-|$)/g;
     return this.getFirstGroup(regex, id);
   }
 
-  getControlName(id) {
-    const regex = /(?:c_)(.*?)(?:-|$)/g;
+  getWName(id) {
+    const regex = /(?:w_)(.*?)(?:-|$)/g;
+    return this.getFirstGroup(regex, id);
+  }
+
+
+  getModuleName(id) {
+    const regex = /(?:m_)(.*?)(?:-|$)/g;
     return this.getFirstGroup(regex, id);
   }
 

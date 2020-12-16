@@ -1,32 +1,277 @@
-- port_imm_1:
-    type: port
-- port_rs2_1:
-    type: port
-- signal_imm_1:
-    type: signal
-    from: port_imm_1
-- signal_rs2_1:
-    type: signal
-    from: port_rs2_1
-- mux_1:
-    type: mux
-    from:
-      - signal_imm_1
-      - signal_rs2_1
-    active:
-      - imm
-      - op
-- signal_mux_out_1:
-    type: signal
-    from: port_rs2_1
-- mux_2:
-    type: mux
-    from:
-      - signal_mux_out_1
-      - signal_other
-    active:
-      - imm | op
-      - load
-- signal_mux_out_2:
-    type: signal
-    from: mux_2
+# m_ = module
+# s_ = signal with value displayed
+# c_ = signal with no value displayed
+
+string1: &rs1 Register Source 1
+string2: &rs2 Register Source 2
+string3: &imm Immediate
+string4: &pc Program Counter
+string5: &rd Return Register
+
+modules:
+  memoryfetchinstr:
+    name: Memory
+    desc: Read memory at the given location from the Program Counter and save it in the READ signal.
+    addr: pc
+    read: instrmemread
+  memoryfetch:
+    name: Memory
+    desc: Read/write memory at the given address (ADDR).<br>If write is selected by the instruction the value of WRITE will be written to the memory location ADDR.<br> If read is selected, WRITE value will be ignored but READ value will be set.
+    addr: rs1imm
+    read: memread
+    write: rs2
+  controlunit:
+    name: Control Unit
+    desc: Decodes the instruction data to signals which control the CPU. Control signals are blue and activate/deactivate parts of the CPU via MUXes. Additonal values which can be decoded will be passed to the data path.
+  reg1:
+    name: Registers
+    desc: Reads the register value at ADDR (Register Source 1 Address) and stores it in READ (Register Source 1)
+    addr: rs1addr
+    value: rs1
+  reg2:
+    name: Registers
+    desc: Reads the register value at ADDR (Register Source 2 Address) and stores it in READ (Register Source 2)
+    addr: rs2addr
+    value: rs2
+  regwrite:
+    name: Registers
+    desc: Writes value of WRITE to the register location ADDR (Return Register)
+    addr: rd
+    value: regwrite
+  eq:
+    name: Equal
+    desc: Combinationally checks the equality of two values (Register Source 1, Register Source 2)
+  ne:
+    name: Not Equal
+    desc: Combinationally checks the inequality of two values (Register Source 1, Register Source 2)
+  lt:
+    name: Less Than
+    desc: Combinationally checks if Register Source 1 is less than Register Source 2
+  ge:
+    name: Greater Equal
+    desc: Combinationally checks if Register Source 1 is greater than or equal to Register Source 2
+  addpcalu:
+    name: Adder
+    desc: Add Program Counter and ALU Output
+  addrs1imm:
+    name: Adder
+    desc: Add Register Source 1 and Immediate Value
+  addpc:
+    name: Adder
+    desc: Add to Program Counter
+  xorimmop:
+    name: XOR
+    desc: XOR 'Immediate' Instruction and 'OP' Instruction
+  xorjaljalr:
+    name: XOR
+    desc: XOR 'Jump And Link' Instruction and 'Jump And Link Register' Instruction
+  xorluiauipc:
+    name: XOR
+    desc: XOR 'Load Upper Immediate' Instruction and 'Add Upper Immediate To Program Counter' Instruction
+  alu:
+    name: Arithetic Logic Unit (ALU)
+    desc: >
+      Performs calculations on Operator 1 and Operator 2 depending und FUNC3 and FUNC7. Operations include: Add, Subtract, Shift, And, Or, Xor.
+  mux_immrs2:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the control signals
+      <hr>
+      <table>
+        <tr><td>IMM</td><td><i class="fas fa-arrow-right"></i></td> <td>Immediate</td></tr>
+        <tr><td>OP</td><td><i class="fas fa-arrow-right"></i></td> <td>Register Source 2</td></tr>
+      </table>
+  mux_immrs2pcimm:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the control signals. The control signals of the MUX below are the same.
+      <hr>
+      <table>
+        <tr><td>IMM or OP</td><td><i class="fas fa-arrow-right"></i></td> <td>Immediate or Register Source 2</td></tr>
+        <tr><td>JAL or JALR</td><td><i class="fas fa-arrow-right"></i></td> <td>Program Counter</td></tr>
+        <tr><td>LUI or AUIPC</td><td><i class="fas fa-arrow-right"></i></td> <td>Immediate</td></tr>
+      </table>
+  mux_rs1412:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the control signals. The control signals of the MUX above are the same.
+      <hr>
+      <table>
+        <tr><td>IMM or OP</td><td><i class="fas fa-arrow-right"></i></td> <td>Register Source 1</td></tr>
+        <tr><td>JAL or JALR</td><td><i class="fas fa-arrow-right"></i></td> <td>4</td></tr>
+        <tr><td>LUI or AUIPC</td><td><i class="fas fa-arrow-right"></i></td> <td>12</td></tr>
+      </table>
+  mux_branches:
+    name: Multiplexer (MUX)
+    desc: Multiplexes between branch results for equal (BEQ), not equal (BNE), less than (BLT) and greater equal (BGE)
+  mux_4imm:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the branch result
+      <hr>
+      <table>
+        <tr><td>false</td><td><i class="fas fa-arrow-right"></i></td> <td>4</td></tr>
+        <tr><td>true</td><td><i class="fas fa-arrow-right"></i></td> <td>Immediate</td></tr>
+      </table>
+  mux_pcaluout:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the control signals
+      <hr>
+      <table>
+        <tr><td>AUIPC</td><td><i class="fas fa-arrow-right"></i></td> <td>ALU Output + Program Counter</td></tr>
+        <tr><td>not AUIPC</td><td><i class="fas fa-arrow-right"></i></td> <td>ALU Output</td></tr>
+      </table>
+  mux_aluout:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the control signals
+      <hr>
+      <table>
+        <tr><td>not LOAD</td><td><i class="fas fa-arrow-right"></i></td> <td>Register Write Value from ALU</td></tr>
+        <tr><td>LOAD</td><td><i class="fas fa-arrow-right"></i></td> <td>Memory Read Value</td></tr>
+      </table>
+      <hr>
+      Not LOAD are in this context: IMM, OP, LUI, AUIPC, JAL, JALR. Other instructions are not used in this part of the CPU.
+  mux_4immbranch:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the control signals
+      <hr>
+      <table>
+        <tr><td>not JAL and not BRANCH</td><td><i class="fas fa-arrow-right"></i></td> <td>4</td></tr>
+        <tr><td>JAL</td><td><i class="fas fa-arrow-right"></i></td> <td>Immediate</td></tr>
+        <tr><td>BRANCH</td><td><i class="fas fa-arrow-right"></i></td> <td>Branch Value</td></tr>
+      </table>
+      <hr>
+      Not JAL and not BRANCH are in this context: IMM, OP, LUI, LOAD, STORE. Other instructions are not used in this part of the CPU.
+  mux_pcadvother:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the control signals
+      <hr>
+      <table>
+        <tr><td>not JALR</td><td><i class="fas fa-arrow-right"></i></td> <td>Next Program Counter if not JALR</td></tr>
+        <tr><td>JALR</td><td><i class="fas fa-arrow-right"></i></td> <td>Next Program Counter if JALR</td></tr>
+      </table>
+      <hr>
+      Not JALR are in this context: IMM, OP, JAL, AUIPC, LOAD, STORE, LUI, BRANCH. Other instructions are not used in this part of the CPU.
+  datapath:
+    name: Data Path
+    desc: Contains all decoded instruction data signals which are used inside the CPU. These include Immediate Value (IMM), Return Register (RD), Register Source 1 (RS1) and Register Source 2 (RS2).
+  controlpath:
+    name: Control Path
+    desc: Contains all decoded instruction control signal which are used inside the CPU. These include FUNC3, FUNC7 and the signals for each instruction type. Depending on the instruction one of the instruction type signals is turned on and controls the CPU.
+
+ports:
+  rd:
+    name: *rd
+  pc:
+    name: *pc
+  imm:
+    name: *imm
+  rs1:
+    name: *rs1
+  rs2:
+    name: *rs2
+  4:
+    name: Fixed to 4
+  12:
+    name: Fixed to 12
+
+signals:
+  4:
+    name: Fixed to 4
+  12:
+    name: Fixed to 12
+  pc:
+    name: *pc
+    bits: 32
+  instrmemread:
+    signal: true
+    name: Instruction Data
+    bits: 32
+  func3:
+    bits: 3
+    name: Function 3
+  func7:
+    name: Function 7
+    bits: 7
+  op:
+    bits: 1
+    name: Op Instruction
+  imminstr:
+    bits: 1
+    name: Immediate Instruction
+  load:
+    bits: 1
+    name: Load Instruction
+  store:
+    bits: 1
+    name: Store Instruction
+  jal:
+    bits: 1
+    name: Jump And Link
+  jalr:
+    bits: 1
+    name: Jump And Link Register
+  lui:
+    bits: 1
+    name: Load Upper Immediate
+  auipc:
+    bits: 1
+    name: Add Upper Immediate To Program Counter
+  rd:
+    bits: 5
+    name: *rd
+  imm:
+    bits: 20
+    name: *imm
+  rs1addr:
+    bits: 5
+    name: Register Source 1 Address
+  rs2addr:
+    bits: 5
+    name: Register Source 2 Address
+  rs1:
+    bits: 32
+    name: *rs1
+  rs2:
+    bits: 32
+    name: *rs2
+  immrs2:
+    name: Immediate or Register Source 2
+  op1:
+    name: Operator 1
+  op2:
+    name: Operator 2
+  aluout:
+    name: Arithemtic Logic Unit Output
+  pcaluout:
+    name: Program Counter + ALU Output
+  muxaluout:
+    name: Register Write Value from ALU
+  regwrite:
+    name: Register Write Value
+  memread:
+    name: Memory Read Value
+  pcadd:
+    name: Next Program Counter Addition
+  pcadvother:
+    name: Next Program Counter if not JALR
+  pcadvjalr:
+    name: Next Program Counter if JALR
+  pcadv:
+    name: Next Program Counter
+  beq:
+    name: Branch Equal Result
+  bne:
+    name: Branch Not Equal Result
+  blt:
+    name: Branch Less Than Result
+  bge:
+    name: Branch Greater Equal Result
+  branch:
+    name: Branch Result
+  branchadd:
+    name: Branch Value
