@@ -35,8 +35,9 @@ body {
 
 // SIZES
 $headerHeight: 2em;
-$sectionsHeight: 2em;
-$bodyMarginTop: $headerHeight + $sectionsHeight;
+$tabsHeight: 2em;
+$tabsMarginLeft: 0.6em;
+$bodyMarginTop: $headerHeight + $tabsHeight;
 
 $border: 1px solid $grey1;
 

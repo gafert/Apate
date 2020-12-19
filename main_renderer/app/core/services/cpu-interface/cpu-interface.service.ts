@@ -40,7 +40,7 @@ export class CpuInterface implements OnDestroy {
     this.parsedElf.program.copy(this.bindings.memory.value, 0, 0);
     // this.bindings.memory.next();
     this.bindings.pc.next(0);
-    this.bindings.cpuState.next(CPU_STATES.FETCH);
+    this.bindings.cpuState.next(null);
     this.bindings.nextCpuState.next(CPU_STATES.FETCH);
     this.elfIsLoaded = true;
   }
@@ -218,6 +218,8 @@ export class CpuInterface implements OnDestroy {
     }
 
     this.bindings.cycleComplete.next(1);
+
+    return this.bindings.cpuState.value;
   }
 
   callALU(op1, op2, instruction): number {
@@ -318,15 +320,6 @@ export class CpuInterface implements OnDestroy {
         break;
     }
     this.bindings.memory.next(memory);
-  }
-
-  advanceSimulationPc() {
-    let timeout = 10;
-    this.advanceSimulationClock();
-    while (timeout > 0 && this.bindings.nextCpuState.value != CPU_STATES.EXECUTE) {
-      this.advanceSimulationClock();
-      timeout--;
-    }
   }
 
   runUntilBreak() {

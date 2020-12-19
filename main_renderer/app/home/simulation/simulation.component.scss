@@ -3,27 +3,30 @@
 $gridWidth: 11em;
 $gridHeight: 5em;
 
+$controlHeight: 3em;
+
 #simulation-container {
   position: relative;
+  height: 100%;
+  display: flex;
   top: -1px;
 }
 
 .tabs.simulation-tabs {
   position: absolute;
-  top: 0;
+  top: calc((#{$controlHeight} * 1));
   left: $gridWidth * 2;
   right: $gridWidth * 2;
 
   border-bottom: $border;
-  border-top: $border;
 
   // Overwrite default tab height to make padding
-  padding-top: 0.4em;
-  height: $sectionsHeight + 0.4em + 0.2em; // More padding because of borders
+  height: $tabsHeight; // More padding because of borders
 
   // Overwrite default color
   background-color: $grey3;
 
+  // Invert colors
   button {
     background-color: $grey3;
 
@@ -41,25 +44,55 @@ $gridHeight: 5em;
   position: absolute;
 }
 
+.info {
+  width: calc((#{$gridWidth} * 2));
+  right: calc((#{$gridWidth} * 2) + 1em);
+  top: calc(#{$controlHeight} + #{$tabsHeight} + 1em);
+  border-radius: 1em;
+  border: $border;
+  background-color: $grey3;
+  padding: 1.5em;
+  opacity: 0.8;
+  transition: opacity 100ms;
+
+  i {
+    position: absolute;
+    left: -0.3em;
+    top: -0.3em;
+    font-size: 2em;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.control {
+  width: calc(100% - (#{$gridWidth} * 4));
+  height: calc((#{$controlHeight} * 1));
+  left: $gridWidth * 2;
+  top: 0;
+  border-top: $border;
+  background-color: $grey3;
+  padding: $tabsMarginLeft;
+
+  #state {
+    font-weight: bold;
+    font-size: large;
+  }
+
+  #actions {
+    position: absolute;
+    right: $tabsMarginLeft;
+    bottom: $tabsMarginLeft - $tabsHeight;
+  }
+}
+
 .app-instruction {
   width: $gridWidth * 2;
   bottom: 0;
   top: 0;
   left: 0;
-}
-
-.app-memory {
-  height: $gridHeight * 2;
-  bottom: 0;
-  left: $gridWidth * 2;
-  right: $gridWidth * 2;
-}
-
-.app-signals {
-  height: $gridHeight * 2;
-  width: $gridWidth * 2;
-  right: 0;
-  top: 0;
 }
 
 .app-registers {
@@ -69,17 +102,10 @@ $gridHeight: 5em;
   bottom: 0;
 }
 
-.app-terminal {
-  width: $gridWidth * 2;
-  height: $gridHeight * 2;
-  top: $gridHeight * 2;
-  right: 0;
-}
-
 .app-graph {
   width: calc(100% - (#{$gridWidth} * 4));
-  height: calc(100% - (#{$sectionsHeight} + 0.4em + 0.2em));
+  height: calc(100% - #{$tabsHeight} - #{$controlHeight}); // Because tabs are a bit bigger
   left: $gridWidth * 2;
-  top: $sectionsHeight + 0.4em + 0.2em;
+  top: calc(#{$controlHeight} + #{$tabsHeight});
   outline: none;
 }

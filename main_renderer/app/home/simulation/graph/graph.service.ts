@@ -6,7 +6,7 @@ import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface
 import { SVGLoader } from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
-import { easing, tween } from 'popmotion';
+import { Action, easing, tween } from 'popmotion';
 import {
   isAUIPC,
   isBRANCH,
@@ -72,6 +72,8 @@ export class GraphService {
   private tippyTooltip: Instance<Props>;
 
   private activeArea: areas;
+
+  private focusAnimation;
 
   constructor(private ngZone: NgZone, private cpuInterface: CpuInterface) {
     process.on('exit', () => {
@@ -175,25 +177,22 @@ export class GraphService {
     });
   }
 
-  goToState(state) {
+  public focusOnElement(state) {
     // Block if change comes too early
     if (!this.idFlat) return;
-    if (this.activeArea !== 'overview') return;
-    this.focusCameraOnMesh(this.idFlat['state_' + state].meshes[0], true);
+    this.focusCameraOnMesh(this.idFlat['focus_' + state]?.meshes[0], true);
   }
 
-  goToArea(name) {
+  public goToArea(name) {
     // Block if change comes too early
     if (!this.idFlat) return;
     this.activeArea = name;
-    this.focusCameraOnMesh(this.idFlat['areaborder_' + name].meshes[0]);
-    if (this.activeArea === 'overview') {
-      // Focus on state
-      this.updateAndFocusState(this.cpuInterface.bindings.nextCpuState.value);
-    }
+    this.focusCameraOnMesh(this.idFlat['areaborder_' + name]?.meshes[0]);
   }
 
   private focusCameraOnMesh(mesh, animate = false) {
+    if(!mesh) return;
+
     mesh.geometry.computeBoundingBox();
     mesh.geometry.computeBoundingSphere();
     const bb = mesh.geometry.boundingBox;
@@ -237,9 +236,10 @@ export class GraphService {
     cameraOffs.setZ(cameraZ);
     const newCameraPos = bsWorld.clone().add(cameraOffs);
 
+    this.focusAnimation?.stop();
     // Lerp to new position if animate is true, otherwise move instantly
     if (animate) {
-      tween({
+      this.focusAnimation = tween({
         from: 0,
         to: 1,
         ease: easing.easeIn,
@@ -379,6 +379,20 @@ export class GraphService {
 
     this.scene.add(this.renderGroup);
     this.initHighlightingUsedPaths();
+    this.hideFocusAreas();
+  }
+
+  /**
+   * Focus areas should not be visible
+   */
+  hideFocusAreas() {
+    for (const key of Object.keys(this.idFlat)) {
+      if (key.startsWith('focus_')) {
+        this.idFlat[key].meshes.forEach((mesh) => {
+          mesh.material.opacity = 0;
+        });
+      }
+    }
   }
 
   initHighlightingUsedPaths() {
@@ -464,54 +478,49 @@ export class GraphService {
         }
       }
 
-      this.updateAndFocusState(nextCpuState);
+      // this.updateActiveMeshes(nextCpuState);
     });
   }
 
-  updateAndFocusState(nextCpuState) {
-    // Hide all state meshes
-    // Show only state borders of active state
-    for (const key of Object.keys(this.idFlat)) {
-      if (key.includes('state')) {
-        this.idFlat[key].meshes.forEach((mesh) => {
-          mesh.material.opacity = 0.1;
-        });
-      }
-    }
-
-    // Activate new state meshes and focus on them in the following switch
-    const showStateMesh = (name: string): void => {
-      const element = this.idFlat['state_' + name];
-      element.meshes.forEach((mesh) => {
-        mesh.material.opacity = 1;
-      });
-    };
-
-    switch (nextCpuState) {
-      case CPU_STATES.DECODE_INSTRUCTION:
-        this.goToState('decode');
-        showStateMesh('decode');
-        break;
-      case CPU_STATES.EXECUTE:
-        this.goToState('execute');
-        showStateMesh('execute');
-        break;
-      case CPU_STATES.WRITE_BACK:
-        this.goToState('writeback');
-        showStateMesh('writeback');
-        break;
-      case CPU_STATES.ADVANCE_PC:
-        this.goToState('advpc');
-        showStateMesh('advpc');
-        break;
-      case CPU_STATES.BREAK:
-        break;
-      case CPU_STATES.FETCH:
-        this.goToState('fetch');
-        showStateMesh('fetch');
-        break;
-    }
-  }
+  // updateActiveMeshes(nextCpuState) {
+  //   // Hide all state meshes
+  //   // Show only state borders of active state
+  //   for (const key of Object.keys(this.idFlat)) {
+  //     if (key.includes('state')) {
+  //       this.idFlat[key].meshes.forEach((mesh) => {
+  //         mesh.material.opacity = 0.1;
+  //       });
+  //     }
+  //   }
+  //
+  //   // Activate new state meshes and focus on them in the following switch
+  //   const showStateMesh = (name: string): void => {
+  //     const element = this.idFlat['state_' + name];
+  //     element.meshes.forEach((mesh) => {
+  //       mesh.material.opacity = 1;
+  //     });
+  //   };
+  //
+  //   switch (nextCpuState) {
+  //     case CPU_STATES.DECODE_INSTRUCTION:
+  //       showStateMesh('decode');
+  //       break;
+  //     case CPU_STATES.EXECUTE:
+  //       showStateMesh('execute');
+  //       break;
+  //     case CPU_STATES.WRITE_BACK:
+  //       showStateMesh('writeback');
+  //       break;
+  //     case CPU_STATES.ADVANCE_PC:
+  //       showStateMesh('advpc');
+  //       break;
+  //     case CPU_STATES.BREAK:
+  //       break;
+  //     case CPU_STATES.FETCH:
+  //       showStateMesh('fetch');
+  //       break;
+  //   }
+  // }
 
   onDocumentMouseMove(event) {
     event.preventDefault();

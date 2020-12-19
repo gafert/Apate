@@ -6,15 +6,7 @@
     "name": "Michael Gafert",
     "email": "m.gafert@outlook.com"
   },
-  "keywords": [
-    "angular",
-    "angular 9",
-    "electron",
-    "typescript",
-    "eslint",
-    "spectron",
-    "sass"
-  ],
+  "keywords": [],
   "main": "main.js",
   "private": true,
   "scripts": {
@@ -28,7 +20,6 @@
     "electron:windows": "npm run build:prod && electron-builder build --win",
     "electron:mac": "npm run build:prod && electron-builder build --mac",
     "build": "npm run electron:tsc && ng build --base-href ./ ",
-    "build:dev": "npm run build -- -c dev",
     "build:prod": "npm run build -- -c production",
     "postinstall": "electron-builder install-app-deps",
     "ng": "ng",
@@ -57,9 +48,8 @@
     "@typescript-eslint/eslint-plugin": "2.20.0",
     "@typescript-eslint/eslint-plugin-tslint": "3.6.0",
     "@typescript-eslint/parser": "3.6.0",
-    "core-js": "3.6.5",
-    "electron": "11.0.3",
-    "electron-builder": "22.7.0",
+    "electron": "11.1.0",
+    "electron-builder": "22.9.1",
     "electron-reload": "1.5.0",
     "eslint": "7.4.0",
     "eslint-config-prettier": "6.11.0",

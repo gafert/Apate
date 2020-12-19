@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import { byteToHex, range } from '../../globals';
@@ -8,6 +8,9 @@ import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DataKeys, DataService } from '../../core/services/data.service';
 import { Router } from '@angular/router';
+import { GraphService } from './graph/graph.service';
+import RISCV_STAGES from './stages.yml';
+import { Bindings } from '../../core/services/cpu-interface/bindingSubjects';
 
 @Component({
   selector: 'app-simulation',
@@ -19,24 +22,20 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public byteToHex = byteToHex;
   public DataKeys = DataKeys;
   public range = range;
-  /** Is set by loading settings input */
-  public stepOptions = {
-    clock: {
-      name: 'Clock',
-      selected: false
-    },
-    pc: {
-      name: 'Program Counter',
-      selected: true
-    }
-  };
   private ngUnsubscribe = new Subject();
   public selectedTab = 'overview';
 
+  public stage = 'Initiate the simulation';
+  public info;
+  private instrCounter = 0;
+  private infoCounter = 0;
+
   constructor(
-    public simLibInterfaceService: CpuInterface,
+    public cpuInterface: CpuInterface,
     private dataService: DataService,
-    private router: Router
+    private router: Router,
+    private graphService: GraphService,
+    private cd: ChangeDetectorRef
   ) {
   }
 
@@ -65,25 +64,79 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
     if (elfPath) {
       if (elfPath.indexOf('.elf') > 0) {
-        this.simLibInterfaceService.initSimulation(elfPath);
+        this.cpuInterface.initSimulation(elfPath);
         // Wait for program counter to be 0 before reloading
         setTimeout(() => {
           this.instructionsComponent.reload();
         }, 100);
       }
     }
+
+    this.instrCounter = 0;
+    this.infoCounter = -1;
   }
 
   stepSimulation() {
-    if (this.stepOptions.clock.selected) {
-      this.simLibInterfaceService.advanceSimulationClock();
-    } else {
-      this.simLibInterfaceService.advanceSimulationPc();
+    const info = this.getNextInfo(this.cpuInterface.bindings);
+    console.log(info);
+    if (info.exec)
+      this.stage = this.cpuInterface.advanceSimulationClock();
+    if (info.area) {
+      this.selectedTab = info.area;
+      // Detect changes to first go to area and then focus
+      // Otherwise focusOnElement animation would be stopped
+      this.cd.detectChanges();
     }
+    if (info.focus)
+      this.graphService.focusOnElement(info.focus);
+    this.info = info.text;
+  }
+
+
+  getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: string; area?: string; focus?: string } {
+
+    if(this.infoCounter + 1 >= RISCV_STAGES[this.instrCounter].infos.length) {
+      // There is no info left in this instruction, go to first info of new instruction
+      this.infoCounter = 0;
+
+      // eslint-disable-next-line no-constant-condition
+      while(true) {
+        // Which is the new instruction?
+        // First check if a instruction exits in this stage
+        if (this.instrCounter + 1 >= RISCV_STAGES.length) {
+          // No new instruction exits
+          // Reset counter
+          this.instrCounter = -1; // -1 because loop checks one more time of instruction complies
+        } else {
+          this.instrCounter++;
+          // Check if this instruction fullfills the requirements
+          const instr = RISCV_STAGES[this.instrCounter];
+          console.log(instr);
+
+          const compliesWithIf = (instr.if !== undefined) ? instr.if(bindings) : true;
+          let compliesWithInstruction = true;
+          if(instr.instr?.length > 0 && bindings.instruction.value) {
+            compliesWithInstruction = instr.instr.indexOf(bindings.instruction.value.group) >= 0;
+          }
+
+          if ((compliesWithIf && compliesWithInstruction)) {
+            // Does comply, break out of loop with new instruction counter set
+            break;
+          }
+        }
+      }
+    } else {
+      this.infoCounter++;
+    }
+
+    console.log(bindings.instruction.value?.group);
+
+
+    return RISCV_STAGES[this.instrCounter].infos[this.infoCounter];
   }
 
   runSimulation() {
-    this.simLibInterfaceService.runUntilBreak();
+    this.cpuInterface.runUntilBreak();
   }
 
   ngOnDestroy() {

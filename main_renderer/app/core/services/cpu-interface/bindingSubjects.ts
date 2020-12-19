@@ -11,11 +11,11 @@ import {BehaviorSubject} from "rxjs";
 import { Instruction } from './instructionParser';
 
 export enum CPU_STATES {
-  FETCH = "Read From Memory",
+  FETCH = "Fetch Next Instruction",
   DECODE_INSTRUCTION = "Decode Instruction",
   EXECUTE = "Execute Instruction",
-  WRITE_BACK = "Write Back",
-  ADVANCE_PC = "Advanced PC",
+  WRITE_BACK = "Write Back to Register",
+  ADVANCE_PC = "Advanced Program Counter",
   BREAK = "Break"
 }
 
@@ -78,8 +78,8 @@ export class Bindings {
   public pcAdv = new BehaviorSubject<number>(null);
 
   // State
-  public nextCpuState = new BehaviorSubject<CPU_STATES>(null);
-  public cpuState = new BehaviorSubject<CPU_STATES>(CPU_STATES.FETCH);
+  public nextCpuState = new BehaviorSubject<CPU_STATES>(CPU_STATES.FETCH);
+  public cpuState = new BehaviorSubject<CPU_STATES>(null);
   public cycleComplete = new BehaviorSubject<number>(0);
 
   // Decoder

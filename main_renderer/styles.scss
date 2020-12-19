@@ -65,14 +65,6 @@ button {
   }
 }
 
-.shadow-container {
-  //box-shadow: 6px 6px 10px #242424, -6px -6px 10px #4a4a4a;
-  background-color: $grey3;
-  border-radius: 1em;
-  margin: 1em;
-  border: solid transparent 1em;
-}
-
 .small-rounded-container {
   border-radius: 1em;
   border: $border;
@@ -91,14 +83,14 @@ button {
 
 .tabs {
   display: flex;
-  height: $sectionsHeight;
+  height: $tabsHeight;
   background-color: $grey2;
 
   button {
     color: white;
     background-color: $grey2;
     border: $border;
-    margin-left: 0.6em;
+    margin-left: $tabsMarginLeft;
     padding: 0em 1em;
     margin-bottom: -1px;
 
@@ -109,22 +101,9 @@ button {
     &[selected=true] {
       background-color: $grey3;
       border-bottom: 0;
+      z-index: 10;
     }
   }
-}
-
-.main-tab-header {
-  background-color: $grey3;
-  border: $border;
-  height: 3em;
-  width: 100%;
-  display: flex;
-  align-items: center;
-}
-
-.main-tab-container {
-  height: calc(100% - 3em);
-  display: flex;
 }
 
 // Used in instructions registers terminal

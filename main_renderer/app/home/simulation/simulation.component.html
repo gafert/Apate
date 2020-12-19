@@ -1,34 +1,33 @@
-<div class="main-tab-header">
-  <app-action-button style="margin-left: 1em" (activate)="initiateSimulation()" text="Initiate"></app-action-button>
-
-  <app-action-button style="margin-left: 1em" (activate)="runSimulation()"
-                     [disabled]="!simLibInterfaceService.elfIsLoaded"
-                     text="Run to end"></app-action-button>
-
-  <app-action-button style="margin-left: 1em" (activate)="stepSimulation()"
-                     [disabled]="!simLibInterfaceService.elfIsLoaded"
-                     text="Step"></app-action-button>
-
-  <app-selecto-option [(options)]="stepOptions"></app-selecto-option>
-
-</div>
-
-<div class="main-tab-container" id="simulation-container">
-  <!-- Before all other elements because it is below them -->
+<div id="simulation-container">
   <app-graph [focus]="selectedTab" class="simulation-item-content app-graph"></app-graph>
 
   <div class="tabs simulation-tabs">
     <!-- The paths need to overwrite the last path element e.g. /home/simulation/overview -> /home/simulation/decoder -->
     <button *ngVar="'overview' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Overview</button>
-    <button *ngVar="'decoder' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Decoder</button>
-    <button *ngVar="'alu' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">ALU</button>
-    <button *ngVar="'memory' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Memory</button>
-    <button *ngVar="'registers' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Registers</button>
+    <button *ngVar="'decoder' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Control Unit</button>
+    <button *ngVar="'alu' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Arithmetic Logic Unit</button>
   </div>
 
+  <div class="simulation-item-content control">
+    <div id="state">{{stage}}</div>
+    <div id="actions">
+      <app-action-button style="margin-left: 1em" (buttonClick)="initiateSimulation()" text="Initiate"></app-action-button>
+
+      <app-action-button style="margin-left: 1em" (buttonClick)="stepSimulation()"
+                         [disabled]="!cpuInterface.elfIsLoaded"
+                         text="Step" iconClass="fas fa-play"></app-action-button>
+    </div>
+  </div>
+
+  <div class="simulation-item-content info" *ngIf="info">
+    <i class="fas fa-info-circle"></i>
+    {{info}}
+  </div>
+
+
   <app-instructions #instructionsComponent
-                    [programCounter]="simLibInterfaceService.bindings.pc | async"
-                    [parsedElf]="simLibInterfaceService.parsedElf"
+                    [programCounter]="cpuInterface.bindings.pc | async"
+                    [parsedElf]="cpuInterface.parsedElf"
                     class="simulation-item-content app-instruction"></app-instructions>
 
   <app-registers class="simulation-item-content app-registers"></app-registers>

@@ -1,0 +1,196 @@
+# Descriptions per stages
+
+# FETCH
+- instr: []
+  infos:
+    - text: Load new instruction at location of program counter # The text displayed
+      highlight: [] # The elements that should be highlighted
+      area: overview
+      focus: fetch
+      exec: fetch
+    - text: Pass values into decoder
+      highlight: [ ]
+      focus: fetchpass
+# DECODE
+- instr: []
+  infos:
+    - text: Control Unit
+      highlight: []
+      area: decoder
+      exec: decoder
+    - text: Get instruction group by opcode
+      highlight: []
+      focus: decoderinstrgroup
+    - text: Get all values which are at fixed locations in the current instruction
+      highlight: []
+      focus: decoderfixedvalues
+    - text: Depending on the instruction the Immediate value resides on different bit combinations. To determine the correct Immediate value the instruction type needs to be identified.
+      highlight: []
+      focus: decoderinstrtype
+    - text: Get all possible Immediate values
+      highlight: []
+      focus: decoderimmediates
+    - text: Get the corrent Immediate value depending on the instruction type
+      highlight: []
+      focus: decoderimm
+- instr: [op, imm, load, jalr, store, branch]
+  infos:
+    - text: Get values stored in the Registers from the given addresses
+      area: overview
+      focus: decoderregisters
+      highlight: []
+- instr: []
+  infos:
+    - text: Pass values to the Data- and Control Path to activate the correct paths
+      focus: decoderpass
+      area: overview
+      highlight: []
+- instr: [imm]
+  infos:
+    - text: Pass Immediate into Operator 1
+      highlight: []
+      focus: alu
+    - text: Pass Register Source 1 into Operator 2
+      highlight: []
+- instr: [op]
+  infos:
+    - text: Pass Register Source 2 into Operator 1 of ALU
+      focus: alu
+      highlight: []
+    - text: Pass Register Source 1 into Operator 2 of ALU
+      highlight: []
+- instr: [jal, jalr]
+  infos:
+    - text: Pass Program Counter into Operator 1
+      focus: alu
+      highlight: []
+    - text: Pass 4 into Operator 2
+      highlight: []
+- instr: [lui, auipc]
+  infos:
+    - text: Pass Immediate into Operator 1
+      focus: alu
+      highlight: []
+    - text: Pass 12 into Operator 2
+      highlight: []
+- instr: [imm, op, jal, jalr, lui, auipc]
+  infos:
+    - text: Arithemtic Logic Unit (ALU)
+      area: alu
+      highlight: []
+    - text: Calculate
+      exec: exec
+      highlight: [ ]
+    - text: Overview
+      area: overview
+      focus: alu
+      highlight: [ ]
+- instr: [auipc]
+  infos:
+    - text: Add output of ALU to Program Counter and pass it to the next stage
+      focus: alu
+      highlight: []
+- instr: [imm, op, jal, jalr, lui]
+  infos:
+    - text: Pass ALU Output to the next stage
+      focus: alu
+      highlight: []
+- instr: [auipc]
+  infos:
+    - text: Add output of ALU to Program Counter and pass it to the next stage
+      focus: alu
+      highlight: []
+- instr: [store]
+  infos:
+    - text: Add Register Source 1 and Immediate to generate the memory address
+      focus: memory
+      highlight: []
+    - text: Pass Register Source 2 as the data to be written to the memory
+      highlight: []
+    - text: Store the value in the memory, watch the memory in the next cycle
+      highlight: []
+    - text: Stored data
+      exec: exec
+      highlight: []
+- instr: [load]
+  infos:
+    - text: Add Register Source 1 and Immediate to generate the memory address
+      focus: memory
+      highlight: []
+    - text: Load value from memory
+      exec: exec
+      highlight: []
+    - text: Pass read value to the next stage
+      focus: memorypass
+      highlight: []
+- instr: [branch]
+  infos:
+    - text: Pass Register Source 1 and Register Source 2 to the active comparator
+      highlight: []
+      focus: branch
+      exec: exec
+    - text: Select the output from the correct comparator
+      highlight: []
+- instr: [branch]
+  if: !!js/function  'function (bindings) { return bindings.branchResult.value === true; }'
+  infos:
+    - text: Use the result from the comparator to select Immediate and pass it the next stage
+      focus: branchpass
+      highlight: []
+- instr: [branch]
+  if: !!js/function  'function (bindings) { return bindings.branchResult.value === false; }'
+  infos:
+    - text: Use the result from the comparator to select 4 and pass it the next stage
+      focus: branchpass
+      highlight: []
+# WRITE BACK
+- instr: [load, imm, op, jal, jalr, lui, auipc]
+  infos:
+    - text: Store passed value to the Register at the location of Return Register. Watch the Register at RD change in the next cycle.
+      focus: writeback
+      highlight: []
+    - text: Stored value at Return Address (RD)
+      highlight: []
+      exec: writeback
+- instr: [branch]
+  infos:
+    - text: Nothing to be done in writeback on BRANCH calls
+      focus: writeback
+      exec: writeback
+      highlight: []
+- instr: [store]
+  infos:
+    - text: Nothing to be done in writeback on STORE instruction
+      focus: writeback
+      exec: writeback
+      highlight: []
+# ADVANCE PROGRAM COUNTER
+- instr: [branch]
+  infos:
+    - text: Pass Branch Result (4 or Immediate) to be added to the current Program Counter and set to the new Program Counter
+      focus: pc
+      highlight: []
+- instr: [jal]
+  infos:
+    - text: Pass Immediate to be added to the current Program Counter and set to the new Program Counter
+      focus: pc
+      highlight: []
+- instr: [jalr]
+  infos:
+    - text: Add Register Source 1 and Immediate to set the new Program Counter
+      focus: pc
+      highlight: []
+- instr: [store, imm, op, lui, load, auipc]
+  infos:
+    - text: Pass 4 to be added to the current Program Counter and set to the new Program Counter
+      focus: pc
+      highlight: []
+- instr: []
+  infos:
+    - text: Set new program counter. Watch the PC change in the 'Instructions' Panel on the right.
+      highlight: []
+- instr: []
+  infos:
+    - text: New Program Counter set. Cycle completed.
+      exec: advpc
+      highlight: []

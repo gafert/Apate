@@ -23,7 +23,7 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
   @Input() text = 'CLICK';
   @Input() iconClass: string;
 
-  @Output() activate = new EventEmitter();
+  @Output() buttonClick = new EventEmitter();
   @ViewChild('button') button: ElementRef<HTMLDivElement>;
 
   public buttonTweens = [];
@@ -68,7 +68,7 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
         }).start((v) => style.set(v))
       );
 
-      this.activate.emit();
+      this.buttonClick.emit();
     }
   }
 

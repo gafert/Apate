@@ -117,6 +117,8 @@ export interface Instruction {
   type: INSTRUCTION_FORMATS;
   instruction: number;
   name: string;
+  group: string;
+
   pc?: number; // Not added by parser but maybe later while reading elf
 }
 
@@ -586,21 +588,103 @@ const NAME_LOOKUP_TABLE = {
   [OPCODES.LUI]: INSTRUCTIONS.LUI
 };
 
-export function getNameFromInstruction(instruction: Instruction): string {
+export function getNameFromInstruction(opcode, func3, func7, imm): string {
   try {
     let op = null;
-    if (instruction.opcode == OPCODES.SYSTEM) {
-      return NAME_LOOKUP_TABLE[instruction.opcode][instruction.func3][instruction.imm];
+    if (opcode == OPCODES.SYSTEM) {
+      return NAME_LOOKUP_TABLE[opcode][func3][imm];
     } else {
-      op = NAME_LOOKUP_TABLE[instruction.opcode];
-      if (typeof op !== 'string') op = op[instruction.func3];
-      if (typeof op !== 'string') op = op[instruction.func7];
+      op = NAME_LOOKUP_TABLE[opcode];
+      if (typeof op !== 'string') op = op[func3];
+      if (typeof op !== 'string') op = op[func7];
       return op;
     }
   } catch (e) {
-    console.log("Could not find instruction name for", instruction, e);
+    console.log("Could not find instruction name for", opcode, e);
   }
   return 'unimplemented';
+}
+
+
+export function isIMM(name: string): boolean {
+  return name === INSTRUCTIONS.ADDI ||
+    name === INSTRUCTIONS.XORI ||
+    name === INSTRUCTIONS.ORI ||
+    name === INSTRUCTIONS.ANDI ||
+    name === INSTRUCTIONS.SLLI ||
+    name === INSTRUCTIONS.SRLI ||
+    name === INSTRUCTIONS.SRAI ||
+    name === INSTRUCTIONS.SLTI ||
+    name === INSTRUCTIONS.SLTIU;
+}
+
+export function isOP(name: string): boolean {
+  return name === INSTRUCTIONS.ADD ||
+    name === INSTRUCTIONS.SUB ||
+    name === INSTRUCTIONS.XOR ||
+    name === INSTRUCTIONS.OR ||
+    name === INSTRUCTIONS.AND ||
+    name === INSTRUCTIONS.SLL ||
+    name === INSTRUCTIONS.SRL ||
+    name === INSTRUCTIONS.SRA ||
+    name === INSTRUCTIONS.SLT ||
+    name === INSTRUCTIONS.SLTU;
+}
+
+export function isLOAD(name: string): boolean {
+  return name === INSTRUCTIONS.LB ||
+    name === INSTRUCTIONS.LH ||
+    name === INSTRUCTIONS.LW ||
+    name === INSTRUCTIONS.LBU ||
+    name === INSTRUCTIONS.LHU;
+}
+
+export function isSTORE(name: string): boolean {
+  return name === INSTRUCTIONS.SB ||
+    name === INSTRUCTIONS.SH ||
+    name === INSTRUCTIONS.SW;
+}
+
+export function isBRANCH(name: string): boolean {
+  return name === INSTRUCTIONS.BEQ ||
+    name === INSTRUCTIONS.BNE ||
+    name === INSTRUCTIONS.BLT ||
+    name === INSTRUCTIONS.BGE ||
+    name === INSTRUCTIONS.BLTU ||
+    name === INSTRUCTIONS.BGEU;
+}
+
+export function isJAL(name: string): boolean {
+  return name === INSTRUCTIONS.JAL
+}
+
+export function isJALR(name: string): boolean {
+  return name === INSTRUCTIONS.JALR
+}
+
+export function isLUI(name: string): boolean {
+  return name === INSTRUCTIONS.LUI
+}
+
+export function isAUIPC(name: string): boolean {
+  return name === INSTRUCTIONS.AUIPC
+}
+
+export function isBREAK(name: string): boolean {
+  return name === INSTRUCTIONS.ECALL || name === INSTRUCTIONS.EBREAK;
+}
+
+export function getNameOfGroup(name): 'imm' | 'op' | 'lui' | 'auipc' | 'jal'  | 'jalr' | 'load' | 'store' | 'branch' | 'break'{
+  if (isIMM(name)) return 'imm';
+  if (isOP(name)) return 'op';
+  if (isLUI(name)) return 'lui';
+  if (isAUIPC(name)) return 'auipc';
+  if (isJAL(name)) return 'jal';
+  if (isJALR(name)) return 'jalr';
+  if (isLOAD(name)) return 'load';
+  if (isSTORE(name)) return 'store';
+  if (isBRANCH(name)) return 'branch';
+  if (isBREAK(name)) return 'break';
 }
 
 /**
@@ -691,6 +775,8 @@ export function parseInstruction(instruction): Instruction {
       imm = null;
   }
 
+  const name = getNameFromInstruction(opcode, func3, func7, imm);
+  const group = getNameOfGroup(name);
   const parsedInstruction: Instruction = {
     opcode: opcode,
     type: type,
@@ -706,79 +792,11 @@ export function parseInstruction(instruction): Instruction {
     rs1: rs1,
     rs2: rs2,
     instruction: instruction,
-    name: null
+    name: name,
+    group: group
   };
-
-  parsedInstruction.name = getNameFromInstruction(parsedInstruction);
 
   return parsedInstruction;
 }
 
-export function isIMM(name: string): boolean {
-  return name === INSTRUCTIONS.ADDI ||
-    name === INSTRUCTIONS.XORI ||
-    name === INSTRUCTIONS.ORI ||
-    name === INSTRUCTIONS.ANDI ||
-    name === INSTRUCTIONS.SLLI ||
-    name === INSTRUCTIONS.SRLI ||
-    name === INSTRUCTIONS.SRAI ||
-    name === INSTRUCTIONS.SLTI ||
-    name === INSTRUCTIONS.SLTIU;
-}
-
-export function isOP(name: string): boolean {
-  return name === INSTRUCTIONS.ADD ||
-    name === INSTRUCTIONS.SUB ||
-    name === INSTRUCTIONS.XOR ||
-    name === INSTRUCTIONS.OR ||
-    name === INSTRUCTIONS.AND ||
-    name === INSTRUCTIONS.SLL ||
-    name === INSTRUCTIONS.SRL ||
-    name === INSTRUCTIONS.SRA ||
-    name === INSTRUCTIONS.SLT ||
-    name === INSTRUCTIONS.SLTU;
-}
-
-export function isLOAD(name: string): boolean {
-  return name === INSTRUCTIONS.LB ||
-    name === INSTRUCTIONS.LH ||
-    name === INSTRUCTIONS.LW ||
-    name === INSTRUCTIONS.LBU ||
-    name === INSTRUCTIONS.LHU;
-}
-
-export function isSTORE(name: string): boolean {
-  return name === INSTRUCTIONS.SB ||
-    name === INSTRUCTIONS.SH ||
-    name === INSTRUCTIONS.SW;
-}
-
-export function isBRANCH(name: string): boolean {
-  return name === INSTRUCTIONS.BEQ ||
-    name === INSTRUCTIONS.BNE ||
-    name === INSTRUCTIONS.BLT ||
-    name === INSTRUCTIONS.BGE ||
-    name === INSTRUCTIONS.BLTU ||
-    name === INSTRUCTIONS.BGEU;
-}
-
-export function isJAL(name: string): boolean {
-  return name === INSTRUCTIONS.JAL
-}
-
-export function isJALR(name: string): boolean {
-  return name === INSTRUCTIONS.JALR
-}
-
-export function isLUI(name: string): boolean {
-  return name === INSTRUCTIONS.LUI
-}
-
-export function isAUIPC(name: string): boolean {
-  return name === INSTRUCTIONS.AUIPC
-}
-
-export function isBREAK(name: string): boolean {
-  return name === INSTRUCTIONS.ECALL || name === INSTRUCTIONS.EBREAK;
-}
 

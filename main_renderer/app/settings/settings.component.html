@@ -68,9 +68,9 @@
   </div>
 
   <div class="setting-box">
-    <app-action-button text="Reset" (activate)="clearSettingsAndRestart()"></app-action-button>
+    <app-action-button text="Reset" (buttonClick)="clearSettingsAndRestart()"></app-action-button>
     <app-action-button text="Save"
-                       (activate)="saveSettings([reafelfflags, objdumpflags, gccflags, sources, prefix, elf, toolchain])"></app-action-button>
+                       (buttonClick)="saveSettings([reafelfflags, objdumpflags, gccflags, sources, prefix, elf, toolchain])"></app-action-button>
   </div>
 
 </div>

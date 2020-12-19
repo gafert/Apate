@@ -1,9 +1,9 @@
-<div class="main-tab-header">
-  <app-action-button style="margin-left: 1em" (activate)="compile()" [disabled]="compiling" iconClass="fas fa-play"
+<div class="compile-tab-header">
+  <app-action-button style="margin-left: 1em" (buttonClick)="compile()" [disabled]="compiling" iconClass="fas fa-play"
                      text="Compile"></app-action-button>
 </div>
 
-<div class="main-tab-container">
+<div class="compile-container">
   <div class="box-container" style="width: 20em;margin-bottom: -1px">
     <div class="box" style="height: calc(50% - 1px)">
       <div class="box--header">
