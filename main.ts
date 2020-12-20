@@ -22,7 +22,7 @@ function createWindow(): BrowserWindow {
       enableRemoteModule: true,
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
-      allowRunningInsecureContent: serve ? true : false
+      allowRunningInsecureContent: serve
     }
   });
 

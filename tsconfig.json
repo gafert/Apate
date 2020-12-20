@@ -12,9 +12,6 @@
     },
     {
       "path": "./main_renderer/tsconfig.spec.json"
-    },
-    {
-      "path": "./simulation_library_worker/tsconfig.json"
     }
   ]
 }

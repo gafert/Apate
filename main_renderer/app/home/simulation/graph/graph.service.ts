@@ -79,7 +79,6 @@ export class GraphService {
     process.on('exit', () => {
       console.log('Exit GraphService');
       this.stopRender();
-      this.scene.dispose();
       this.renderer.dispose();
       this.camera = null;
       this.scene = null;

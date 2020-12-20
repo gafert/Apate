@@ -34,7 +34,6 @@
             "customWebpackConfig": {
               "path": "./angular.webpack.js"
             }
-
           },
           "configurations": {
             "dev": {
