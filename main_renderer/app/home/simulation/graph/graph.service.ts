@@ -378,15 +378,15 @@ export class GraphService {
 
     this.scene.add(this.renderGroup);
     this.initHighlightingUsedPaths();
-    this.hideFocusAreas();
+    this.hideNoneVisibleAreas();
   }
 
   /**
    * Focus areas should not be visible
    */
-  hideFocusAreas() {
+  hideNoneVisibleAreas() {
     for (const key of Object.keys(this.idFlat)) {
-      if (key.startsWith('focus_')) {
+      if (key.startsWith('focus_') || key.startsWith('areaborder_')) {
         this.idFlat[key].meshes.forEach((mesh) => {
           mesh.material.opacity = 0;
         });
@@ -397,7 +397,11 @@ export class GraphService {
   initHighlightingUsedPaths() {
     const checkActiveElementsInGraph = (element: string) => {
       for (const key of Object.keys(this.idFlat)) {
-        if (key.startsWith('mux') && key.includes(element)) {
+        // Only match exact word -> 'add' -> match 'add' and not 'addi'
+        const regex = new RegExp(`(\b|_)${element.toLowerCase()}(\b|_|$|-)`);
+        const keySmall = key.toLowerCase();
+        console.log(regex, keySmall, regex.test(keySmall));
+        if (keySmall.startsWith('mux_') && regex.test(keySmall)) {
           this.setVisibility(key, true);
         }
       }
@@ -413,13 +417,14 @@ export class GraphService {
         for (const key of Object.keys(this.idFlat)) {
           const element = this.idFlat[key];
           // Hide all elements when the next decoding stage is incoming
-          if (key.startsWith('mux_') || key.startsWith('c_')) {
+          if (key.startsWith('mux_')) {
             element.meshes.forEach((mesh) => {
               mesh.material.opacity = 0.1;
             });
           }
         }
         // Reset all values
+        // @ts-ignore
         Object.values(this.cpuInterface.bindings.volatileValues).forEach((value) => value.next(null));
       }
 
@@ -427,53 +432,8 @@ export class GraphService {
       if (cpuState === CPU_STATES.DECODE_INSTRUCTION) {
         if (this.cpuInterface.bindings.instruction.value) {
           const instruction = this.cpuInterface.bindings.instruction.value;
-          if (isJAL(instruction.name)) {
-            for (const key of Object.keys(this.idFlat)) {
-              if (key.startsWith('mux') && key.includes('jal') && (key.indexOf('jal') !== key.indexOf('jalr'))) {
-                this.setVisibility(key, true);
-              }
-              if (key.startsWith('c') && key.includes('jal') && (key.indexOf('jal') !== key.indexOf('jalr'))) {
-                this.setVisibility(key, true);
-              }
-            }
-          } else if (isJALR(instruction.name)) {
-            checkActiveElementsInGraph('jalr');
-          } else if (isLUI(instruction.name)) {
-            checkActiveElementsInGraph('lui');
-          } else if (isAUIPC(instruction.name)) {
-            checkActiveElementsInGraph('auipc');
-          } else if (isIMM(instruction.name)) {
-            checkActiveElementsInGraph('imm');
-          } else if (isOP(instruction.name)) {
-            checkActiveElementsInGraph('op');
-          } else if (isLOAD(instruction.name)) {
-            checkActiveElementsInGraph('load');
-          } else if (isSTORE(instruction.name)) {
-            checkActiveElementsInGraph('store');
-          } else if (isBRANCH(instruction.name)) {
-            checkActiveElementsInGraph('branch');
-
-            // Show control paths (c) of branch corresponding to instruction of branch type
-            this.setVisibility('c_beq', this.cpuInterface.bindings.branchRs1Rs2BEQ.value === 1);
-            this.setVisibility('c_blt', (
-              this.cpuInterface.bindings.branchFunc3_12.value === 1 ||
-              this.cpuInterface.bindings.branchFunc3_12.value === 2 ||
-              this.cpuInterface.bindings.branchFunc3_12.value === 3) && this.cpuInterface.bindings.branchRs1Rs2BLT.value === 1);
-            this.setVisibility('c_blt1', this.cpuInterface.bindings.branchFunc3_12.value === 1 && this.cpuInterface.bindings.branchRs1Rs2BLT.value === 1);
-            this.setVisibility('c_blt2', this.cpuInterface.bindings.branchFunc3_12.value === 2 && this.cpuInterface.bindings.branchRs1Rs2BLT.value === 1);
-            this.setVisibility('c_blt3', this.cpuInterface.bindings.branchFunc3_12.value === 3 && this.cpuInterface.bindings.branchRs1Rs2BLT.value === 1);
-            this.setVisibility('c_func3-0', this.cpuInterface.bindings.branchFunc3_0.value);
-            this.setVisibility('c_bmuxresult', this.cpuInterface.bindings.branchMuxResult.value);
-            this.setVisibility('c_branch', this.cpuInterface.bindings.branchResult.value);
-
-            if (this.cpuInterface.bindings.branchResult.value) {
-              this.setVisibility('mux_b_true', true);
-              this.setVisibility('mux_b_false', false);
-            } else {
-              this.setVisibility('mux_b_false', true);
-              this.setVisibility('mux_b_true', false);
-            }
-          }
+          checkActiveElementsInGraph(instruction.opcodeName);
+          checkActiveElementsInGraph(this.cpuInterface.bindings.instruction.value?.instructionName);
         }
       }
 

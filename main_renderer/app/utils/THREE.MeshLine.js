@@ -527,7 +527,7 @@
 			fragmentShader: THREE.ShaderChunk.meshline_frag,
 		});
 
-		this.type = 'MeshLineMaterial';
+		this.instructionTypeFormat = 'MeshLineMaterial';
 
 		Object.defineProperties(this, {
 			lineWidth: {

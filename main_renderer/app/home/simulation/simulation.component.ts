@@ -116,7 +116,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
           const compliesWithIf = (instr.if !== undefined) ? instr.if(bindings) : true;
           let compliesWithInstruction = true;
           if(instr.instr?.length > 0 && bindings.instruction.value) {
-            compliesWithInstruction = instr.instr.indexOf(bindings.instruction.value.group) >= 0;
+            compliesWithInstruction = instr.instr.indexOf(bindings.instruction.value.opcodeName) >= 0;
           }
 
           if ((compliesWithIf && compliesWithInstruction)) {
@@ -129,7 +129,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
       this.infoCounter++;
     }
 
-    console.log(bindings.instruction.value?.group);
+    console.log(bindings.instruction.value?.opcodeName);
 
 
     return RISCV_STAGES[this.instrCounter].infos[this.infoCounter];

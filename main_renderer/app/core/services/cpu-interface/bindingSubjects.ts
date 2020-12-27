@@ -7,7 +7,7 @@
   * import bindings from "./bindingSubjects.ts";
   *
   */
-import {BehaviorSubject} from "rxjs";
+import { BehaviorSubject, from, of } from 'rxjs';
 import { Instruction } from './instructionParser';
 
 export enum CPU_STATES {
@@ -84,6 +84,7 @@ export class Bindings {
 
   // Decoder
   public instruction = new BehaviorSubject<Instruction>(null);
+  public instructionName = new BehaviorSubject<string>(null);
 
   public allValues = {
     'pc': this.pc,
@@ -112,7 +113,8 @@ export class Bindings {
     'pcadvother': this.pcAdvOther,
     'pcadvjalr': this.pcAdvJALR,
     'pcadv': this.pcAdv,
-    'instrmemread': this.instrMemRead
+    'instrmemread': this.instrMemRead,
+    'instr': this.instructionName
   }
 
   public volatileValues = {
@@ -137,12 +139,16 @@ export class Bindings {
     'branch': this.branchResult,
     'branchadd': this.branchAddResult,
     'instrmemread': this.instrMemRead,
-    'noval': this.instruction
+    'noval': this.instruction,
+    'instr': this.instructionName
   }
 
 
   constructor() {
-
+    // If name changes set this to other subjects
+    this.instruction.subscribe((i) => {
+      this.instructionName.next(i?.instructionName);
+    })
   }
 
 

@@ -100,35 +100,6 @@ export const OPCODE_INSTRUCTION_FORMAT = {
   [OPCODES.LUI]: INSTRUCTION_FORMATS.U
 };
 
-export interface Instruction {
-  imm: number;
-  immI: number;
-  immS: number;
-  immB: number;
-  immU: number;
-  immJ: number;
-
-  rd: number;
-  opcode: OPCODES;
-  func3: OP_FUNC3 | BRANCH_FUNC | STORE_FUNC | LOAD_FUNC | IMM_FUNC;
-  func7: any;
-  rs1: number;
-  rs2: number;
-  type: INSTRUCTION_FORMATS;
-  instruction: number;
-  name: string;
-  group: string;
-
-  pc?: number; // Not added by parser but maybe later while reading elf
-}
-
-export const INSTRUCTION_NAME_MAP = {};
-
-export function convertToSigned(bitnumber, bitlenght): number {
-  const mask = 2 ** (bitlenght - 1);
-  return -(bitnumber & mask) + (bitnumber & ~mask);
-}
-
 export const INSTRUCTIONS = {
   ADDI: 'ADDI',
   SLLI: 'SLLI',
@@ -525,6 +496,57 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   },
 };
 
+export interface Instruction {
+  /** Unparsed number value of instruction **/
+  unparsedInstruction: number;
+
+  /** Instruction type format **/
+  instructionTypeFormat: INSTRUCTION_FORMATS;
+
+  /** Opcode of the instruction, groups instruction **/
+  opcode: OPCODES;
+  /** Opcode of the instruction, groups instruction **/
+  opcodeName: string;
+
+  /** Func3 number value **/
+  func3: OP_FUNC3 | BRANCH_FUNC | STORE_FUNC | LOAD_FUNC | IMM_FUNC;
+  /** Func7 number value **/
+  func7: any;
+
+  /** Return address **/
+  rd: number;
+  /** Register source 1 **/
+  rs1: number;
+  /** Register source 2 **/
+  rs2: number;
+
+  /** Immediate Value */
+  imm: number;
+  /** Immediate value if I type instruction format **/
+  immI: number;
+  /** Immediate value if S type instruction format **/
+  immS: number;
+  /** Immediate value if B type instruction format **/
+  immB: number;
+  /** Immediate value if U type instruction format **/
+  immU: number;
+  /** Immediate value if J type instruction format **/
+  immJ: number;
+
+  /** Name of the instruction e.g. ADD, ADDI, LUI ... **/
+  instructionName: string;
+
+  /** Description of the instruction **/
+  description: object;
+
+  /** Where in memory this instruction is saved, not filled by this parser but by an elf loader **/
+  pc?: number;
+}
+
+export function convertToSigned(bitnumber, bitlenght): number {
+  const mask = 2 ** (bitlenght - 1);
+  return -(bitnumber & mask) + (bitnumber & ~mask);
+}
 
 const NAME_LOOKUP_TABLE = {
   [OPCODES.IMM]: {
@@ -674,7 +696,8 @@ export function isBREAK(name: string): boolean {
   return name === INSTRUCTIONS.ECALL || name === INSTRUCTIONS.EBREAK;
 }
 
-export function getNameOfGroup(name): 'imm' | 'op' | 'lui' | 'auipc' | 'jal'  | 'jalr' | 'load' | 'store' | 'branch' | 'break'{
+export function getNameOfGroup(name): 'imm' | 'op' | 'lui' | 'auipc' | 'jal'  | 'jalr' | 'load' | 'store' | 'branch' | 'break' {
+  // TODO: Group is just the opcode --> Replace group with opcode and make this easier
   if (isIMM(name)) return 'imm';
   if (isOP(name)) return 'op';
   if (isLUI(name)) return 'lui';
@@ -776,10 +799,11 @@ export function parseInstruction(instruction): Instruction {
   }
 
   const name = getNameFromInstruction(opcode, func3, func7, imm);
-  const group = getNameOfGroup(name);
   const parsedInstruction: Instruction = {
+    unparsedInstruction: instruction,
+    instructionTypeFormat: type,
     opcode: opcode,
-    type: type,
+    opcodeName: getNameOfGroup(name),
     func3: func3,
     func7: func7,
     imm: imm,
@@ -791,9 +815,8 @@ export function parseInstruction(instruction): Instruction {
     rd: rd,
     rs1: rs1,
     rs2: rs2,
-    instruction: instruction,
-    name: name,
-    group: group
+    instructionName: name,
+    description: INSTRUCTIONS_DESCRIPTIONS[name]
   };
 
   return parsedInstruction;

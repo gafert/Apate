@@ -17,7 +17,7 @@
             </div>
             <ng-container *ngFor="let instruction of symbol.instructions">
               <ng-container
-                *ngTemplateOutlet="instruction_template; context: { instruction: instruction, info: getInfoOfInstruction(instruction.name)}">
+                *ngTemplateOutlet="instruction_template; context: { instruction: instruction, info: getInfoOfInstruction(instruction.instructionName)}">
               </ng-container>
             </ng-container>
           </div>

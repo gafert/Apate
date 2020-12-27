@@ -16,23 +16,20 @@
   infos:
     - text: Control Unit
       highlight: []
-      area: decoder
+      area: cu
       exec: decoder
     - text: Get instruction group by opcode
       highlight: []
-      focus: decoderinstrgroup
+      focus: cu_instr_group
     - text: Get all values which are at fixed locations in the current instruction
       highlight: []
-      focus: decoderfixedvalues
-    - text: Depending on the instruction the Immediate value resides on different bit combinations. To determine the correct Immediate value the instruction type needs to be identified.
+      focus: cu_static_values
+    - text: Depending on the instruction the Immediate value resides on different bit combinations
       highlight: []
-      focus: decoderinstrtype
-    - text: Get all possible Immediate values
-      highlight: []
-      focus: decoderimmediates
-    - text: Get the corrent Immediate value depending on the instruction type
-      highlight: []
-      focus: decoderimm
+      focus: cu_immediates
+    - text: Store the name of the instruction to the Instruction Signal. The name of the instruction depends on the opcode, func3, func7 and sometimes the Immediate value
+      highlight: [ ]
+      focus: cu_instruction
 - instr: [op, imm, load, jalr, store, branch]
   infos:
     - text: Get values stored in the Registers from the given addresses
@@ -125,23 +122,26 @@
       highlight: []
 - instr: [branch]
   infos:
-    - text: Pass Register Source 1 and Register Source 2 to the active comparator
+    - text: Pass Register Source 1 and Register Source 2 to the Branch Evaluator
       highlight: []
       focus: branch
       exec: exec
-    - text: Select the output from the correct comparator
+    - text: Calculate the output and select the correct signal
       highlight: []
+      area: be
 - instr: [branch]
-  if: !!js/function  'function (bindings) { return bindings.branchResult.value === true; }'
+  if: !!js/function  'function (bindings) { return bindings.branchResult.value == true; }'
   infos:
     - text: Use the result from the comparator to select Immediate and pass it the next stage
+      area: overview
       focus: branchpass
       highlight: []
 - instr: [branch]
-  if: !!js/function  'function (bindings) { return bindings.branchResult.value === false; }'
+  if: !!js/function  'function (bindings) { return bindings.branchResult.value == false; }'
   infos:
     - text: Use the result from the comparator to select 4 and pass it the next stage
       focus: branchpass
+      area: overview
       highlight: []
 # WRITE BACK
 - instr: [load, imm, op, jal, jalr, lui, auipc]

@@ -73,7 +73,7 @@ export class CpuInterface implements OnDestroy {
 
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
 
-        if (isBREAK(this.bindings.instruction.value.name)) {
+        if (isBREAK(this.bindings.instruction.value.instructionName)) {
           this.bindings.nextCpuState.next(CPU_STATES.BREAK);
         } else {
           this.bindings.nextCpuState.next(CPU_STATES.EXECUTE);
@@ -84,9 +84,9 @@ export class CpuInterface implements OnDestroy {
         // LOAD STORE
         //
 
-        if (isLOAD(this.bindings.instruction.value.name)) {
+        if (isLOAD(this.bindings.instruction.value.instructionName)) {
           this.bindings.memread.next(this.callMEMORYread(this.bindings.instruction.value, this.bindings.rs1Imm.value));
-        } else if (isSTORE(this.bindings.instruction.value.name)) {
+        } else if (isSTORE(this.bindings.instruction.value.instructionName)) {
           this.callMEMORYwrite(this.bindings.instruction.value, this.bindings.rs1Imm.value, this.bindings.rs2.value);
         }
 
@@ -94,13 +94,13 @@ export class CpuInterface implements OnDestroy {
         this.bindings.nextCpuState.next(CPU_STATES.WRITE_BACK);
         break;
       case CPU_STATES.WRITE_BACK:
-        if (isIMM(this.bindings.instruction.value.name) ||
-          isOP(this.bindings.instruction.value.name) ||
-          isJAL(this.bindings.instruction.value.name) ||
-          isJALR(this.bindings.instruction.value.name) ||
-          isLUI(this.bindings.instruction.value.name) ||
-          isAUIPC(this.bindings.instruction.value.name) ||
-          isLOAD(this.bindings.instruction.value.name)) {
+        if (isIMM(this.bindings.instruction.value.instructionName) ||
+          isOP(this.bindings.instruction.value.instructionName) ||
+          isJAL(this.bindings.instruction.value.instructionName) ||
+          isJALR(this.bindings.instruction.value.instructionName) ||
+          isLUI(this.bindings.instruction.value.instructionName) ||
+          isAUIPC(this.bindings.instruction.value.instructionName) ||
+          isLOAD(this.bindings.instruction.value.instructionName)) {
           if (this.bindings.rd.value) {
             const cpuregs = this.bindings.cpuregs.value;
             cpuregs[this.bindings.rd.value] = this.bindings.regwrite.value;
@@ -125,26 +125,26 @@ export class CpuInterface implements OnDestroy {
     //
 
     try {
-      if (isIMM(this.bindings.instruction.value?.name)) {
+      if (isIMM(this.bindings.instruction.value?.instructionName)) {
         this.bindings.immRs2.next(this.bindings.imm.value);
-      } else if (isOP(this.bindings.instruction.value?.name)) {
+      } else if (isOP(this.bindings.instruction.value?.instructionName)) {
         this.bindings.immRs2.next(this.bindings.rs2.value);
       }
 
-      if (isOP(this.bindings.instruction.value?.name) || isIMM(this.bindings.instruction.value?.name)) {
+      if (isOP(this.bindings.instruction.value?.instructionName) || isIMM(this.bindings.instruction.value?.instructionName)) {
         this.bindings.op1.next(this.bindings.immRs2.value);
         this.bindings.op2.next(this.bindings.rs1.value);
-      } else if (isJALR(this.bindings.instruction.value?.name) || isJAL(this.bindings.instruction.value?.name)) {
+      } else if (isJALR(this.bindings.instruction.value?.instructionName) || isJAL(this.bindings.instruction.value?.instructionName)) {
         this.bindings.op1.next(this.bindings.pc.value);
         this.bindings.op2.next(4);
-      } else if (isLUI(this.bindings.instruction.value?.name) || isAUIPC(this.bindings.instruction.value?.name)) {
+      } else if (isLUI(this.bindings.instruction.value?.instructionName) || isAUIPC(this.bindings.instruction.value?.instructionName)) {
         this.bindings.op1.next(this.bindings.imm.value);
         this.bindings.op2.next(12);
       }
 
       this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, this.bindings.instruction.value));
       this.bindings.pcAluout.next(this.bindings.aluout.value + this.bindings.pc.value);
-      this.bindings.muxAluout.next(isAUIPC(this.bindings.instruction.value?.name) ? this.bindings.pcAluout.value : this.bindings.aluout.value);
+      this.bindings.muxAluout.next(isAUIPC(this.bindings.instruction.value?.instructionName) ? this.bindings.pcAluout.value : this.bindings.aluout.value);
 
 
       //
@@ -153,14 +153,14 @@ export class CpuInterface implements OnDestroy {
 
       this.bindings.rs1Imm.next(this.bindings.rs1.value + this.bindings.imm.value);
 
-      if (isLOAD(this.bindings.instruction.value?.name)) {
+      if (isLOAD(this.bindings.instruction.value?.instructionName)) {
         this.bindings.regwrite.next(this.bindings.memread.value);
-      } else if (isIMM(this.bindings.instruction.value?.name) ||
-        isOP(this.bindings.instruction.value?.name) ||
-        isJAL(this.bindings.instruction.value?.name) ||
-        isJALR(this.bindings.instruction.value?.name) ||
-        isLUI(this.bindings.instruction.value?.name) ||
-        isAUIPC(this.bindings.instruction.value?.name)) {
+      } else if (isIMM(this.bindings.instruction.value?.instructionName) ||
+        isOP(this.bindings.instruction.value?.instructionName) ||
+        isJAL(this.bindings.instruction.value?.instructionName) ||
+        isJALR(this.bindings.instruction.value?.instructionName) ||
+        isLUI(this.bindings.instruction.value?.instructionName) ||
+        isAUIPC(this.bindings.instruction.value?.instructionName)) {
         this.bindings.regwrite.next(this.bindings.muxAluout.value);
       }
 
@@ -196,11 +196,11 @@ export class CpuInterface implements OnDestroy {
         this.bindings.branchAddResult.next(4);
       }
 
-      if (isJAL(this.bindings.instruction.value?.name)) {
+      if (isJAL(this.bindings.instruction.value?.instructionName)) {
         this.bindings.pcAdd.next(this.bindings.imm.value);
-      } else if (isBRANCH(this.bindings.instruction.value?.name)) {
+      } else if (isBRANCH(this.bindings.instruction.value?.instructionName)) {
         this.bindings.pcAdd.next(this.bindings.branchAddResult.value);
-      } else if(this.bindings.instruction.value?.name) {
+      } else if(this.bindings.instruction.value?.instructionName) {
         this.bindings.pcAdd.next(4);
       }
 
@@ -208,9 +208,9 @@ export class CpuInterface implements OnDestroy {
       this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
       this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
 
-      if (isJALR(this.bindings.instruction.value?.name)) {
+      if (isJALR(this.bindings.instruction.value?.instructionName)) {
         this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);
-      } else if(this.bindings.instruction.value?.name) {
+      } else if(this.bindings.instruction.value?.instructionName) {
         this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
       }
     } catch (e) {
