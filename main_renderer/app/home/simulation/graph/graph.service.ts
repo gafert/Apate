@@ -1,12 +1,15 @@
-import { Injectable, NgZone } from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import * as THREE from 'three';
-import { Group, MathUtils } from 'three';
+import {Group, MathUtils} from 'three';
 import panzoom from '../../../utils/drag.js';
-import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
-import { SVGLoader } from './SVGLoader';
+import {CpuInterface} from '../../../core/services/cpu-interface/cpu-interface.service';
+import {SVGLoader} from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
-import { Action, easing, tween } from 'popmotion';
+import {Action, easing, tween} from 'popmotion';
+import anime from 'animejs/lib/anime.es.js';
+import * as _ from 'lodash';
+
 import {
   isAUIPC,
   isBRANCH,
@@ -18,12 +21,13 @@ import {
   isOP,
   isSTORE
 } from '../../../core/services/cpu-interface/instructionParser';
-import { CPU_STATES } from '../../../core/services/cpu-interface/bindingSubjects';
-import { MeshText2D, textAlign } from 'three-text2d';
+import {CPU_STATES} from '../../../core/services/cpu-interface/bindingSubjects';
+import {MeshText2D, textAlign} from 'three-text2d';
 import * as d3 from 'd3';
 import DEG2RAD = MathUtils.DEG2RAD;
-import tippy, { Instance, Props, Tippy } from 'tippy.js';
+import tippy, {Instance, Props, Tippy} from 'tippy.js';
 import RISCV_DEFINITIONS from './risc.yml';
+import {promisify} from "util";
 
 interface ThreeNode {
   meshes: THREE.Mesh[];
@@ -52,8 +56,8 @@ export class GraphService {
   private time = 0;
   private clock = new THREE.Clock();
   private globalUniforms = {
-    u_time: { type: 'f', value: 0 },
-    u_resolution: { type: 'vec2', value: new THREE.Vector2(0, 0) }
+    u_time: {type: 'f', value: 0},
+    u_resolution: {type: 'vec2', value: new THREE.Vector2(0, 0)}
   };
 
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
@@ -61,6 +65,8 @@ export class GraphService {
   private renderGroup; // Holds the meshes in Three.js groups named according to svg names
   private idRoot; // Holds the parsed svg and adds meshes to each element
   private idFlat; // Takes the parsed svg with meshes and flattens all names to be a 1D array
+  private idMaterials = [];
+  private nonVisibleMeshes = [];
 
   // Intersection related
   // centeredMouse is update once the mouse is moved, so set start to value which never could be to prevent
@@ -118,7 +124,7 @@ export class GraphService {
 
         // Setup renderer
         this.scene = new THREE.Scene();
-        this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        this.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.domElement.style.outline = 'none';
         domElement.appendChild(this.renderer.domElement);
@@ -182,15 +188,29 @@ export class GraphService {
     this.focusCameraOnMesh(this.idFlat['focus_' + state]?.meshes[0], true);
   }
 
-  public goToArea(name) {
+  public async goToArea(name) {
     // Block if change comes too early
-    if (!this.idFlat) return;
+    if (!this.idFlat || name === this.activeArea) return;
+
+    // Hide elements of current area only if there is one selected, else skip this and only show
+    if (this.activeArea) await this.hideMeshes(this.idFlat['area_' + this.activeArea].meshes, true);
+    // Hide elements where we will jump to
+    await this.hideMeshes(this.idFlat['area_' + name].meshes, false);
+    // Focus on new area
+    this.focusCameraOnMesh(this.idFlat['areaborder_' + name].meshes[0], false);
+
+    // This can be async as the camera can move now
+    // Show meshes at new location
+    this.showMeshes(this.idFlat['area_' + name].meshes).then(() => {
+      // Hide all which are not active
+      this.updateActiveElements();
+    })
+
     this.activeArea = name;
-    this.focusCameraOnMesh(this.idFlat['areaborder_' + name]?.meshes[0]);
   }
 
   private focusCameraOnMesh(mesh, animate = false) {
-    if(!mesh) return;
+    if (!mesh) return;
 
     mesh.geometry.computeBoundingBox();
     mesh.geometry.computeBoundingSphere();
@@ -372,114 +392,123 @@ export class GraphService {
     generateChildren(this.idRoot.children, this.renderGroup);
     this.idFlat = this.flattenRootToIndexIdArray(this.idRoot);
 
-    console.log(this.renderGroup);
-    console.log(this.idRoot);
-    console.log(this.idFlat);
+    // Hide none visible elements
+    for (const key of Object.keys(this.idFlat)) {
+      if (key.startsWith('focus_') || key.startsWith('areaborder_')) {
+        this.nonVisibleMeshes.push(...this.idFlat[key].meshes);
+      }
+    }
+
+    for (const nonVisibleMesh of this.nonVisibleMeshes) {
+      nonVisibleMesh.material.opacity = 0;
+    }
 
     this.scene.add(this.renderGroup);
     this.initHighlightingUsedPaths();
-    this.hideNoneVisibleAreas();
   }
 
-  /**
-   * Focus areas should not be visible
-   */
-  hideNoneVisibleAreas() {
-    for (const key of Object.keys(this.idFlat)) {
-      if (key.startsWith('focus_') || key.startsWith('areaborder_')) {
-        this.idFlat[key].meshes.forEach((mesh) => {
+  hideMeshes(meshes, animate = false) {
+    if (animate) {
+      return this.animateOpacity(meshes, 0);
+    } else {
+      return new Promise((resolve, reject) => {
+        meshes.forEach((mesh) => {
           mesh.material.opacity = 0;
         });
-      }
+        resolve();
+      });
     }
   }
 
-  initHighlightingUsedPaths() {
-    const checkActiveElementsInGraph = (element: string) => {
-      for (const key of Object.keys(this.idFlat)) {
-        // Only match exact word -> 'add' -> match 'add' and not 'addi'
-        const regex = new RegExp(`(\b|_)${element.toLowerCase()}(\b|_|$|-)`);
-        const keySmall = key.toLowerCase();
-        console.log(regex, keySmall, regex.test(keySmall));
-        if (keySmall.startsWith('mux_') && regex.test(keySmall)) {
-          this.setVisibility(key, true);
-        }
-      }
-    };
-
-    this.cpuInterface.bindings.cycleComplete.subscribe((complete) => {
-      const nextCpuState = this.cpuInterface.bindings.nextCpuState.value;
-      const cpuState = this.cpuInterface.bindings.cpuState.value;
-
-      // Reset all lines
-      // Dont show any active lines
-      if (nextCpuState === CPU_STATES.FETCH) {
-        for (const key of Object.keys(this.idFlat)) {
-          const element = this.idFlat[key];
-          // Hide all elements when the next decoding stage is incoming
-          if (key.startsWith('mux_')) {
-            element.meshes.forEach((mesh) => {
-              mesh.material.opacity = 0.1;
-            });
-          }
-        }
-        // Reset all values
-        // @ts-ignore
-        Object.values(this.cpuInterface.bindings.volatileValues).forEach((value) => value.next(null));
-      }
-
-      // Show decoded active lines if the current executed state was decoding
-      if (cpuState === CPU_STATES.DECODE_INSTRUCTION) {
-        if (this.cpuInterface.bindings.instruction.value) {
-          const instruction = this.cpuInterface.bindings.instruction.value;
-          checkActiveElementsInGraph(instruction.opcodeName);
-          checkActiveElementsInGraph(this.cpuInterface.bindings.instruction.value?.instructionName);
-        }
-      }
-
-      // this.updateActiveMeshes(nextCpuState);
-    });
+  showMeshes(meshes) {
+    const meshesWithoutNonVisibleAreas = meshes.filter((mesh) => !this.nonVisibleMeshes.includes(mesh));
+    return this.animateOpacity(meshesWithoutNonVisibleAreas, 1);
   }
 
-  // updateActiveMeshes(nextCpuState) {
-  //   // Hide all state meshes
-  //   // Show only state borders of active state
-  //   for (const key of Object.keys(this.idFlat)) {
-  //     if (key.includes('state')) {
-  //       this.idFlat[key].meshes.forEach((mesh) => {
-  //         mesh.material.opacity = 0.1;
-  //       });
-  //     }
-  //   }
-  //
-  //   // Activate new state meshes and focus on them in the following switch
-  //   const showStateMesh = (name: string): void => {
-  //     const element = this.idFlat['state_' + name];
-  //     element.meshes.forEach((mesh) => {
-  //       mesh.material.opacity = 1;
-  //     });
-  //   };
-  //
-  //   switch (nextCpuState) {
-  //     case CPU_STATES.DECODE_INSTRUCTION:
-  //       showStateMesh('decode');
-  //       break;
-  //     case CPU_STATES.EXECUTE:
-  //       showStateMesh('execute');
-  //       break;
-  //     case CPU_STATES.WRITE_BACK:
-  //       showStateMesh('writeback');
-  //       break;
-  //     case CPU_STATES.ADVANCE_PC:
-  //       showStateMesh('advpc');
-  //       break;
-  //     case CPU_STATES.BREAK:
-  //       break;
-  //     case CPU_STATES.FETCH:
-  //       showStateMesh('fetch');
-  //       break;
-  //   }
-  // }
+  animateOpacity(meshes, opacity) {
+    return new Promise((resolve, reject) => {
+      const materials = [];
+      for (const mesh of meshes) {
+        mesh.material ? materials.push(mesh.material) : 0;
+      }
+
+      if (materials.length === 0) {
+        resolve();
+      } else {
+        anime({
+          targets: materials,
+          opacity: opacity,
+          duration: 100,
+          delay: (el, i, t) => {
+            return Math.random() * 200;
+          },
+          complete: () => {
+            resolve();
+          }
+        });
+      }
+    })
+  }
+
+  initHighlightingUsedPaths() {
+    this.cpuInterface.bindings.cycleComplete.subscribe(() => this.updateActiveElements());
+  }
+
+  updateActiveElements() {
+    const nextCpuState = this.cpuInterface.bindings.nextCpuState.value;
+    const cpuState = this.cpuInterface.bindings.cpuState.value;
+
+    // Reset all lines
+    // Dont show any active lines
+    if (nextCpuState === CPU_STATES.FETCH) {
+      for (const key of Object.keys(this.idFlat)) {
+        const element = this.idFlat[key];
+        // Hide all elements when the next decoding stage is incoming
+        if (key.startsWith('mux_')) {
+          this.animateOpacity(this.idFlat[key].meshes, 0.05);
+        }
+      }
+      // Reset all values
+      // @ts-ignore
+      Object.values(this.cpuInterface.bindings.volatileValues).forEach((value) => value.next(null));
+    }
+
+    // Show decoded active lines if the current executed state was decoding
+    if (this.cpuInterface.bindings.instruction.value) {
+
+      /**
+       * Checks the idFlat list for mux elements with the given element name.
+       * @param element Name which should be included in the id -> 'add' to match 'mux_xor_add' or 'mux_add_lui'
+       */
+      const checkActiveElementsInGraph = (element: string) => {
+        const meshesToActivate = [];
+        for (const key of Object.keys(this.idFlat)) {
+          // Only match exact word -> 'add' -> match 'add' and not 'addi'
+          const regex = new RegExp(`(\b|_)${element.toLowerCase()}(\b|_|$|-)`);
+          const keySmall = key.toLowerCase();
+          if (keySmall.startsWith('mux_') && regex.test(keySmall)) {
+            meshesToActivate.push(...this.idFlat[key].meshes)
+          }
+        }
+        return meshesToActivate;
+      };
+
+      // Get list with meshes to activate
+      const meshesToActivate = [];
+      meshesToActivate.push(...checkActiveElementsInGraph(this.cpuInterface.bindings.instruction.value?.opcodeName));
+      meshesToActivate.push(...checkActiveElementsInGraph(this.cpuInterface.bindings.instruction.value?.instructionName));
+      // Deactivate all elements with 'mux_' which are currently not on if there are some to activate
+      const allMeshes = [];
+      for (const key of Object.keys(this.idFlat)) {
+        const keySmall = key.toLowerCase();
+        if (keySmall.startsWith('mux_')) {
+          allMeshes.push(...this.idFlat[key].meshes);
+        }
+      }
+      console.log(meshesToActivate);
+      this.animateOpacity(_.difference(allMeshes, meshesToActivate), 0.05);
+    }
+  }
 
   onDocumentMouseMove(event) {
     event.preventDefault();
@@ -493,14 +522,6 @@ export class GraphService {
     this.centeredMouse.y = -((event.clientY - this.renderDom.offsetTop - (window.innerHeight - this.renderDom.clientHeight - this.renderDom.offsetTop)) / this.renderDom.clientHeight) * 2 + 1;
   }
 
-
-  setVisibility(id, on) {
-    console.log('Setting visibility of ', id);
-    this.idFlat[id]?.meshes.forEach((mesh) => {
-      mesh.material.opacity = on ? 1 : 0.1;
-    });
-  }
-
   flattenRootToIndexIdArray(root) {
     const ids = [];
 
@@ -508,7 +529,7 @@ export class GraphService {
       const meshes = [];
       if (child.meshes) meshes.push(...child.meshes);
       if (child.children) for (const deeperChild of child.children) meshes.push(...traverseChildren(deeperChild));
-      if (child.id) ids[child.id] = { meshes: meshes, group: child.group };
+      if (child.id) ids[child.id] = {meshes: meshes, group: child.group};
       return meshes;
     };
 
@@ -562,27 +583,26 @@ export class GraphService {
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0) {
       const getName = (i) => {
-        if (i.parent.parent.name.startsWith('p_')) return { name: i.parent.parent.name, type: 'p' };
-        if (i.parent.parent.name.startsWith('m_')) return { name: i.parent.parent.name, type: 'm' };
-        if (i.parent.parent.name.startsWith('w_')) return { name: i.parent.parent.name, type: 'w' };
-        if (i.parent.name.startsWith('p_')) return { name: i.parent.name, type: 'p' };
-        if (i.parent.name.startsWith('m_')) return { name: i.parent.name, type: 'm' };
-        if (i.parent.name.startsWith('w_')) return { name: i.parent.name, type: 'w' };
-        if (i.name.startsWith('s_')) return { name: i.name, type: 's' };
-        if (i.name.startsWith('w_')) return { name: i.name, type: 'w' };
-        if (i.name.startsWith('m_')) return { name: i.name, type: 'm' };
+        if (i.parent.parent.name.startsWith('p_')) return {name: i.parent.parent.name, type: 'p'};
+        if (i.parent.parent.name.startsWith('m_')) return {name: i.parent.parent.name, type: 'm'};
+        if (i.parent.parent.name.startsWith('w_')) return {name: i.parent.parent.name, type: 'w'};
+        if (i.parent.name.startsWith('p_')) return {name: i.parent.name, type: 'p'};
+        if (i.parent.name.startsWith('m_')) return {name: i.parent.name, type: 'm'};
+        if (i.parent.name.startsWith('w_')) return {name: i.parent.name, type: 'w'};
+        if (i.name.startsWith('s_')) return {name: i.name, type: 's'};
+        if (i.name.startsWith('w_')) return {name: i.name, type: 'w'};
+        if (i.name.startsWith('m_')) return {name: i.name, type: 'm'};
       }
 
       let object;
       for (const intersection of intersects) {
         object = getName(intersection.object);
-        if(object) break;
+        if (object) break;
       }
 
       if (object) {
         if (JSON.stringify(this.intersectedElement) != JSON.stringify(object)) {
           if (this.intersectedElement) {
-            //this.intersectedElement.material.color.setHex(this.intersectedElement.currentHex);
             this.tippyTooltip.hide();
           }
           this.intersectedElement = object;
@@ -627,15 +647,12 @@ export class GraphService {
               name = RISCV_DEFINITIONS.ports[id]?.name;
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
               desc = RISCV_DEFINITIONS.ports[id]?.desc;
-              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value  + (desc ? '<br>' + desc : ''));
+              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
               console.log(object.name, id, name, prevalue, value);
               break;
           }
 
           this.tippyTooltip.show();
-
-          // this.intersectedElement.currentHex = this.intersectedElement.material.color.getHex();
-          // this.intersectedElement.material.color.setHex(0xff0000);
         } else {
           this.tippyTooltip.setProps({
             getReferenceClientRect: () => ({
@@ -670,7 +687,6 @@ export class GraphService {
     const regex = /(?:w_)(.*?)(?:-|$)/g;
     return this.getFirstGroup(regex, id);
   }
-
 
   getModuleName(id) {
     const regex = /(?:m_)(.*?)(?:-|$)/g;

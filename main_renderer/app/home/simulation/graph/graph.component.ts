@@ -15,14 +15,8 @@ import { GraphService } from './graph.service';
   templateUrl: './graph.component.html',
   styleUrls: ['./graph.component.scss'],
 })
-export class GraphComponent implements AfterViewInit, OnDestroy, OnChanges {
-  @Input() focus: string;
-
+export class GraphComponent implements AfterViewInit, OnDestroy {
   constructor(private el: ElementRef, private graphService: GraphService) {}
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.graphService.goToArea(changes.focus.currentValue);
-  }
 
   ngAfterViewInit() {
     console.log(this);

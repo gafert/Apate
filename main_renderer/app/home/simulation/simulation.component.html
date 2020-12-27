@@ -1,11 +1,12 @@
 <div id="simulation-container">
-  <app-graph [focus]="selectedTab" class="simulation-item-content app-graph"></app-graph>
+  <app-graph class="simulation-item-content app-graph"></app-graph>
 
   <div class="tabs simulation-tabs">
     <!-- The paths need to overwrite the last path element e.g. /home/simulation/overview -> /home/simulation/decoder -->
-    <button *ngVar="'overview' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Overview</button>
-    <button *ngVar="'decoder' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Control Unit</button>
-    <button *ngVar="'alu' as s" (click)="selectedTab = s" [attr.selected]="selectedTab === s">Arithmetic Logic Unit</button>
+    <button *ngVar="'overview' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Overview</button>
+    <button *ngVar="'cu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Control Unit</button>
+    <button *ngVar="'alu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Arithmetic Logic Unit</button>
+    <button *ngVar="'be' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Branch Evaluator</button>
   </div>
 
   <div class="simulation-item-content control">

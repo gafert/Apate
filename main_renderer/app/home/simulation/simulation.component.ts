@@ -55,8 +55,9 @@ export class SimulationComponent implements OnInit, OnDestroy {
     });
   }
 
-  isSelectedButton(pathName) {
-    return this.router.url.includes(pathName);
+  focusArea(area) {
+    this.graphService.goToArea(area);
+    this.selectedTab = area;
   }
 
   initiateSimulation() {
@@ -82,13 +83,16 @@ export class SimulationComponent implements OnInit, OnDestroy {
     if (info.exec)
       this.stage = this.cpuInterface.advanceSimulationClock();
     if (info.area) {
-      this.selectedTab = info.area;
-      // Detect changes to first go to area and then focus
-      // Otherwise focusOnElement animation would be stopped
-      this.cd.detectChanges();
+      this.graphService.goToArea(info.area).then(() => {
+        this.selectedTab = info.area;
+        if (info.focus)
+          this.graphService.focusOnElement(info.focus);
+      })
+    } else {
+      if (info.focus)
+        this.graphService.focusOnElement(info.focus);
     }
-    if (info.focus)
-      this.graphService.focusOnElement(info.focus);
+
     this.info = info.text;
   }
 

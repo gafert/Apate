@@ -16,6 +16,7 @@
   infos:
     - text: Control Unit
       highlight: []
+      from: m_controlunit
       area: cu
       exec: decoder
     - text: Get instruction group by opcode
