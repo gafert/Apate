@@ -19,7 +19,6 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
   constructor(private el: ElementRef, private graphService: GraphService) {}
 
   ngAfterViewInit() {
-    console.log(this);
     this.graphService.init(this.el.nativeElement);
   }
 

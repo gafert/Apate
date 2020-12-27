@@ -1,11 +1,12 @@
-import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { byteToHex } from '../../../globals';
+import {AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {byteToHex} from '../../../globals';
 import * as d3 from 'd3';
-import { easing, styler, tween } from 'popmotion';
-import { readStyleProperty } from '../../../utils/helper';
-import { ELF, SHF_CONSTANTS } from '../../../core/services/cpu-interface/elfParser';
-import { INSTRUCTIONS_DESCRIPTIONS } from '../../../core/services/cpu-interface/instructionParser';
-import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
+import {animate, easeIn, easeInOut, easeOut} from 'popmotion';
+import styler from 'stylefire';
+import {readStyleProperty} from '../../../utils/helper';
+import {ELF, SHF_CONSTANTS} from '../../../core/services/cpu-interface/elfParser';
+import {INSTRUCTIONS_DESCRIPTIONS} from '../../../core/services/cpu-interface/instructionParser';
+import {CpuInterface} from '../../../core/services/cpu-interface/cpu-interface.service';
 
 class Assembly {
   opcode: string;
@@ -92,24 +93,29 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
     // Change colors accordingly
     const oldAssemblyDiv = document.getElementById('assembly-code-div-' + oldPC);
     if (oldAssemblyDiv) {
-      tween({
-        from: { backgroundColor: oldAssemblyDiv.style.backgroundColor },
-        to: { backgroundColor: readStyleProperty('accent-dark') },
-        ease: easing.easeOut,
-        duration: 500
-      }).start((v) => styler(oldAssemblyDiv).set(v));
+      const oldAssemblyStyler = styler(oldAssemblyDiv);
+      animate({
+        from: {backgroundColor: oldAssemblyStyler.get('background-color')},
+        to: {backgroundColor: readStyleProperty('accent-dark')},
+        ease: easeOut,
+        duration: 500,
+        onUpdate: (v) => oldAssemblyStyler.set(v)
+      });
     }
     const oldAssemblyPcDiv = document.getElementById('assembly-code-div-pc-' + oldPC);
     const oldAssemblyHexDiv = document.getElementById('assembly-code-div-hex-' + oldPC);
     if (oldAssemblyPcDiv && oldAssemblyHexDiv) {
-      tween({
-        from: { backgroundColor: oldAssemblyPcDiv.style.backgroundColor },
-        to: { backgroundColor: readStyleProperty('accent') },
-        ease: easing.easeOut,
-        duration: 500
-      }).start((v) => {
-        styler(oldAssemblyPcDiv).set(v);
-        styler(oldAssemblyHexDiv).set(v);
+      const oldAssemblyPcStyler = styler(oldAssemblyPcDiv);
+      const oldAssemblyHexStyler = styler(oldAssemblyHexDiv);
+      animate({
+        from: {backgroundColor: oldAssemblyPcStyler.get('background-color')},
+        to: {backgroundColor: readStyleProperty('accent')},
+        ease: easeOut,
+        duration: 500,
+        onUpdate: (v) => {
+          oldAssemblyPcStyler.set(v);
+          oldAssemblyHexStyler.set(v);
+        }
       });
     }
     d3.select('#assembly-code-div-' + newPC).style('background', readStyleProperty('accent'));

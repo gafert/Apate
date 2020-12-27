@@ -10,8 +10,9 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { easing, styler, tween } from 'popmotion';
-import { readStyleProperty } from '../../utils/helper';
+import {animate, easeOut, linear} from 'popmotion';
+import styler from 'stylefire';
+import {readStyleProperty} from '../../utils/helper';
 
 @Component({
   selector: 'app-action-button',
@@ -28,7 +29,8 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
 
   public buttonTweens = [];
 
-  constructor(private changeDetection: ChangeDetectorRef) {}
+  constructor(private changeDetection: ChangeDetectorRef) {
+  }
 
   ngAfterViewInit(): void {
     if (this.disabled) {
@@ -43,12 +45,13 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
       this.stopOtherTweens();
       const style = styler(button);
       this.buttonTweens.push(
-        tween({
-          from: { scale: currentScale },
-          to: { scale: 1.2 },
-          ease: easing.easeOut,
+        animate({
+          from: {scale: currentScale},
+          to: {scale: 1.2},
+          ease: easeOut,
           duration: 1000,
-        }).start((v) => style.set(v))
+          onUpdate: (v) => style.set(v)
+        })
       );
     }
   }
@@ -60,13 +63,13 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
       this.stopOtherTweens();
       const style = styler(button);
       this.buttonTweens.push(
-        tween({
-          from: { scale: currentScale },
-          to: { scale: 0.9 },
-          ease: easing.linear,
+        animate({
+          from: {scale: currentScale},
+          to: {scale: 0.9},
+          ease: linear,
           duration: 50,
-        }).start((v) => style.set(v))
-      );
+          onUpdate: (v) => style.set(v)
+        }));
 
       this.buttonClick.emit();
     }
@@ -76,12 +79,13 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
     const button = this.button.nativeElement;
     const style = styler(button);
     this.buttonTweens.push(
-      tween({
-        from: { backgroundColor: style.get('background-color') },
-        to: { backgroundColor: '#6b6b6b' },
-        ease: easing.linear,
+      animate({
+        from: {backgroundColor: style.get('background-color')},
+        to: {backgroundColor: '#6b6b6b'},
+        ease: linear,
         duration: 50,
-      }).start((v) => style.set(v))
+        onUpdate: (v) => style.set(v)
+      })
     );
   }
 
@@ -90,27 +94,16 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
     const button = this.button.nativeElement;
     const style = styler(button);
 
-    function checkAnimation() {
-      setTimeout(() => {
-        if (!thiz.buttonTweens[0]?.isActive()) {
-          thiz.stopOtherTweens();
-          thiz.buttonTweens.push(
-            tween({
-              from: { scale: style.get('scale') },
-              to: { scale: 1 },
-              ease: easing.linear,
-              duration: 100,
-            }).start((v) => style.set(v))
-          );
-        } else {
-          checkAnimation();
-        }
-      }, 10);
-    }
-
-    if (!this.disabled) {
-      checkAnimation();
-    }
+    thiz.stopOtherTweens();
+    thiz.buttonTweens.push(
+      animate({
+        from: {scale: style.get('scale')},
+        to: {scale: 1},
+        ease: linear,
+        duration: 100,
+        onUpdate: (v) => style.set(v)
+      })
+    );
   }
 
   buttonLeave() {
@@ -119,12 +112,13 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
     this.stopOtherTweens();
     const style = styler(button);
     this.buttonTweens.push(
-      tween({
-        from: { scale: currentScale },
-        to: { scale: 1 },
-        ease: easing.linear,
+      animate({
+        from: {scale: currentScale},
+        to: {scale: 1},
+        ease: linear,
         duration: 100,
-      }).start((v) => style.set(v))
+        onUpdate: (v) => style.set(v)
+      })
     );
   }
 
@@ -134,12 +128,13 @@ export class ActionButtonComponent implements AfterViewInit, OnChanges {
     this.stopOtherTweens();
 
     const style = styler(button);
-    tween({
-      from: { backgroundColor: style.get('background-color'), scale: currentScale },
-      to: { backgroundColor: readStyleProperty('accent'), scale: 1 },
-      ease: easing.linear,
+    animate({
+      from: {backgroundColor: style.get('background-color'), scale: currentScale},
+      to: {backgroundColor: readStyleProperty('accent'), scale: 1},
+      ease: linear,
       duration: 50,
-    }).start((v) => style.set(v));
+      onUpdate: (v) => style.set(v)
+    });
     this.disabled = false;
     this.changeDetection.detectChanges();
   }

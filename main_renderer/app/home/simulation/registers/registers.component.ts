@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { easing, styler, tween } from 'popmotion';
-import { byteToHex } from '../../../globals';
-import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
+import {Component, OnInit} from '@angular/core';
+import {animate, easeIn, easeInOut, easeOut} from 'popmotion';
+import styler from 'stylefire';
+import {byteToHex} from '../../../globals';
+import {CpuInterface} from '../../../core/services/cpu-interface/cpu-interface.service';
 
 @Component({
   selector: 'app-registers',
@@ -74,15 +75,16 @@ export class RegistersComponent implements OnInit {
     const left = event.target.getBoundingClientRect().x + event.target.clientWidth + 'px';
 
     const hoverElement = document.getElementById(this.hoverTooltipId);
-    tween({
+    animate({
       from: {
         top: hoverElement.style.top,
         left: hoverElement.style.left
       },
-      to: { top: top, left: left },
-      ease: easing.easeOut,
-      duration: 100
-    }).start((v) => styler(hoverElement).set(v));
+      to: {top: top, left: left},
+      ease: easeOut,
+      duration: 100,
+      onUpdate: (v) => styler(hoverElement).set(v)
+    });
 
     hoverElement.style.display = 'block';
     hoverElement.innerText = this.cpuRegDefinitions[i][1];

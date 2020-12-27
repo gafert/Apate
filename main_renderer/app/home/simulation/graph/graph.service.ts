@@ -6,28 +6,15 @@ import {CpuInterface} from '../../../core/services/cpu-interface/cpu-interface.s
 import {SVGLoader} from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
-import {Action, easing, tween} from 'popmotion';
+import {animate, easeIn} from 'popmotion';
 import anime from 'animejs/lib/anime.es.js';
 import * as _ from 'lodash';
-
-import {
-  isAUIPC,
-  isBRANCH,
-  isIMM,
-  isJAL,
-  isJALR,
-  isLOAD,
-  isLUI,
-  isOP,
-  isSTORE
-} from '../../../core/services/cpu-interface/instructionParser';
 import {CPU_STATES} from '../../../core/services/cpu-interface/bindingSubjects';
 import {MeshText2D, textAlign} from 'three-text2d';
 import * as d3 from 'd3';
 import DEG2RAD = MathUtils.DEG2RAD;
 import tippy, {Instance, Props, Tippy} from 'tippy.js';
 import RISCV_DEFINITIONS from './risc.yml';
-import {promisify} from "util";
 
 interface ThreeNode {
   meshes: THREE.Mesh[];
@@ -90,8 +77,6 @@ export class GraphService {
       this.scene = null;
       this.clock = null;
     });
-
-    console.log(RISCV_DEFINITIONS);
   }
 
   runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
@@ -194,6 +179,8 @@ export class GraphService {
 
     // Hide elements of current area only if there is one selected, else skip this and only show
     if (this.activeArea) await this.hideMeshes(this.idFlat['area_' + this.activeArea].meshes, true);
+
+
     // Hide elements where we will jump to
     await this.hideMeshes(this.idFlat['area_' + name].meshes, false);
     // Focus on new area
@@ -209,7 +196,7 @@ export class GraphService {
     this.activeArea = name;
   }
 
-  private focusCameraOnMesh(mesh, animate = false) {
+  private focusCameraOnMesh(mesh, enableAnimation = false) {
     if (!mesh) return;
 
     mesh.geometry.computeBoundingBox();
@@ -257,14 +244,15 @@ export class GraphService {
 
     this.focusAnimation?.stop();
     // Lerp to new position if animate is true, otherwise move instantly
-    if (animate) {
-      this.focusAnimation = tween({
+    if (enableAnimation) {
+      this.focusAnimation = animate({
         from: 0,
         to: 1,
-        ease: easing.easeIn,
-        duration: 1000
-      }).start((v) => {
-        this.camera.position.lerp(newCameraPos, v);
+        ease: easeIn,
+        duration: 1000,
+        onUpdate: (v) => {
+          this.camera.position.lerp(newCameraPos, v);
+        }
       });
     } else {
       this.camera.position.copy(newCameraPos);
@@ -456,7 +444,6 @@ export class GraphService {
 
   updateActiveElements() {
     const nextCpuState = this.cpuInterface.bindings.nextCpuState.value;
-    const cpuState = this.cpuInterface.bindings.cpuState.value;
 
     // Reset all lines
     // Dont show any active lines
@@ -505,7 +492,6 @@ export class GraphService {
           allMeshes.push(...this.idFlat[key].meshes);
         }
       }
-      console.log(meshesToActivate);
       this.animateOpacity(_.difference(allMeshes, meshesToActivate), 0.05);
     }
   }
@@ -671,6 +657,21 @@ export class GraphService {
     } else {
       removeTooltip();
     }
+  }
+
+  getCenterOfMeshes(meshes: THREE.Mesh[]): THREE.Vector3 {
+    for (const mesh of meshes) {
+      mesh.geometry.computeBoundingBox();
+    }
+
+    const minX = d3.scan(meshes, (a, b) => a.geometry.boundingBox.min.x - b.geometry.boundingBox.min.x);
+    const maxX = d3.scan(meshes, (a, b) => b.geometry.boundingBox.max.x - a.geometry.boundingBox.max.x);
+    const minY = d3.scan(meshes, (a, b) => a.geometry.boundingBox.min.y - b.geometry.boundingBox.min.y);
+    const maxY = d3.scan(meshes, (a, b) => b.geometry.boundingBox.max.y - a.geometry.boundingBox.max.y);
+    const minZ = d3.scan(meshes, (a, b) => a.geometry.boundingBox.min.z - b.geometry.boundingBox.min.z);
+    const maxZ = d3.scan(meshes, (a, b) => b.geometry.boundingBox.max.z - a.geometry.boundingBox.max.z);
+
+    return new THREE.Vector3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2)
   }
 
   getPortName(id) {

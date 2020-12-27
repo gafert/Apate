@@ -98,7 +98,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
 
   getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: string; area?: string; focus?: string } {
-
     if(this.infoCounter + 1 >= RISCV_STAGES[this.instrCounter].infos.length) {
       // There is no info left in this instruction, go to first info of new instruction
       this.infoCounter = 0;
@@ -115,7 +114,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
           this.instrCounter++;
           // Check if this instruction fullfills the requirements
           const instr = RISCV_STAGES[this.instrCounter];
-          console.log(instr);
 
           const compliesWithIf = (instr.if !== undefined) ? instr.if(bindings) : true;
           let compliesWithInstruction = true;
@@ -132,10 +130,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
     } else {
       this.infoCounter++;
     }
-
-    console.log(bindings.instruction.value?.opcodeName);
-
-
     return RISCV_STAGES[this.instrCounter].infos[this.infoCounter];
   }
 

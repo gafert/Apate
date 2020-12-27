@@ -40,9 +40,6 @@ export class DataService {
         this.subscribeToSetting(this.data[DataKeys[dataKeysKey]], dataKeysKey);
       }
     }
-
-    console.log(DataKeys.TOOLCHAIN_DOWNLOADED);
-    console.log(this.data);
   }
 
   getSetting(key: DataKeys) {
