@@ -7,13 +7,11 @@ import {SVGLoader} from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
 import {animate, easeIn} from 'popmotion';
-import anime from 'animejs/lib/anime.es.js';
 import * as _ from 'lodash';
 import {CPU_STATES} from '../../../core/services/cpu-interface/bindingSubjects';
 import {MeshText2D, textAlign} from 'three-text2d';
 import * as d3 from 'd3';
-import DEG2RAD = MathUtils.DEG2RAD;
-import tippy, {Instance, Props, Tippy} from 'tippy.js';
+import tippy, {Instance, Props} from 'tippy.js';
 import RISCV_DEFINITIONS from './risc.yml';
 
 interface ThreeNode {
@@ -158,11 +156,40 @@ export class GraphService {
 
         // Split areas in world and focus on the first
         // This needs to be away from initiateObjects
-        this.separateAreas();
+        // this.separateAreas();
         this.goToArea('overview');
 
         // Set initiated to true to not reload settings if init was called again by component using the service
         this.initiated = true;
+
+        for (const key of Object.keys(this.idFlat)) {
+          if (key === 'area_cu')
+            if (this.idFlat[key].meshes.length !== 0) {
+              const {center, box} = this.getCenterOfMeshes(this.idFlat[key].meshes);
+
+              // Test sphere
+              const geometry = new THREE.SphereGeometry(1, 10);
+              const material = new THREE.MeshLambertMaterial({
+                color: 0xffff00
+              });
+              const sphere = new THREE.Mesh(geometry, material);
+              sphere.position.copy(center);
+              this.scene.add(sphere);
+
+              // Test sphere
+              const size = new THREE.Vector3();
+              box.getSize(size);
+              const geometry1 = new THREE.PlaneGeometry(size.x, size.y);
+              const material1 = new THREE.MeshLambertMaterial({
+                color: 0xffff00
+              });
+              material1.transparent = true;
+              material1.opacity = 0.05;
+              const sphere1 = new THREE.Mesh(geometry1, material1);
+              sphere1.position.copy(center);
+              this.scene.add(sphere1);
+            }
+        }
       }
     });
   }
@@ -170,7 +197,7 @@ export class GraphService {
   public focusOnElement(state) {
     // Block if change comes too early
     if (!this.idFlat) return;
-    this.focusCameraOnMesh(this.idFlat['focus_' + state]?.meshes[0], true);
+    this.focusCameraOnMesh(this.idFlat['focus_' + state]?.meshes, true);
   }
 
   public async goToArea(name) {
@@ -180,11 +207,39 @@ export class GraphService {
     // Hide elements of current area only if there is one selected, else skip this and only show
     if (this.activeArea) await this.hideMeshes(this.idFlat['area_' + this.activeArea].meshes, true);
 
+    if (name == 'cu') {
+      await new Promise((resolve, reject) => {
+        const {center, box} = this.getCenterOfMeshes(this.idFlat['m_controlunit'].meshes);
+        console.log(center);
+
+        // Test sphere
+        const geometry = new THREE.CircleGeometry(2, 10);
+        const material = new THREE.MeshLambertMaterial({
+          color: 0xffff00
+        });
+        material.transparent = true;
+        material.opacity = 1;
+        const sphere = new THREE.Mesh(geometry, material);
+        sphere.position.copy(center);
+        this.scene.add(sphere);
+
+        animate({
+          from: 0,
+          to: 1,
+          ease: easeIn,
+          duration: 5000,
+          onUpdate: (v) => {
+            this.camera.position.lerp(center, v);
+          },
+          onComplete: () => resolve()
+        });
+      });
+    }
 
     // Hide elements where we will jump to
     await this.hideMeshes(this.idFlat['area_' + name].meshes, false);
     // Focus on new area
-    this.focusCameraOnMesh(this.idFlat['areaborder_' + name].meshes[0], false);
+    this.focusCameraOnMesh(this.idFlat['areaborder_' + name].meshes, false);
 
     // This can be async as the camera can move now
     // Show meshes at new location
@@ -194,81 +249,6 @@ export class GraphService {
     })
 
     this.activeArea = name;
-  }
-
-  private focusCameraOnMesh(mesh, enableAnimation = false) {
-    if (!mesh) return;
-
-    mesh.geometry.computeBoundingBox();
-    mesh.geometry.computeBoundingSphere();
-    const bb = mesh.geometry.boundingBox;
-    const center = new THREE.Vector3();
-    bb.getCenter(center);
-    const size = new THREE.Vector3();
-    bb.getSize(size);
-
-
-    // Test sphere
-    // const geometry = new THREE.PlaneGeometry(size.x, size.y);
-    // const material = new THREE.MeshLambertMaterial({
-    //   color: 0xffff00
-    // });
-    // material.transparent = true;
-    // material.opacity = 0.05;
-    // const sphere = new THREE.Mesh(geometry, material);
-    // sphere.position.copy(center);
-    // mesh.add(sphere);
-
-
-    const vFoV = this.camera.getEffectiveFOV();
-    const hFoV = this.camera.fov * this.camera.aspect;
-    const FoV = Math.min(vFoV, hFoV);
-
-    const distance = Math.max(size.x, size.y, size.z);
-    // var distance = boundingBox.getBoundingSphere().radius * 2;
-
-    // const cameraZ = distance / 2 / Math.tan(Math.PI * FOV / 360);
-    // TODO: Why does this need to be divided by 7.5? Why is the camera too far away without that?
-    const cameraZ = distance / Math.sin(FoV / 2 * DEG2RAD) / 7.5;
-    console.log(distance, cameraZ);
-
-    const dir = new THREE.Vector3();
-    this.camera.getWorldDirection(dir);
-    const bsWorld = center.clone();
-    mesh.localToWorld(bsWorld);
-    const cameraDir = new THREE.Vector3();
-    this.camera.getWorldDirection(cameraDir);
-    const cameraOffs = cameraDir.clone();
-    cameraOffs.setZ(cameraZ);
-    const newCameraPos = bsWorld.clone().add(cameraOffs);
-
-    this.focusAnimation?.stop();
-    // Lerp to new position if animate is true, otherwise move instantly
-    if (enableAnimation) {
-      this.focusAnimation = animate({
-        from: 0,
-        to: 1,
-        ease: easeIn,
-        duration: 1000,
-        onUpdate: (v) => {
-          this.camera.position.lerp(newCameraPos, v);
-        }
-      });
-    } else {
-      this.camera.position.copy(newCameraPos);
-    }
-  }
-
-  separateAreas() {
-    const areas: areas[] = ['overview', 'decoder', 'alu', 'memory', 'registers'];
-
-    let y = 0;
-    for (const area of areas) {
-      if (!this.idFlat['area_' + area]) continue;
-      const group = this.idFlat['area_' + area].group;
-      group.position.set(0, y, 0);
-      y += 1000;
-    }
   }
 
   initiateObjects() {
@@ -391,8 +371,38 @@ export class GraphService {
       nonVisibleMesh.material.opacity = 0;
     }
 
+
     this.scene.add(this.renderGroup);
     this.initHighlightingUsedPaths();
+  }
+
+  separateAreas() {
+    const areas: areas[] = ['overview', 'decoder', 'alu', 'memory', 'registers'];
+
+    let y = 0;
+    for (const area of areas) {
+      if (!this.idFlat['area_' + area]) continue;
+      const group = this.idFlat['area_' + area].group;
+      group.position.set(0, y, 0);
+      y += 1000;
+    }
+  }
+
+  animateOpacity(meshes, opacity) {
+    return new Promise((resolve, reject) => {
+      for (const mesh of meshes) {
+        animate({
+          from: mesh.material.opacity,
+          to: opacity,
+          duration: 200,
+          elapsed: -Math.random() * 200,
+          onUpdate: (v) => mesh.material.opacity = v,
+          onComplete: () => {
+            resolve();
+          }
+        });
+      }
+    })
   }
 
   hideMeshes(meshes, animate = false) {
@@ -413,29 +423,112 @@ export class GraphService {
     return this.animateOpacity(meshesWithoutNonVisibleAreas, 1);
   }
 
-  animateOpacity(meshes, opacity) {
-    return new Promise((resolve, reject) => {
-      const materials = [];
-      for (const mesh of meshes) {
-        mesh.material ? materials.push(mesh.material) : 0;
+  handleIntersection() {
+    // Intersection
+    this.raycaster.setFromCamera(this.centeredMouse, this.camera);
+
+    // Show Tooltip on intersection
+    const removeTooltip = () => {
+      if (this.intersectedElement) {
+        // this.intersectedElement.material.color.setHex(this.intersectedElement.currentHex);
+        this.tippyTooltip.hide();
+      }
+      this.tippyTooltip.hide();
+      this.intersectedElement = null;
+    };
+    const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+    if (intersects.length > 0) {
+      console.log(intersects);
+
+      const getName = (i) => {
+        if (i?.parent?.parent?.name?.startsWith('p_')) return {name: i.parent.parent.name, type: 'p'};
+        if (i?.parent?.parent?.name?.startsWith('m_')) return {name: i.parent.parent.name, type: 'm'};
+        if (i?.parent?.parent?.name?.startsWith('w_')) return {name: i.parent.parent.name, type: 'w'};
+        if (i?.parent?.name?.startsWith('p_')) return {name: i.parent.name, type: 'p'};
+        if (i?.parent?.name?.startsWith('m_')) return {name: i.parent.name, type: 'm'};
+        if (i?.parent?.name?.startsWith('w_')) return {name: i.parent.name, type: 'w'};
+        if (i?.name?.startsWith('s_')) return {name: i.name, type: 's'};
+        if (i?.name?.startsWith('w_')) return {name: i.name, type: 'w'};
+        if (i?.name?.startsWith('m_')) return {name: i.name, type: 'm'};
       }
 
-      if (materials.length === 0) {
-        resolve();
-      } else {
-        anime({
-          targets: materials,
-          opacity: opacity,
-          duration: 100,
-          delay: (el, i, t) => {
-            return Math.random() * 200;
-          },
-          complete: () => {
-            resolve();
-          }
-        });
+      let object;
+      for (const intersection of intersects) {
+        object = getName(intersection.object);
+        if (object) break;
       }
-    })
+
+      if (object) {
+        if (JSON.stringify(this.intersectedElement) != JSON.stringify(object)) {
+          if (this.intersectedElement) {
+            this.tippyTooltip.hide();
+          }
+          this.intersectedElement = object;
+
+          this.tippyTooltip.setProps({
+            getReferenceClientRect: () => ({
+              width: 0,
+              height: 0,
+              top: this.mouse.y,
+              bottom: this.mouse.y,
+              left: this.mouse.x,
+              right: this.mouse.x
+            })
+          });
+
+          let name;
+          let id;
+          let prevalue;
+          let value;
+          let desc;
+          switch (object.type) {
+            case 'w':
+            case 's':
+              id = this.getSName(object.name) || this.getWName(object.name);
+              prevalue = this.cpuInterface.bindings.allValues[id]?.value === undefined ? id : this.cpuInterface.bindings.allValues[id]?.value;
+              name = RISCV_DEFINITIONS.signals[id]?.name;
+              value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
+              desc = RISCV_DEFINITIONS.signals[id]?.desc;
+              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
+              console.log(object.name, id, name, prevalue, value);
+              break;
+            case 'm':
+              id = this.getModuleName(object.name);
+              name = RISCV_DEFINITIONS.modules[id]?.name;
+              desc = RISCV_DEFINITIONS.modules[id]?.desc;
+              this.tippyTooltip.setContent('<strong>' + name + '</strong>' + (desc ? '<br>' + desc : ''));
+              console.log(object.name, id, name);
+              break;
+            case 'p':
+              id = this.getPortName(object.name);
+              prevalue = this.cpuInterface.bindings.allValues[id]?.value === undefined ? id : this.cpuInterface.bindings.allValues[id]?.value;
+              name = RISCV_DEFINITIONS.ports[id]?.name;
+              value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
+              desc = RISCV_DEFINITIONS.ports[id]?.desc;
+              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
+              console.log(object.name, id, name, prevalue, value);
+              break;
+          }
+
+          this.tippyTooltip.show();
+        } else {
+          this.tippyTooltip.setProps({
+            getReferenceClientRect: () => ({
+              width: 0,
+              height: 0,
+              top: this.mouse.y,
+              bottom: this.mouse.y,
+              left: this.mouse.x,
+              right: this.mouse.x
+            })
+          });
+        }
+      } else {
+        removeTooltip();
+      }
+    } else {
+      removeTooltip();
+    }
   }
 
   initHighlightingUsedPaths() {
@@ -553,125 +646,66 @@ export class GraphService {
     });
   }
 
-  handleIntersection() {
-    // Intersection
-    this.raycaster.setFromCamera(this.centeredMouse, this.camera);
+  getCenterOfMeshes(meshes: THREE.Mesh[]): { center: THREE.Vector3; size: THREE.Vector3, box: THREE.Box3 } {
+    const bboxes = [];
 
-    // Show Tooltip on intersection
-    const removeTooltip = () => {
-      if (this.intersectedElement) {
-        // this.intersectedElement.material.color.setHex(this.intersectedElement.currentHex);
-        this.tippyTooltip.hide();
-      }
-      this.tippyTooltip.hide();
-      this.intersectedElement = null;
-    };
-    const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-    if (intersects.length > 0) {
-      const getName = (i) => {
-        if (i.parent.parent.name.startsWith('p_')) return {name: i.parent.parent.name, type: 'p'};
-        if (i.parent.parent.name.startsWith('m_')) return {name: i.parent.parent.name, type: 'm'};
-        if (i.parent.parent.name.startsWith('w_')) return {name: i.parent.parent.name, type: 'w'};
-        if (i.parent.name.startsWith('p_')) return {name: i.parent.name, type: 'p'};
-        if (i.parent.name.startsWith('m_')) return {name: i.parent.name, type: 'm'};
-        if (i.parent.name.startsWith('w_')) return {name: i.parent.name, type: 'w'};
-        if (i.name.startsWith('s_')) return {name: i.name, type: 's'};
-        if (i.name.startsWith('w_')) return {name: i.name, type: 'w'};
-        if (i.name.startsWith('m_')) return {name: i.name, type: 'm'};
-      }
-
-      let object;
-      for (const intersection of intersects) {
-        object = getName(intersection.object);
-        if (object) break;
-      }
-
-      if (object) {
-        if (JSON.stringify(this.intersectedElement) != JSON.stringify(object)) {
-          if (this.intersectedElement) {
-            this.tippyTooltip.hide();
-          }
-          this.intersectedElement = object;
-
-          this.tippyTooltip.setProps({
-            getReferenceClientRect: () => ({
-              width: 0,
-              height: 0,
-              top: this.mouse.y,
-              bottom: this.mouse.y,
-              left: this.mouse.x,
-              right: this.mouse.x
-            })
-          });
-
-          let name;
-          let id;
-          let prevalue;
-          let value;
-          let desc;
-          switch (object.type) {
-            case 'w':
-            case 's':
-              id = this.getSName(object.name) || this.getWName(object.name);
-              prevalue = this.cpuInterface.bindings.allValues[id]?.value === undefined ? id : this.cpuInterface.bindings.allValues[id]?.value;
-              name = RISCV_DEFINITIONS.signals[id]?.name;
-              value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
-              desc = RISCV_DEFINITIONS.signals[id]?.desc;
-              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
-              console.log(object.name, id, name, prevalue, value);
-              break;
-            case 'm':
-              id = this.getModuleName(object.name);
-              name = RISCV_DEFINITIONS.modules[id]?.name;
-              desc = RISCV_DEFINITIONS.modules[id]?.desc;
-              this.tippyTooltip.setContent('<strong>' + name + '</strong>' + (desc ? '<br>' + desc : ''));
-              console.log(object.name, id, name);
-              break;
-            case 'p':
-              id = this.getPortName(object.name);
-              prevalue = this.cpuInterface.bindings.allValues[id]?.value === undefined ? id : this.cpuInterface.bindings.allValues[id]?.value;
-              name = RISCV_DEFINITIONS.ports[id]?.name;
-              value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
-              desc = RISCV_DEFINITIONS.ports[id]?.desc;
-              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
-              console.log(object.name, id, name, prevalue, value);
-              break;
-          }
-
-          this.tippyTooltip.show();
-        } else {
-          this.tippyTooltip.setProps({
-            getReferenceClientRect: () => ({
-              width: 0,
-              height: 0,
-              top: this.mouse.y,
-              bottom: this.mouse.y,
-              left: this.mouse.x,
-              right: this.mouse.x
-            })
-          });
-        }
-      } else {
-        removeTooltip();
-      }
-    } else {
-      removeTooltip();
-    }
-  }
-
-  getCenterOfMeshes(meshes: THREE.Mesh[]): THREE.Vector3 {
     for (const mesh of meshes) {
       mesh.geometry.computeBoundingBox();
+      bboxes.push(new THREE.Box3().setFromObject(mesh));
+      // console.log(mesh.geometry.boundingBox)
     }
 
-    const minX = d3.scan(meshes, (a, b) => a.geometry.boundingBox.min.x - b.geometry.boundingBox.min.x);
-    const maxX = d3.scan(meshes, (a, b) => b.geometry.boundingBox.max.x - a.geometry.boundingBox.max.x);
-    const minY = d3.scan(meshes, (a, b) => a.geometry.boundingBox.min.y - b.geometry.boundingBox.min.y);
-    const maxY = d3.scan(meshes, (a, b) => b.geometry.boundingBox.max.y - a.geometry.boundingBox.max.y);
-    const minZ = d3.scan(meshes, (a, b) => a.geometry.boundingBox.min.z - b.geometry.boundingBox.min.z);
-    const maxZ = d3.scan(meshes, (a, b) => b.geometry.boundingBox.max.z - a.geometry.boundingBox.max.z);
+    const minX = bboxes[d3.scan(bboxes, (a, b) => a.min.x - b.min.x)].min.x;
+    const maxX = bboxes[d3.scan(bboxes, (a, b) => b.max.x - a.max.x)].max.x;
+    const minY = bboxes[d3.scan(bboxes, (a, b) => a.min.y - b.min.y)].min.y;
+    const maxY = bboxes[d3.scan(bboxes, (a, b) => b.max.y - a.max.y)].max.y;
+    const minZ = bboxes[d3.scan(bboxes, (a, b) => a.min.z - b.min.z)].min.z;
+    const maxZ = bboxes[d3.scan(bboxes, (a, b) => b.max.z - a.max.z)].max.z;
 
-    return new THREE.Vector3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2)
+    const center = new THREE.Vector3();
+    const size = new THREE.Vector3();
+    const box = new THREE.Box3(new THREE.Vector3(minX, minY, minZ), new THREE.Vector3(maxX, maxY, maxZ));
+    box.getCenter(center)
+    box.getSize(size);
+    return {center, size, box}
+  }
+
+  private focusCameraOnMesh(meshes, enableAnimation = false) {
+    if (!meshes) return;
+
+    const {center, size, box} = this.getCenterOfMeshes(meshes);
+
+    const padding = 0;
+    const w = size.x + padding;
+    const h = size.y + padding;
+
+    const fovX = this.camera.fov * this.camera.aspect;
+    const fovY = this.camera.fov;
+
+    // TODO: 1.1???
+    const distanceX = (w / 2) / Math.tan(Math.PI * fovX / 360 / 1.1);
+    const distanceY = (h / 2) / Math.tan(Math.PI * fovY / 360 / 1.1);
+
+    const distance = Math.max(distanceX, distanceY);
+
+    const newCameraPos = center.clone();
+    newCameraPos.z = newCameraPos.z + distance;
+
+    this.focusAnimation?.stop();
+    // Lerp to new position if animate is true, otherwise move instantly
+    if (enableAnimation) {
+      this.focusAnimation = animate({
+        from: 0,
+        to: 1,
+        ease: easeIn,
+        duration: 1000,
+        onUpdate: (v) => {
+          this.camera.position.lerp(newCameraPos, v);
+        }
+      });
+    } else {
+      this.camera.position.copy(newCameraPos);
+    }
   }
 
   getPortName(id) {
