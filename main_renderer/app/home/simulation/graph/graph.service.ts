@@ -1,24 +1,46 @@
 import {Injectable, NgZone} from '@angular/core';
-import * as THREE from 'three';
-import {Group, MathUtils} from 'three';
+import {
+  Box3,
+  Clock,
+  Color,
+  DirectionalLight,
+  DoubleSide,
+  Group,
+  Material,
+  Mesh,
+  MeshBasicMaterial,
+  PerspectiveCamera,
+  Raycaster,
+  Scene,
+  ShapeBufferGeometry,
+  Vector2,
+  Vector3,
+  WebGLRenderer
+} from 'THREE';
 import panzoom from '../../../utils/drag.js';
 import {CpuInterface} from '../../../core/services/cpu-interface/cpu-interface.service';
 import {SVGLoader} from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
-import {animate, easeIn} from 'popmotion';
+import {animate, easeIn, linear} from 'popmotion';
 import * as _ from 'lodash';
 import {CPU_STATES} from '../../../core/services/cpu-interface/bindingSubjects';
 import {MeshText2D, textAlign} from 'three-text2d';
 import * as d3 from 'd3';
 import tippy, {Instance, Props} from 'tippy.js';
-import RISCV_DEFINITIONS from './risc.yml';
+import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
+import TABS from '../../../yamls/tabs.yml';
 
-interface ThreeNode {
-  meshes: THREE.Mesh[];
+interface THREENode {
+  meshes: Mesh[];
   id: string;
   node: Element;
-  children: ThreeNode[];
+  children: THREENode[];
+  group: Group;
+}
+
+interface IdFlatInterface {
+  [key: string]: { meshes: Mesh[]; group: Group };
 }
 
 type areas = 'overview' | 'decoder' | 'alu' | 'memory' | 'registers';
@@ -31,38 +53,38 @@ export class GraphService {
   // Canvas will fill this dom
   private renderDom;
 
-  private camera: THREE.PerspectiveCamera;
-  private renderer: THREE.WebGLRenderer;
-  private scene: THREE.Scene;
+  private camera: PerspectiveCamera;
+  private renderer: WebGLRenderer;
+  private scene: Scene;
 
   // Set by requestAnimationFrame to render next frame
   private frameId: number;
 
   private time = 0;
-  private clock = new THREE.Clock();
+  private clock = new Clock();
   private globalUniforms = {
     u_time: {type: 'f', value: 0},
-    u_resolution: {type: 'vec2', value: new THREE.Vector2(0, 0)}
+    u_resolution: {type: 'vec2', value: new Vector2(0, 0)}
   };
 
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
 
-  private renderGroup; // Holds the meshes in Three.js groups named according to svg names
-  private idRoot; // Holds the parsed svg and adds meshes to each element
-  private idFlat; // Takes the parsed svg with meshes and flattens all names to be a 1D array
+  private renderGroup; // Holds the meshes in js groups named according to svg names
+  private idRoot: THREENode; // Holds the parsed svg and adds meshes to each element
+  private idFlat: IdFlatInterface; // Takes the parsed svg with meshes and flattens all names to be a 1D array
   private idMaterials = [];
   private nonVisibleMeshes = [];
 
   // Intersection related
   // centeredMouse is update once the mouse is moved, so set start to value which never could be to prevent
   // intersection on 0,0 before mouse is moved
-  private centeredMouse = new THREE.Vector2(-10000, -10000);
-  private mouse = new THREE.Vector2(-10000, -10000);
+  private centeredMouse = new Vector2(-10000, -10000);
+  private mouse = new Vector2(-10000, -10000);
   private intersectedElement;
-  private raycaster: THREE.Raycaster;
+  private raycaster: Raycaster;
   private tippyTooltip: Instance<Props>;
 
-  private activeArea: areas;
+  private currentArea: areas;
 
   private focusAnimation;
 
@@ -89,7 +111,7 @@ export class GraphService {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
 
-    this.globalUniforms.u_resolution.value = new THREE.Vector2(width, height);
+    this.globalUniforms.u_resolution.value = new Vector2(width, height);
   }
 
   init(domElement: HTMLElement) {
@@ -106,20 +128,20 @@ export class GraphService {
         const height = domElement.clientHeight;
 
         // Setup renderer
-        this.scene = new THREE.Scene();
-        this.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+        this.scene = new Scene();
+        this.renderer = new WebGLRenderer({alpha: true, antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.domElement.style.outline = 'none';
         domElement.appendChild(this.renderer.domElement);
 
         // Setup camera
-        this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+        this.camera = new PerspectiveCamera(45, width / height, 0.1, 10000);
         this.camera.position.z = 50;
 
         // Setup scene with light
         const color = 0xffffff;
         const intensity = 1;
-        const light = new THREE.DirectionalLight(color, intensity);
+        const light = new DirectionalLight(color, intensity);
         light.position.set(0, 0, 10);
         light.target.position.set(0, 0, 0);
         this.scene.add(light);
@@ -129,7 +151,7 @@ export class GraphService {
         this.initiateObjects();
 
         // For intersection
-        this.raycaster = new THREE.Raycaster();
+        this.raycaster = new Raycaster();
         document.addEventListener('mousemove', this.onDocumentMouseMove.bind(this), false);
 
         // Enable resizing
@@ -162,34 +184,34 @@ export class GraphService {
         // Set initiated to true to not reload settings if init was called again by component using the service
         this.initiated = true;
 
-        for (const key of Object.keys(this.idFlat)) {
-          if (key === 'area_cu')
-            if (this.idFlat[key].meshes.length !== 0) {
-              const {center, box} = this.getCenterOfMeshes(this.idFlat[key].meshes);
-
-              // Test sphere
-              const geometry = new THREE.SphereGeometry(1, 10);
-              const material = new THREE.MeshLambertMaterial({
-                color: 0xffff00
-              });
-              const sphere = new THREE.Mesh(geometry, material);
-              sphere.position.copy(center);
-              this.scene.add(sphere);
-
-              // Test sphere
-              const size = new THREE.Vector3();
-              box.getSize(size);
-              const geometry1 = new THREE.PlaneGeometry(size.x, size.y);
-              const material1 = new THREE.MeshLambertMaterial({
-                color: 0xffff00
-              });
-              material1.transparent = true;
-              material1.opacity = 0.05;
-              const sphere1 = new THREE.Mesh(geometry1, material1);
-              sphere1.position.copy(center);
-              this.scene.add(sphere1);
-            }
-        }
+        // for (const key of Object.keys(this.idFlat)) {
+        //   if (key === 'area_cu')
+        //     if (this.idFlat[key].meshes.length !== 0) {
+        //       const {center, box} = this.getCenterOfMeshes(this.idFlat[key].meshes);
+        //
+        //       // Test sphere
+        //       const geometry = new SphereGeometry(1, 10);
+        //       const material = new MeshLambertMaterial({
+        //         color: 0xffff00
+        //       });
+        //       const sphere = new Mesh(geometry, material);
+        //       sphere.position.copy(center);
+        //       this.scene.add(sphere);
+        //
+        //       // Test sphere
+        //       const size = new Vector3();
+        //       box.getSize(size);
+        //       const geometry1 = new PlaneGeometry(size.x, size.y);
+        //       const material1 = new MeshLambertMaterial({
+        //         color: 0xffff00
+        //       });
+        //       material1.transparent = true;
+        //       material1.opacity = 0.05;
+        //       const sphere1 = new Mesh(geometry1, material1);
+        //       sphere1.position.copy(center);
+        //       this.scene.add(sphere1);
+        //     }
+        // }
       }
     });
   }
@@ -197,65 +219,68 @@ export class GraphService {
   public focusOnElement(state) {
     // Block if change comes too early
     if (!this.idFlat) return;
-    this.focusCameraOnMesh(this.idFlat['focus_' + state]?.meshes, true);
+    this.focusCameraOnElement('focus_' + state, true);
   }
 
-  public async goToArea(name) {
+  public async goToArea(newArea, animateTransition?) {
     // Block if change comes too early
-    if (!this.idFlat || name === this.activeArea) return;
+    if (!this.idFlat || newArea === this.currentArea) return;
+
+    // If one goes back to the overview the reverse animation will be shown
+    const reverse = newArea == 'overview';
+    // If the transition is from sub to another sub disable animation
+    if (!reverse && this.currentArea !== 'overview') animateTransition = false;
+    // Get the animation element if animateTransitions is on
+    const animationElement = animateTransition ? TABS[reverse ? this.currentArea : newArea] : null;
 
     // Hide elements of current area only if there is one selected, else skip this and only show
-    if (this.activeArea) await this.hideMeshes(this.idFlat['area_' + this.activeArea].meshes, true);
+    this.hideElement('area_' + newArea, false);
 
-    if (name == 'cu') {
-      await new Promise((resolve, reject) => {
-        const {center, box} = this.getCenterOfMeshes(this.idFlat['m_controlunit'].meshes);
-        console.log(center);
-
-        // Test sphere
-        const geometry = new THREE.CircleGeometry(2, 10);
-        const material = new THREE.MeshLambertMaterial({
-          color: 0xffff00
-        });
-        material.transparent = true;
-        material.opacity = 1;
-        const sphere = new THREE.Mesh(geometry, material);
-        sphere.position.copy(center);
-        this.scene.add(sphere);
-
+    if (animationElement && !reverse) {
+      await Promise.all([new Promise((resolve) => {
+        const {center} = this.getCenterOfMeshes(this.idFlat[animationElement].meshes);
         animate({
           from: 0,
           to: 1,
-          ease: easeIn,
-          duration: 5000,
-          onUpdate: (v) => {
-            this.camera.position.lerp(center, v);
-          },
+          ease: linear,
+          duration: 1000,
+          onUpdate: (v) => this.camera.position.lerp(center, v),
           onComplete: () => resolve()
         });
-      });
+      }), this.hideElement('area_' + this.currentArea, true)]);
+
+      // Focus on new area
+      this.focusCameraOnElement('areaborder_' + newArea, false);
+
+      // This can be async as the camera can move now
+      // Show meshes at new location
+      this.showElement('area_' + newArea, true).then(() => this.updateActiveElements())
+
+    } else if (animationElement && reverse) {
+      await this.hideElement('area_' + this.currentArea, true);
+      this.focusCameraOnElement('areaborder_' + newArea, false);
+
+      // Show meshes at new location async
+      this.showElement('area_' + newArea, true).then(() => this.updateActiveElements())
+
+      // Lerp camera from center of animationElement to full view
+      const {center} = this.getCenterOfMeshes(this.idFlat[animationElement].meshes);
+      this.camera.position.copy(center);
+      await this.focusCameraOnElement('areaborder_' + newArea, true);
+    } else {
+      await this.hideElement('area_' + this.currentArea, true);
+      this.focusCameraOnElement('areaborder_' + newArea, false);
+      this.showElement('area_' + newArea, true).then(() => this.updateActiveElements())
     }
 
-    // Hide elements where we will jump to
-    await this.hideMeshes(this.idFlat['area_' + name].meshes, false);
-    // Focus on new area
-    this.focusCameraOnMesh(this.idFlat['areaborder_' + name].meshes, false);
-
-    // This can be async as the camera can move now
-    // Show meshes at new location
-    this.showMeshes(this.idFlat['area_' + name].meshes).then(() => {
-      // Hide all which are not active
-      this.updateActiveElements();
-    })
-
-    this.activeArea = name;
+    this.currentArea = newArea;
   }
 
   initiateObjects() {
     const loader = new SVGLoader();
     this.idRoot = loader.parse(RISC_SVG).root;
 
-    this.renderGroup = new THREE.Group();
+    this.renderGroup = new Group();
     this.renderGroup.scale.multiplyScalar(0.25);
     this.renderGroup.position.x = 0;
     this.renderGroup.position.y = 0;
@@ -267,21 +292,21 @@ export class GraphService {
         if (!child.children) {
           if (child.path) {
             const path = child.path;
-            const meshes: THREE.Mesh[] = [];
+            const meshes: Mesh[] = [];
             if (path.userData.style.fill && path.userData.style.fill !== 'none') {
               const fillColor = tinycolor(this.checkColor(path.userData.style.fill));
-              const material = new THREE.MeshBasicMaterial({
-                color: new THREE.Color().setStyle(fillColor.toHexString()),
+              const material = new MeshBasicMaterial({
+                color: new Color().setStyle(fillColor.toHexString()),
                 opacity: path.userData.style.fillOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * fillColor.getAlpha(),
                 transparent: true,
-                side: THREE.DoubleSide,
+                side: DoubleSide,
                 depthWrite: false
               });
               const shapes = path.toShapes(true);
               for (let j = 0; j < shapes.length; j++) {
                 const shape = shapes[j];
-                const geometry = new THREE.ShapeBufferGeometry(shape);
-                const mesh = new THREE.Mesh(geometry, material);
+                const geometry = new ShapeBufferGeometry(shape);
+                const mesh = new Mesh(geometry, material);
                 mesh.name = child.id;
                 childGroup.add(mesh);
                 meshes.push(mesh);
@@ -289,11 +314,11 @@ export class GraphService {
             }
             if (path.userData.style.stroke && path.userData.style.stroke !== 'none') {
               const strokeColor = tinycolor(this.checkColor(path.userData.style.stroke));
-              const material1 = new THREE.MeshBasicMaterial({
-                color: new THREE.Color().setStyle(strokeColor.toHexString()),
+              const material1 = new MeshBasicMaterial({
+                color: new Color().setStyle(strokeColor.toHexString()),
                 opacity: path.userData.style.strokeOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * strokeColor.getAlpha(),
                 transparent: true,
-                side: THREE.DoubleSide,
+                side: DoubleSide,
                 depthWrite: false
               });
 
@@ -301,7 +326,7 @@ export class GraphService {
                 const subPath = path.subPaths[j];
                 const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path.userData.style);
                 if (geometry) {
-                  const mesh = new THREE.Mesh(geometry, material1);
+                  const mesh = new Mesh(geometry, material1);
                   childGroup.add(mesh);
                   mesh.name = child.id;
                   meshes.push(mesh);
@@ -389,7 +414,7 @@ export class GraphService {
   }
 
   animateOpacity(meshes, opacity) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       for (const mesh of meshes) {
         animate({
           from: mesh.material.opacity,
@@ -405,22 +430,44 @@ export class GraphService {
     })
   }
 
-  hideMeshes(meshes, animate = false) {
+  hideElement<B extends boolean>(id: string, animate: B): B extends true ? Promise<unknown> : void;
+  hideElement<B extends boolean>(meshes: Mesh[], animate: B): B extends true ? Promise<unknown> : void;
+  hideElement(idOrMesh, animate = false): Promise<unknown> | void {
+    let meshes: Mesh[];
+    if (typeof idOrMesh == "string") {
+      meshes = this.idFlat[idOrMesh]?.meshes
+    } else if (typeof idOrMesh == "object") {
+      meshes = idOrMesh;
+    }
+
+    if (!meshes) return;
+
     if (animate) {
       return this.animateOpacity(meshes, 0);
     } else {
-      return new Promise((resolve, reject) => {
-        meshes.forEach((mesh) => {
-          mesh.material.opacity = 0;
-        });
-        resolve();
-      });
+      meshes.forEach((mesh) => (mesh.material as Material).opacity = 0);
     }
   }
 
-  showMeshes(meshes) {
+  showElement<B extends boolean>(id: string, animate: B): B extends true ? Promise<unknown> : void;
+  showElement<B extends boolean>(meshes: Mesh[], animate: B): B extends true ? Promise<unknown> : void;
+  showElement(idOrMesh, animate = false): Promise<unknown> | void {
+    let meshes: Mesh[];
+    if (typeof idOrMesh == "string") {
+      meshes = this.idFlat[idOrMesh]?.meshes
+    } else if (typeof idOrMesh == "object") {
+      meshes = idOrMesh;
+    }
+
+    if (!meshes) return;
+
     const meshesWithoutNonVisibleAreas = meshes.filter((mesh) => !this.nonVisibleMeshes.includes(mesh));
-    return this.animateOpacity(meshesWithoutNonVisibleAreas, 1);
+
+    if (animate) {
+      return this.animateOpacity(meshesWithoutNonVisibleAreas, 1);
+    } else {
+      meshes.forEach((mesh) => (mesh.material as Material).opacity = 1);
+    }
   }
 
   handleIntersection() {
@@ -542,7 +589,6 @@ export class GraphService {
     // Dont show any active lines
     if (nextCpuState === CPU_STATES.FETCH) {
       for (const key of Object.keys(this.idFlat)) {
-        const element = this.idFlat[key];
         // Hide all elements when the next decoding stage is incoming
         if (key.startsWith('mux_')) {
           this.animateOpacity(this.idFlat[key].meshes, 0.05);
@@ -602,7 +648,7 @@ export class GraphService {
   }
 
   flattenRootToIndexIdArray(root) {
-    const ids = [];
+    const ids: IdFlatInterface = {};
 
     const traverseChildren = (child) => {
       const meshes = [];
@@ -646,12 +692,12 @@ export class GraphService {
     });
   }
 
-  getCenterOfMeshes(meshes: THREE.Mesh[]): { center: THREE.Vector3; size: THREE.Vector3, box: THREE.Box3 } {
+  getCenterOfMeshes(meshes: Mesh[]): { center: Vector3; size: Vector3; box: Box3 } {
     const bboxes = [];
 
     for (const mesh of meshes) {
       mesh.geometry.computeBoundingBox();
-      bboxes.push(new THREE.Box3().setFromObject(mesh));
+      bboxes.push(new Box3().setFromObject(mesh));
       // console.log(mesh.geometry.boundingBox)
     }
 
@@ -662,15 +708,24 @@ export class GraphService {
     const minZ = bboxes[d3.scan(bboxes, (a, b) => a.min.z - b.min.z)].min.z;
     const maxZ = bboxes[d3.scan(bboxes, (a, b) => b.max.z - a.max.z)].max.z;
 
-    const center = new THREE.Vector3();
-    const size = new THREE.Vector3();
-    const box = new THREE.Box3(new THREE.Vector3(minX, minY, minZ), new THREE.Vector3(maxX, maxY, maxZ));
+    const center = new Vector3();
+    const size = new Vector3();
+    const box = new Box3(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
     box.getCenter(center)
     box.getSize(size);
     return {center, size, box}
   }
 
-  private focusCameraOnMesh(meshes, enableAnimation = false) {
+  private focusCameraOnElement<B extends boolean>(meshes: Mesh[], enableAnimation: B): B extends true ? Promise<unknown> : void;
+  private focusCameraOnElement<B extends boolean>(id: string, enableAnimation: B): B extends true ? Promise<unknown> : void;
+  private focusCameraOnElement(idOrMesh, enableAnimation = false): Promise<unknown> | void {
+    let meshes: Mesh[];
+    if (typeof idOrMesh == "string") {
+      meshes = this.idFlat[idOrMesh]?.meshes
+    } else if (typeof idOrMesh == "object") {
+      meshes = idOrMesh;
+    }
+
     if (!meshes) return;
 
     const {center, size, box} = this.getCenterOfMeshes(meshes);
@@ -694,14 +749,17 @@ export class GraphService {
     this.focusAnimation?.stop();
     // Lerp to new position if animate is true, otherwise move instantly
     if (enableAnimation) {
-      this.focusAnimation = animate({
-        from: 0,
-        to: 1,
-        ease: easeIn,
-        duration: 1000,
-        onUpdate: (v) => {
-          this.camera.position.lerp(newCameraPos, v);
-        }
+      return new Promise(resolve => {
+        this.focusAnimation = animate({
+          from: 0,
+          to: 1,
+          ease: easeIn,
+          duration: 1000,
+          onUpdate: (v) => {
+            this.camera.position.lerp(newCameraPos, v);
+          },
+          onComplete: () => resolve()
+        });
       });
     } else {
       this.camera.position.copy(newCameraPos);

@@ -1,16 +1,16 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { byteToHex, range } from '../../globals';
-import { CpuInterface } from '../../core/services/cpu-interface/cpu-interface.service';
-import { InstructionsComponent } from './instructions/instructions.component';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
-import { DataKeys, DataService } from '../../core/services/data.service';
-import { Router } from '@angular/router';
-import { GraphService } from './graph/graph.service';
-import RISCV_STAGES from './stages.yml';
-import { Bindings } from '../../core/services/cpu-interface/bindingSubjects';
+import {byteToHex, range} from '../../globals';
+import {CpuInterface} from '../../core/services/cpu-interface/cpu-interface.service';
+import {InstructionsComponent} from './instructions/instructions.component';
+import {takeUntil} from 'rxjs/operators';
+import {Subject} from 'rxjs';
+import {DataKeys, DataService} from '../../core/services/data.service';
+import {Router} from '@angular/router';
+import {GraphService} from './graph/graph.service';
+import RISCV_STAGES from '../../yamls/stages.yml';
+import {Bindings} from '../../core/services/cpu-interface/bindingSubjects';
 
 @Component({
   selector: 'app-simulation',
@@ -56,7 +56,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   }
 
   focusArea(area) {
-    this.graphService.goToArea(area);
+    this.graphService.goToArea(area, true);
     this.selectedTab = area;
   }
 
@@ -83,14 +83,13 @@ export class SimulationComponent implements OnInit, OnDestroy {
     if (info.exec)
       this.stage = this.cpuInterface.advanceSimulationClock();
     if (info.area) {
-      this.graphService.goToArea(info.area).then(() => {
+      this.graphService.goToArea(info.area, true).then(() => {
         this.selectedTab = info.area;
         if (info.focus)
           this.graphService.focusOnElement(info.focus);
       })
-    } else {
-      if (info.focus)
-        this.graphService.focusOnElement(info.focus);
+    } else if (info.focus) {
+      this.graphService.focusOnElement(info.focus);
     }
 
     this.info = info.text;
@@ -98,12 +97,12 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
 
   getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: string; area?: string; focus?: string } {
-    if(this.infoCounter + 1 >= RISCV_STAGES[this.instrCounter].infos.length) {
+    if (this.infoCounter + 1 >= RISCV_STAGES[this.instrCounter].infos.length) {
       // There is no info left in this instruction, go to first info of new instruction
       this.infoCounter = 0;
 
       // eslint-disable-next-line no-constant-condition
-      while(true) {
+      while (true) {
         // Which is the new instruction?
         // First check if a instruction exits in this stage
         if (this.instrCounter + 1 >= RISCV_STAGES.length) {
@@ -117,7 +116,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
           const compliesWithIf = (instr.if !== undefined) ? instr.if(bindings) : true;
           let compliesWithInstruction = true;
-          if(instr.instr?.length > 0 && bindings.instruction.value) {
+          if (instr.instr?.length > 0 && bindings.instruction.value) {
             compliesWithInstruction = instr.instr.indexOf(bindings.instruction.value.opcodeName) >= 0;
           }
 

@@ -46,11 +46,11 @@
         "@typescript-eslint/no-floating-promises": 0,
         "@typescript-eslint/camelcase": 0,
         "@typescript-eslint/ban-ts-ignore": 0,
-        "@angular-eslint/use-injectable-provided-in": "error",
+        "@angular-eslint/use-injectable-provided-in": 0,
         "@angular-eslint/no-attribute-decorator": "error",
         "@typescript-eslint/no-case-declarations": 0,
-        "no-case-declarations": 0
-
+        "no-case-declarations": 0,
+        "@typescript-eslint/explicit-function-return-type": 0
       }
     },
     {
