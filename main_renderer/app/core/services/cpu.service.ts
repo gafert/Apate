@@ -1,7 +1,8 @@
-import { Injectable, OnDestroy } from '@angular/core';
-import { Bindings, CPU_STATES } from './bindingSubjects';
-import { readFileSync } from 'fs';
+import {Injectable, OnDestroy} from '@angular/core';
+import {Bindings, CPU_STATES} from './bindingSubjects';
+import {readFileSync} from 'fs';
 import {
+  Instruction,
   INSTRUCTIONS,
   isAUIPC,
   isBRANCH,
@@ -15,13 +16,13 @@ import {
   isSTORE,
   parseInstruction
 } from './instructionParser';
-import { parseElf, parseElfRISCVInstructions } from './elfParser';
+import {parseElf, parseElfRISCVInstructions} from './elfParser';
 
 
 @Injectable({
   providedIn: 'root'
 })
-export class CpuInterface implements OnDestroy {
+export class Cpu implements OnDestroy {
   public bindings = new Bindings();
   public elfIsLoaded = false;
   public parsedElf;
@@ -222,8 +223,8 @@ export class CpuInterface implements OnDestroy {
     return this.bindings.cpuState.value;
   }
 
-  callALU(op1, op2, instruction): number {
-    switch (instruction?.name) {
+  callALU(op1, op2, instruction: Instruction): number {
+    switch (instruction?.instructionName) {
       case INSTRUCTIONS.JAL:
       case INSTRUCTIONS.JALR:
       case INSTRUCTIONS.ADDI:
@@ -268,9 +269,9 @@ export class CpuInterface implements OnDestroy {
     }
   }
 
-  callMEMORYread(instruction, address): number {
+  callMEMORYread(instruction: Instruction, address): number {
     const memoryValue = this.fetchDataFromMemory(address);
-    switch (instruction.name) {
+    switch (instruction.instructionName) {
       case INSTRUCTIONS.LB:
         // sign-extend
         console.log('MEMORY LB at ' + address);
@@ -295,13 +296,13 @@ export class CpuInterface implements OnDestroy {
     }
   }
 
-  callMEMORYwrite(instruction, address, value) {
+  callMEMORYwrite(instruction: Instruction, address, value) {
     const memory = this.bindings.memory.value;
     if (address == 23456) {
       this.bindings.callBufferWriteCallbacks(value);
       return;
     }
-    switch (instruction.name) {
+    switch (instruction.instructionName) {
       case INSTRUCTIONS.SB:
         console.log('MEMORY SB ' + value + ' at ' + address);
         memory[address] = value & 0xFF;

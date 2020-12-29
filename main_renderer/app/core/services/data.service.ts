@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject} from 'rxjs';
 import * as fs from 'fs';
 import * as Store from 'electron-store';
 import SparkMD5 from 'spark-md5';
@@ -10,13 +10,14 @@ export enum DataKeys {
   FOLDER_PATH,
   TOOLCHAIN_DOWNLOADED,
   ACTIVE_FILE,
-  ACTIVE_FILE_CONTENT ,
+  ACTIVE_FILE_CONTENT,
   ACTIVE_FILE_IS_SAVEABLE,
-  GCC_FLAGS ,
+  GCC_FLAGS,
   OBJDUMP_FLAGS,
   GCC_SOURCES,
   READ_ELF_FLAGS,
-  ELF_PATH
+  ELF_PATH,
+  ELABORATE_STEPS
 }
 
 @Injectable({

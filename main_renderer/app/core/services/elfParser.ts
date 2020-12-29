@@ -1,4 +1,4 @@
-import { Instruction, parseInstruction } from './instructionParser';
+import {Instruction, parseInstruction} from './instructionParser';
 
 export enum SHF_CONSTANTS {
   SHF_WRITE = 0x1,

@@ -11,11 +11,17 @@
 
   <div class="simulation-item-content control">
     <div id="state">{{stage}}</div>
+    <div id="settings">
+      <mat-checkbox (change)="onChangeElaborateSteps($event)" [checked]="elaborateSteps"
+                    tippy="Focus and go into elements step by step">Elaborate Steps
+      </mat-checkbox>
+    </div>
     <div id="actions">
-      <app-action-button style="margin-left: 1em" (buttonClick)="initiateSimulation()" text="Initiate"></app-action-button>
+      <app-action-button style="margin-left: 1em" (buttonClick)="initiateSimulation()"
+                         text="Initiate"></app-action-button>
 
       <app-action-button style="margin-left: 1em" (buttonClick)="stepSimulation()"
-                         [disabled]="!cpuInterface.elfIsLoaded"
+                         [disabled]="!cpu.elfIsLoaded || stepDisabled"
                          text="Step" iconClass="fas fa-play"></app-action-button>
     </div>
   </div>
@@ -27,8 +33,8 @@
 
 
   <app-instructions #instructionsComponent
-                    [programCounter]="cpuInterface.bindings.pc | async"
-                    [parsedElf]="cpuInterface.parsedElf"
+                    [parsedElf]="cpu.parsedElf"
+                    [programCounter]="cpu.bindings.pc | async"
                     class="simulation-item-content app-instruction"></app-instructions>
 
   <app-registers class="simulation-item-content app-registers"></app-registers>

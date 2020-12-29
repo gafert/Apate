@@ -1,13 +1,46 @@
-/* You can add global styles to this file, and also import other style filesInFolder */
 @import "import";
+
+// Fontawesome
 @import "~@fortawesome/fontawesome-free/css/all.css";
+
+// Tippy.js
+@import '~tippy.js/dist/tippy.css';
+@import '~tippy.js/themes/light.css';
+//@import '~tippy.js/animations/scale.css';
+//@import '~tippy.js/animations/shift-toward.css';
+@import '~tippy.js/animations/shift-toward-subtle.css';
+
+// Tippy overrides
+.tippy-content {
+  .context-menu-item {
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    // Remove paddings from parent element with negative margins
+    &:first-child {
+      margin-top: -5px;
+    }
+
+    &:last-child {
+      margin-bottom: -5px;
+    }
+
+    margin-left: -9px;
+    margin-right: -9px;
+
+    padding: 5px 9px;
+  }
+}
+
+// Angular Material
+@import "material";
+
+// Codemirror
 @import "~codemirror/lib/codemirror";
 @import "~codemirror/theme/dracula";
 
-@import '~tippy.js/dist/tippy.css';
-@import '~tippy.js/themes/light.css';
-
-
+// CodeMirror overrides
 .cm-s-dracula.CodeMirror {
   height: 100%;
 }
@@ -22,17 +55,28 @@
   background-color: $grey3 !important;
 }
 
+// Normalize
+
 /* apply a natural box layout model to all elements, but allowing components to change */
 html {
   box-sizing: border-box;
 }
+
 *, *:before, *:after {
   box-sizing: inherit;
 }
 
-*::-webkit-scrollbar {
-  display: none;  /* Safari and Chrome */
+hr {
+  border: none;
+  border-bottom: 1px solid #00000029;
 }
+
+// Disable scrollbar
+*::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+// Fonts
 
 @font-face {
   font-family: 'Roboto';
@@ -43,6 +87,8 @@ html {
   font-family: 'Roboto Mono';
   src: url('assets/Roboto_Mono/RobotoMono-Regular.ttf');
 }
+
+// Default styling
 
 html, body {
   margin: 0;
@@ -60,10 +106,13 @@ button {
   background: none;
   color: white;
   border: none;
+
   &:focus {
     outline: none;
   }
 }
+
+// Classes which are used multiple times
 
 .small-rounded-container {
   border-radius: 1em;
@@ -79,7 +128,6 @@ button {
   padding: 0.1em 0.5em;
   background: transparent;
 }
-
 
 .tabs {
   display: flex;
@@ -106,7 +154,7 @@ button {
   }
 }
 
-// Used in instructions registers terminal
+// Used in instructions, registers, terminal
 .grid-container {
   height: 100%;
   width: 100%;
@@ -126,10 +174,5 @@ button {
     overflow: scroll;
     height: calc(100% - 2em);
   }
-}
-
-hr {
-  border: none;
-  border-bottom: 1px solid #00000029;
 }
 

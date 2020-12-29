@@ -1,12 +1,11 @@
 import {AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {byteToHex} from '../../../globals';
 import * as d3 from 'd3';
-import {animate, easeIn, easeInOut, easeOut} from 'popmotion';
+import {animate, easeOut} from 'popmotion';
 import styler from 'stylefire';
 import {readStyleProperty} from '../../../utils/helper';
-import {ELF, SHF_CONSTANTS} from '../../../core/services/cpu-interface/elfParser';
-import {INSTRUCTIONS_DESCRIPTIONS} from '../../../core/services/cpu-interface/instructionParser';
-import {CpuInterface} from '../../../core/services/cpu-interface/cpu-interface.service';
+import {ELF, SHF_CONSTANTS} from '../../../core/services/elfParser';
+import {INSTRUCTIONS_DESCRIPTIONS} from '../../../core/services/instructionParser';
 
 class Assembly {
   opcode: string;
@@ -41,7 +40,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
   @Input() public programCounter;
   @Input() public parsedElf: ELF;
 
-  constructor(public cpuInterface: CpuInterface) {
+  constructor() {
   }
 
   ngOnInit(): void {

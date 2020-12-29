@@ -1,0 +1,31 @@
+@import "import";
+@import '~@angular/material/theming';
+
+@include mat-core();
+
+$mat-primary-scheme: (
+  100: $accent,
+  500: $accent,
+  700: $accent,
+  contrast: (
+    100: rgba(255, 255, 255, 0.87),
+    500: #fbfbfb,
+    700: #ffffff,
+  )
+);
+$mat-accent-scheme: (
+  100: $accent,
+  500: $accent,
+  700: $accent,
+  contrast: (
+    100: rgba(255, 255, 255, 0.87),
+    500: rgba(255, 255, 255, 0.87),
+    700: #ffffff,
+  )
+);
+$mat-primary-palette: mat-palette($mat-primary-scheme);
+$mat-accent-palette: mat-palette($mat-accent-scheme);
+
+$app-dark-theme: mat-dark-theme($mat-primary-palette, $mat-accent-palette);
+
+@include angular-material-theme($app-dark-theme);

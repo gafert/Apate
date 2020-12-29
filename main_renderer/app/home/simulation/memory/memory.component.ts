@@ -1,8 +1,8 @@
-import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
-import { byteToHex, range } from '../../../globals';
-import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
+import {byteToHex, range} from '../../../globals';
+import {Cpu} from '../../../core/services/cpu.service';
+import {Subject} from 'rxjs';
+import {takeUntil} from 'rxjs/operators';
 
 @Component({
   selector: 'app-memory',
@@ -19,15 +19,15 @@ export class MemoryComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
   private onResizer = false;
 
-  constructor(private el: ElementRef, private cpuInterface: CpuInterface) {
-    cpuInterface.bindings.memory.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+  constructor(private el: ElementRef, private cpu: Cpu) {
+    cpu.bindings.memory.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.memory = value;
     });
   }
 
   ngOnInit(): void {
     document.addEventListener('mouseup', (e) => {
-      if(this.onResizer) {
+      if (this.onResizer) {
         e.preventDefault();
         e.stopPropagation();
         this.onResizer = false;

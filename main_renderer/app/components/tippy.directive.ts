@@ -1,17 +1,17 @@
-import { Directive, Input, OnInit, ElementRef, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
-import tippy, { Props } from 'tippy.js';
+import {AfterViewInit, Directive, ElementRef, Input, OnInit} from '@angular/core';
+import tippy, {Props} from 'tippy.js';
 
-interface TippyDirectiveInterface extends Partial<Props>{
+interface TippyDirectiveInterface extends Partial<Props> {
   tippyElementId: string;
 }
 
 @Directive({
   /* tslint:disable-next-line */
-  selector: '[tippy]'
+  selector: '[tippy1]'
 })
 export class TippyDirective implements OnInit, AfterViewInit {
 
-  @Input('tippyOptions') public tippyOptions: Partial<TippyDirectiveInterface>;
+  @Input('tippyOptions1') public tippyOptions1: Partial<TippyDirectiveInterface>;
 
   private tippyRef;
 
@@ -20,16 +20,16 @@ export class TippyDirective implements OnInit, AfterViewInit {
   }
 
   public ngOnInit() {
-    if(this.tippyOptions.tippyElementId) {
-      this.tippyOptions.allowHTML = true;
+    if (this.tippyOptions1.tippyElementId) {
+      this.tippyOptions1.allowHTML = true;
     }
-    this.tippyOptions.theme = 'light';
-    this.tippyRef = tippy(this.el.nativeElement, this.tippyOptions || {});
+    this.tippyOptions1.theme = 'light';
+    this.tippyRef = tippy(this.el.nativeElement, this.tippyOptions1 || {});
   }
 
   ngAfterViewInit(): void {
-    if(this.tippyOptions.tippyElementId) {
-      this.tippyRef.setContent(document.getElementById(this.tippyOptions.tippyElementId).innerHTML)
+    if (this.tippyOptions1.tippyElementId) {
+      this.tippyRef.setContent(document.getElementById(this.tippyOptions1.tippyElementId).innerHTML)
     }
   }
 

@@ -2,7 +2,7 @@ import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angul
 import * as fs from 'fs';
 import * as path from 'path';
 import {byteToHex, range} from '../../globals';
-import {CpuInterface} from '../../core/services/cpu-interface/cpu-interface.service';
+import {Cpu} from '../../core/services/cpu.service';
 import {InstructionsComponent} from './instructions/instructions.component';
 import {takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
@@ -10,7 +10,7 @@ import {DataKeys, DataService} from '../../core/services/data.service';
 import {Router} from '@angular/router';
 import {GraphService} from './graph/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
-import {Bindings} from '../../core/services/cpu-interface/bindingSubjects';
+import {Bindings} from '../../core/services/bindingSubjects';
 
 @Component({
   selector: 'app-simulation',
@@ -25,18 +25,35 @@ export class SimulationComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
   public selectedTab = 'overview';
 
+  public elaborateSteps = true;
+
   public stage = 'Initiate the simulation';
   public info;
   private instrCounter = 0;
   private infoCounter = 0;
 
+  public stepDisabled = false;
+
+  private currentArea = this.selectedTab;
+
   constructor(
-    public cpuInterface: CpuInterface,
+    public cpu: Cpu,
     private dataService: DataService,
     private router: Router,
     private graphService: GraphService,
     private cd: ChangeDetectorRef
   ) {
+    this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;
+  }
+
+  onChangeElaborateSteps(newVal) {
+    this.dataService.setSetting(DataKeys.ELABORATE_STEPS, newVal.checked);
+    this.elaborateSteps = newVal.checked; // Set this only for the variable, does not affect the checkbox
+
+    // Hide infos if not elaborate
+    if (!this.elaborateSteps) {
+      this.info = null;
+    }
   }
 
   ngOnInit(): void {
@@ -56,7 +73,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   }
 
   focusArea(area) {
-    this.graphService.goToArea(area, true);
+    this.graphService.goToArea(area, false);
     this.selectedTab = area;
   }
 
@@ -65,7 +82,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
     if (elfPath) {
       if (elfPath.indexOf('.elf') > 0) {
-        this.cpuInterface.initSimulation(elfPath);
+        this.cpu.initSimulation(elfPath);
         // Wait for program counter to be 0 before reloading
         setTimeout(() => {
           this.instructionsComponent.reload();
@@ -77,22 +94,42 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.infoCounter = -1;
   }
 
-  stepSimulation() {
-    const info = this.getNextInfo(this.cpuInterface.bindings);
-    console.log(info);
-    if (info.exec)
-      this.stage = this.cpuInterface.advanceSimulationClock();
-    if (info.area) {
-      this.graphService.goToArea(info.area, true).then(() => {
-        this.selectedTab = info.area;
-        if (info.focus)
-          this.graphService.focusOnElement(info.focus);
-      })
-    } else if (info.focus) {
-      this.graphService.focusOnElement(info.focus);
+  async stepSimulation() {
+    if (!this.elaborateSteps) {
+      this.stage = this.cpu.advanceSimulationClock();
+      return;
     }
 
+    // Disable step before animation
+    this.stepDisabled = true;
+
+    const info = this.getNextInfo(this.cpu.bindings);
     this.info = info.text;
+
+    if (info.exec)
+      this.stage = this.cpu.advanceSimulationClock();
+
+    // Go to area which should be displayed if the area is not changing this time
+    if (this.selectedTab !== this.currentArea && !info.area) {
+      await this.graphService.goToArea(this.currentArea, true);
+      this.selectedTab = this.currentArea;
+    }
+
+    // Animations to area
+    if (info.area) {
+      // First show area then focus element
+      await this.graphService.goToArea(info.area, true)
+      this.selectedTab = info.area;
+      this.currentArea = info.area;
+      if (info.focus) {
+        await this.graphService.focusOnElement(info.focus);
+      }
+    } else if (info.focus) {
+      await this.graphService.focusOnElement(info.focus);
+    }
+
+    // Enable step after animation
+    this.stepDisabled = false;
   }
 
 
@@ -133,7 +170,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   }
 
   runSimulation() {
-    this.cpuInterface.runUntilBreak();
+    this.cpu.runUntilBreak();
   }
 
   ngOnDestroy() {

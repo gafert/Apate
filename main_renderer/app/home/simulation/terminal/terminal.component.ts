@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
+import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
+import {Cpu} from '../../../core/services/cpu.service';
 
 @Component({
   selector: 'app-terminal',
@@ -9,7 +9,8 @@ import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface
 export class TerminalComponent implements OnInit, OnDestroy, AfterViewInit {
   public terminal = '';
 
-  constructor(private SimLib: CpuInterface) {}
+  constructor(private SimLib: Cpu) {
+  }
 
   ngAfterViewInit() {
     this.SimLib.bindings.addBufferWriteCallback((c) => this.printBuffer(c));

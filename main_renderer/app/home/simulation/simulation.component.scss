@@ -81,6 +81,17 @@ $controlHeight: 3em;
     font-size: large;
   }
 
+  #settings {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0.2em;
+
+    mat-checkbox {
+      margin-right: 0.5em;
+    }
+  }
+
   #actions {
     position: absolute;
     right: $tabsMarginLeft;

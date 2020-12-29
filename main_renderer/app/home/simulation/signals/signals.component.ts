@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface.service';
+import {Component, OnInit} from '@angular/core';
+import {Cpu} from '../../../core/services/cpu.service';
 
 @Component({
   selector: 'app-signals',
@@ -9,7 +9,8 @@ import { CpuInterface } from '../../../core/services/cpu-interface/cpu-interface
 export class SignalsComponent implements OnInit {
   public fromCharCode = String.fromCharCode;
 
-  constructor(public cpuInterface: CpuInterface) { }
+  constructor(public cpu: Cpu) {
+  }
 
   ngOnInit(): void {
   }

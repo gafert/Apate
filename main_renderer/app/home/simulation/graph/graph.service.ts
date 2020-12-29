@@ -18,13 +18,13 @@ import {
   WebGLRenderer
 } from 'THREE';
 import panzoom from '../../../utils/drag.js';
-import {CpuInterface} from '../../../core/services/cpu-interface/cpu-interface.service';
+import {Cpu} from '../../../core/services/cpu.service';
 import {SVGLoader} from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import * as tinycolor from 'tinycolor2';
 import {animate, easeIn, linear} from 'popmotion';
 import * as _ from 'lodash';
-import {CPU_STATES} from '../../../core/services/cpu-interface/bindingSubjects';
+import {CPU_STATES} from '../../../core/services/bindingSubjects';
 import {MeshText2D, textAlign} from 'three-text2d';
 import * as d3 from 'd3';
 import tippy, {Instance, Props} from 'tippy.js';
@@ -84,11 +84,11 @@ export class GraphService {
   private raycaster: Raycaster;
   private tippyTooltip: Instance<Props>;
 
-  private currentArea: areas;
+  public currentArea: areas;
 
   private focusAnimation;
 
-  constructor(private ngZone: NgZone, private cpuInterface: CpuInterface) {
+  constructor(private ngZone: NgZone, private cpu: Cpu) {
     process.on('exit', () => {
       console.log('Exit GraphService');
       this.stopRender();
@@ -216,10 +216,10 @@ export class GraphService {
     });
   }
 
-  public focusOnElement(state) {
+  public focusOnElement(state): Promise<unknown> {
     // Block if change comes too early
     if (!this.idFlat) return;
-    this.focusCameraOnElement('focus_' + state, true);
+    return this.focusCameraOnElement('focus_' + state, true);
   }
 
   public async goToArea(newArea, animateTransition?) {
@@ -353,7 +353,7 @@ export class GraphService {
                     const leftes = d3.scan(positions, (a, b) => a.x - b.x);
                     text.position.set(positions[leftes].x + 3, positions[leftes].y + 2, positions[leftes].z);
 
-                    const binding = this.cpuInterface.bindings.allValues[signalName];
+                    const binding = this.cpu.bindings.allValues[signalName];
                     if (binding) {
                       binding.subscribe((value) => {
                         text.text = (value === null || value === undefined) ? 'NaN' : value.toString();
@@ -532,7 +532,7 @@ export class GraphService {
             case 'w':
             case 's':
               id = this.getSName(object.name) || this.getWName(object.name);
-              prevalue = this.cpuInterface.bindings.allValues[id]?.value === undefined ? id : this.cpuInterface.bindings.allValues[id]?.value;
+              prevalue = this.cpu.bindings.allValues[id]?.value === undefined ? id : this.cpu.bindings.allValues[id]?.value;
               name = RISCV_DEFINITIONS.signals[id]?.name;
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
               desc = RISCV_DEFINITIONS.signals[id]?.desc;
@@ -548,7 +548,7 @@ export class GraphService {
               break;
             case 'p':
               id = this.getPortName(object.name);
-              prevalue = this.cpuInterface.bindings.allValues[id]?.value === undefined ? id : this.cpuInterface.bindings.allValues[id]?.value;
+              prevalue = this.cpu.bindings.allValues[id]?.value === undefined ? id : this.cpu.bindings.allValues[id]?.value;
               name = RISCV_DEFINITIONS.ports[id]?.name;
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
               desc = RISCV_DEFINITIONS.ports[id]?.desc;
@@ -579,11 +579,11 @@ export class GraphService {
   }
 
   initHighlightingUsedPaths() {
-    this.cpuInterface.bindings.cycleComplete.subscribe(() => this.updateActiveElements());
+    this.cpu.bindings.cycleComplete.subscribe(() => this.updateActiveElements());
   }
 
   updateActiveElements() {
-    const nextCpuState = this.cpuInterface.bindings.nextCpuState.value;
+    const nextCpuState = this.cpu.bindings.nextCpuState.value;
 
     // Reset all lines
     // Dont show any active lines
@@ -591,16 +591,16 @@ export class GraphService {
       for (const key of Object.keys(this.idFlat)) {
         // Hide all elements when the next decoding stage is incoming
         if (key.startsWith('mux_')) {
-          this.animateOpacity(this.idFlat[key].meshes, 0.05);
+          this.animateOpacity(this.idFlat[key].meshes, 1);
         }
       }
       // Reset all values
       // @ts-ignore
-      Object.values(this.cpuInterface.bindings.volatileValues).forEach((value) => value.next(null));
+      Object.values(this.cpu.bindings.volatileValues).forEach((value) => value.next(null));
     }
 
     // Show decoded active lines if the current executed state was decoding
-    if (this.cpuInterface.bindings.instruction.value) {
+    if (this.cpu.bindings.instruction.value) {
 
       /**
        * Checks the idFlat list for mux elements with the given element name.
@@ -621,8 +621,8 @@ export class GraphService {
 
       // Get list with meshes to activate
       const meshesToActivate = [];
-      meshesToActivate.push(...checkActiveElementsInGraph(this.cpuInterface.bindings.instruction.value?.opcodeName));
-      meshesToActivate.push(...checkActiveElementsInGraph(this.cpuInterface.bindings.instruction.value?.instructionName));
+      meshesToActivate.push(...checkActiveElementsInGraph(this.cpu.bindings.instruction.value?.opcodeName));
+      meshesToActivate.push(...checkActiveElementsInGraph(this.cpu.bindings.instruction.value?.instructionName));
       // Deactivate all elements with 'mux_' which are currently not on if there are some to activate
       const allMeshes = [];
       for (const key of Object.keys(this.idFlat)) {
@@ -633,6 +633,7 @@ export class GraphService {
       }
       this.animateOpacity(_.difference(allMeshes, meshesToActivate), 0.05);
     }
+    console.log("Updated active elements with instruction ", this.cpu.bindings.instruction.value);
   }
 
   onDocumentMouseMove(event) {

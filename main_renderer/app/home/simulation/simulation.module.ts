@@ -1,19 +1,19 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {NgModule} from '@angular/core';
 
-import { MemoryCellComponent } from './memory-cell/memory-cell.component';
-import { MemoryComponent } from './memory/memory.component';
-import { InstructionsComponent } from './instructions/instructions.component';
-import { RegistersComponent } from './registers/registers.component';
-import { TerminalComponent } from './terminal/terminal.component';
-import { SimulationComponent } from './simulation.component';
-import { SimulationRoutingModule } from './simulation-routing.module';
-import { ChangingValueComponent } from './changing-value/changing-value.component';
-import { SharedModule } from '../../components/shared/shared.module';
-import { GraphComponent } from './graph/graph.component';
-import { CpuInterface } from '../../core/services/cpu-interface/cpu-interface.service';
-import { SignalsComponent } from './signals/signals.component';
-import { GraphService } from './graph/graph.service';
+import {MemoryCellComponent} from './memory-cell/memory-cell.component';
+import {MemoryComponent} from './memory/memory.component';
+import {InstructionsComponent} from './instructions/instructions.component';
+import {RegistersComponent} from './registers/registers.component';
+import {TerminalComponent} from './terminal/terminal.component';
+import {SimulationComponent} from './simulation.component';
+import {SimulationRoutingModule} from './simulation-routing.module';
+import {ChangingValueComponent} from './changing-value/changing-value.component';
+import {SharedModule} from '../../components/shared/shared.module';
+import {GraphComponent} from './graph/graph.component';
+import {Cpu} from '../../core/services/cpu.service';
+import {SignalsComponent} from './signals/signals.component';
+import {GraphService} from './graph/graph.service';
+import {MatCheckboxModule} from "@angular/material/checkbox";
 
 @NgModule({
   declarations: [
@@ -27,7 +27,7 @@ import { GraphService } from './graph/graph.service';
     GraphComponent,
     SignalsComponent,
   ],
-  imports: [CommonModule, SimulationRoutingModule, SharedModule],
-  providers: [CpuInterface, GraphService],
+  imports: [SimulationRoutingModule, SharedModule, MatCheckboxModule],
+  providers: [Cpu, GraphService],
 })
 export class SimulationModule {}

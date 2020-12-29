@@ -1,8 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {animate, easeIn, easeInOut, easeOut} from 'popmotion';
-import styler from 'stylefire';
 import {byteToHex} from '../../../globals';
-import {CpuInterface} from '../../../core/services/cpu-interface/cpu-interface.service';
+import {Cpu} from '../../../core/services/cpu.service';
 
 @Component({
   selector: 'app-registers',
@@ -48,49 +46,10 @@ export class RegistersComponent implements OnInit {
   ];
   private hoverTooltipId = 'register-hover-id';
 
-  constructor(public cpuInterface: CpuInterface) {
+  constructor(public cpu: Cpu) {
   }
 
   ngOnInit(): void {
-    // Generate a hover element if there is none in the dom tree
-    // This makes sure only one hover div exists and therefor improves the performance
-    if (!document.getElementById(this.hoverTooltipId)) {
-      const hoverDiv = document.createElement('div');
-      hoverDiv.id = this.hoverTooltipId;
-      hoverDiv.style.position = 'absolute';
-      hoverDiv.style.display = 'none';
-      hoverDiv.style.padding = '0.5em';
-      hoverDiv.style.borderRadius = '0.5em';
-      hoverDiv.innerText = '';
-      hoverDiv.style.backgroundColor = 'rgb(255,255,255)';
-      hoverDiv.style.color = 'rgb(0,0,0)';
-      hoverDiv.style.top = '0px';
-      hoverDiv.style.left = '0px';
-      document.getElementsByTagName('body')[0].appendChild(hoverDiv);
-    }
-  }
 
-  hoverEnterRegister(event, i) {
-    const top = event.target.getBoundingClientRect().y + 'px';
-    const left = event.target.getBoundingClientRect().x + event.target.clientWidth + 'px';
-
-    const hoverElement = document.getElementById(this.hoverTooltipId);
-    animate({
-      from: {
-        top: hoverElement.style.top,
-        left: hoverElement.style.left
-      },
-      to: {top: top, left: left},
-      ease: easeOut,
-      duration: 100,
-      onUpdate: (v) => styler(hoverElement).set(v)
-    });
-
-    hoverElement.style.display = 'block';
-    hoverElement.innerText = this.cpuRegDefinitions[i][1];
-  }
-
-  mouseOutRegister(event) {
-    document.getElementById(this.hoverTooltipId).style.display = 'none';
   }
 }

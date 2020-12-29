@@ -27,16 +27,22 @@
   </div>
 </div>
 
+<ng-template #contextMenu let-hide let-instruction="data">
+  <div (click)="hide()" class="context-menu-item">Continue to {{instruction.pc}}</div>
+</ng-template>
+
 <ng-template #instruction_template let-instruction="instruction" let-info="info">
   <div id="assembly-code-div-{{instruction.pc}}"
-       class="small-rounded-container grey2">
+       [data]="instruction"
+       [tippy]="contextMenu"
+       class="small-rounded-container grey2"
+       variation="contextMenu">
     <div style="display: flex; justify-content: space-between; align-items: center;"
          (click)="expandInfo(instruction.pc)">
-      <div id="assembly-code-div-pc-{{instruction.pc}}"
-           class="text-rounded-container mono">{{instruction.pc}}</div>
-      <div style="flex-grow: 1; padding-left: 0.5em">{{info ? info.name : instruction.name }}</div>
+      <div class="text-rounded-container mono" id="assembly-code-div-pc-{{instruction.pc}}">{{instruction.pc}}</div>
+      <div style="flex-grow: 1; padding-left: 0.5em">{{info ? info.name : instruction.instructionName }}</div>
       <div id="assembly-code-div-hex-{{instruction.pc}}"
-           class="text-rounded-container mono">{{byteToHex(instruction.instruction, 8)}}</div>
+           class="text-rounded-container mono">{{byteToHex(instruction.unparsedInstruction, 8)}}</div>
     </div>
     <div *ngIf="info" id="assembly-info-div-{{instruction.pc}}" class="assembly-info">
       <div class="desc">{{info.desc}}</div>
