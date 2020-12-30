@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {byteToHex} from '../../../globals';
-import {Cpu} from '../../../core/services/cpu.service';
+import {CPUService} from '../../../core/services/cpu.service';
 
 @Component({
   selector: 'app-registers',
@@ -46,7 +46,7 @@ export class RegistersComponent implements OnInit {
   ];
   private hoverTooltipId = 'register-hover-id';
 
-  constructor(public cpu: Cpu) {
+  constructor(public cpu: CPUService) {
   }
 
   ngOnInit(): void {

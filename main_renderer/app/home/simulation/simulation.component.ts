@@ -2,13 +2,13 @@ import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angul
 import * as fs from 'fs';
 import * as path from 'path';
 import {byteToHex, range} from '../../globals';
-import {Cpu} from '../../core/services/cpu.service';
+import {CPUService} from '../../core/services/cpu.service';
 import {InstructionsComponent} from './instructions/instructions.component';
 import {takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
 import {DataKeys, DataService} from '../../core/services/data.service';
 import {Router} from '@angular/router';
-import {GraphService} from './graph/graph.service';
+import {GraphService} from '../../core/services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
 import {Bindings} from '../../core/services/bindingSubjects';
 
@@ -37,13 +37,14 @@ export class SimulationComponent implements OnInit, OnDestroy {
   private currentArea = this.selectedTab;
 
   constructor(
-    public cpu: Cpu,
+    public cpu: CPUService,
     private dataService: DataService,
     private router: Router,
     private graphService: GraphService,
     private cd: ChangeDetectorRef
   ) {
     this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;
+    console.log(graphService);
   }
 
   onChangeElaborateSteps(newVal) {

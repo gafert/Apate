@@ -1,6 +1,6 @@
 import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {byteToHex, range} from '../../../globals';
-import {Cpu} from '../../../core/services/cpu.service';
+import {CPUService} from '../../../core/services/cpu.service';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
@@ -19,7 +19,7 @@ export class MemoryComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
   private onResizer = false;
 
-  constructor(private el: ElementRef, private cpu: Cpu) {
+  constructor(private el: ElementRef, private cpu: CPUService) {
     cpu.bindings.memory.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.memory = value;
     });

@@ -6,7 +6,6 @@ import {
   DirectionalLight,
   DoubleSide,
   Group,
-  Material,
   Mesh,
   MeshBasicMaterial,
   PerspectiveCamera,
@@ -17,19 +16,19 @@ import {
   Vector3,
   WebGLRenderer
 } from 'THREE';
-import panzoom from '../../../utils/drag.js';
-import {Cpu} from '../../../core/services/cpu.service';
-import {SVGLoader} from './SVGLoader';
-import RISC_SVG from '!!raw-loader!./risc_test.svg';
+import panzoom from '../../utils/drag.js';
+import {CPUService} from './cpu.service';
+import {SVGLoader} from './graphHelpers/SVGLoader';
+import RISC_SVG from '!!raw-loader!./graphHelpers/risc_test.svg';
 import * as tinycolor from 'tinycolor2';
 import {animate, easeIn, linear} from 'popmotion';
 import * as _ from 'lodash';
-import {CPU_STATES} from '../../../core/services/bindingSubjects';
+import {CPU_STATES} from './bindingSubjects';
 import {MeshText2D, textAlign} from 'three-text2d';
 import * as d3 from 'd3';
 import tippy, {Instance, Props} from 'tippy.js';
-import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
-import TABS from '../../../yamls/tabs.yml';
+import RISCV_DEFINITIONS from '../../yamls/risc.yml';
+import TABS from '../../yamls/tabs.yml';
 
 interface THREENode {
   meshes: Mesh[];
@@ -45,7 +44,9 @@ interface IdFlatInterface {
 
 type areas = 'overview' | 'decoder' | 'alu' | 'memory' | 'registers';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class GraphService {
   public initiated = false;
 
@@ -88,15 +89,10 @@ export class GraphService {
 
   private focusAnimation;
 
-  constructor(private ngZone: NgZone, private cpu: Cpu) {
-    process.on('exit', () => {
-      console.log('Exit GraphService');
-      this.stopRender();
-      this.renderer.dispose();
-      this.camera = null;
-      this.scene = null;
-      this.clock = null;
-    });
+  public globalAnimationDisabled = false;
+
+  constructor(private ngZone: NgZone, private cpu: CPUService) {
+    console.log("Initiated GraphService");
   }
 
   runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
@@ -226,6 +222,8 @@ export class GraphService {
     // Block if change comes too early
     if (!this.idFlat || newArea === this.currentArea) return;
 
+    animateTransition = animateTransition && !this.globalAnimationDisabled;
+
     // If one goes back to the overview the reverse animation will be shown
     const reverse = newArea == 'overview';
     // If the transition is from sub to another sub disable animation
@@ -268,7 +266,10 @@ export class GraphService {
       this.camera.position.copy(center);
       await this.focusCameraOnElement('areaborder_' + newArea, true);
     } else {
-      await this.hideElement('area_' + this.currentArea, true);
+      if (this.globalAnimationDisabled)
+        this.hideElement('area_' + this.currentArea, false);
+      else
+        await this.hideElement('area_' + this.currentArea, true);
       this.focusCameraOnElement('areaborder_' + newArea, false);
       this.showElement('area_' + newArea, true).then(() => this.updateActiveElements())
     }
@@ -413,21 +414,28 @@ export class GraphService {
     }
   }
 
-  animateOpacity(meshes, opacity) {
-    return new Promise((resolve) => {
+  setOpacity<B extends boolean>(meshes: Mesh[], opacity, animateTransition: B): B extends true ? Promise<unknown> : void;
+  setOpacity(meshes, opacity, animateTransition = true): Promise<unknown> | void {
+    if (animateTransition) {
+      return new Promise((resolve) => {
+        for (const mesh of meshes) {
+          animate({
+            from: mesh.material.opacity,
+            to: opacity,
+            duration: 200,
+            elapsed: -Math.random() * 200,
+            onUpdate: (v) => mesh.material.opacity = v,
+            onComplete: () => {
+              resolve();
+            }
+          });
+        }
+      })
+    } else {
       for (const mesh of meshes) {
-        animate({
-          from: mesh.material.opacity,
-          to: opacity,
-          duration: 200,
-          elapsed: -Math.random() * 200,
-          onUpdate: (v) => mesh.material.opacity = v,
-          onComplete: () => {
-            resolve();
-          }
-        });
+        mesh.material.opacity = opacity;
       }
-    })
+    }
   }
 
   hideElement<B extends boolean>(id: string, animate: B): B extends true ? Promise<unknown> : void;
@@ -440,13 +448,12 @@ export class GraphService {
       meshes = idOrMesh;
     }
 
-    if (!meshes) return;
-
-    if (animate) {
-      return this.animateOpacity(meshes, 0);
-    } else {
-      meshes.forEach((mesh) => (mesh.material as Material).opacity = 0);
+    if (!meshes) {
+      console.error("Could not find mesh or id", idOrMesh)
+      return;
     }
+
+    return this.setOpacity(meshes, 0, animate);
   }
 
   showElement<B extends boolean>(id: string, animate: B): B extends true ? Promise<unknown> : void;
@@ -459,15 +466,14 @@ export class GraphService {
       meshes = idOrMesh;
     }
 
-    if (!meshes) return;
+    if (!meshes) {
+      console.error("Could not find mesh or id", idOrMesh)
+      return;
+    }
 
     const meshesWithoutNonVisibleAreas = meshes.filter((mesh) => !this.nonVisibleMeshes.includes(mesh));
 
-    if (animate) {
-      return this.animateOpacity(meshesWithoutNonVisibleAreas, 1);
-    } else {
-      meshes.forEach((mesh) => (mesh.material as Material).opacity = 1);
-    }
+    return this.setOpacity(meshesWithoutNonVisibleAreas, 1, animate);
   }
 
   handleIntersection() {
@@ -585,13 +591,16 @@ export class GraphService {
   updateActiveElements() {
     const nextCpuState = this.cpu.bindings.nextCpuState.value;
 
+    console.log("WHat is ths", this.globalAnimationDisabled);
+
     // Reset all lines
     // Dont show any active lines
     if (nextCpuState === CPU_STATES.FETCH) {
       for (const key of Object.keys(this.idFlat)) {
         // Hide all elements when the next decoding stage is incoming
         if (key.startsWith('mux_')) {
-          this.animateOpacity(this.idFlat[key].meshes, 1);
+          this.setOpacity(this.idFlat[key].meshes, 1, !this.globalAnimationDisabled);
+          console.log(this.globalAnimationDisabled);
         }
       }
       // Reset all values
@@ -631,7 +640,7 @@ export class GraphService {
           allMeshes.push(...this.idFlat[key].meshes);
         }
       }
-      this.animateOpacity(_.difference(allMeshes, meshesToActivate), 0.05);
+      this.setOpacity(_.difference(allMeshes, meshesToActivate), 0.05, !this.globalAnimationDisabled);
     }
     console.log("Updated active elements with instruction ", this.cpu.bindings.instruction.value);
   }

@@ -28,7 +28,7 @@
 </div>
 
 <ng-template #contextMenu let-hide let-instruction="data">
-  <div (click)="hide()" class="context-menu-item">Continue to {{instruction.pc}}</div>
+  <div (click)="hide(); runUntilPC(instruction.pc);" class="context-menu-item">Continue to {{instruction.pc}}</div>
 </ng-template>
 
 <ng-template #instruction_template let-instruction="instruction" let-info="info">

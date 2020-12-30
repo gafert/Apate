@@ -15,7 +15,6 @@ import {
   Vector2,
   Vector3
 } from 'three';
-import { MeshText2D, textAlign } from 'three-text2d';
 
 var SVGLoader = function(manager) {
 
@@ -872,7 +871,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
     }
 
     function parseTextNode(node) {
-      return
+
     }
 
     //

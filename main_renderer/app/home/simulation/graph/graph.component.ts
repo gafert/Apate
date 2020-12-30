@@ -1,14 +1,5 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  Input,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
-import { GraphService } from './graph.service';
+import {AfterViewInit, Component, ElementRef, OnDestroy,} from '@angular/core';
+import {GraphService} from '../../../core/services/graph.service';
 
 @Component({
   selector: 'app-graph',
@@ -16,7 +7,8 @@ import { GraphService } from './graph.service';
   styleUrls: ['./graph.component.scss'],
 })
 export class GraphComponent implements AfterViewInit, OnDestroy {
-  constructor(private el: ElementRef, private graphService: GraphService) {}
+  constructor(private el: ElementRef, private graphService: GraphService) {
+  }
 
   ngAfterViewInit() {
     this.graphService.init(this.el.nativeElement);

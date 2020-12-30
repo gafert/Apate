@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {byteToHex} from '../../../globals';
 import * as d3 from 'd3';
 import {animate, easeOut} from 'popmotion';
@@ -6,6 +6,8 @@ import styler from 'stylefire';
 import {readStyleProperty} from '../../../utils/helper';
 import {ELF, SHF_CONSTANTS} from '../../../core/services/elfParser';
 import {INSTRUCTIONS_DESCRIPTIONS} from '../../../core/services/instructionParser';
+import {CPUService} from "../../../core/services/cpu.service";
+import {GraphService} from "../../../core/services/graph.service";
 
 class Assembly {
   opcode: string;
@@ -34,13 +36,14 @@ class Section {
   templateUrl: './instructions.component.html',
   styleUrls: ['./instructions.component.scss']
 })
-export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   public readonly byteToHex = byteToHex;
 
   @Input() public programCounter;
   @Input() public parsedElf: ELF;
 
-  constructor() {
+  constructor(public cpu: CPUService, public graphService: GraphService) {
+    console.log(this);
   }
 
   ngOnInit(): void {
@@ -68,9 +71,6 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
     }, 100);
   }
 
-  ngOnDestroy() {
-  }
-
   expandInfo(pc) {
     const infoElement = document.getElementById('assembly-info-div-' + pc);
     if (infoElement.classList.contains('assembly-info-open')) {
@@ -86,6 +86,13 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit, 
 
   isSHFExecInstr(flags) {
     return flags & SHF_CONSTANTS.SHF_EXECINSTR;
+  }
+
+  runUntilPC(pc: number) {
+    this.graphService.globalAnimationDisabled = true
+    this.cpu.runUntilPC(pc).then(() => {
+      this.graphService.globalAnimationDisabled = false;
+    });
   }
 
   private setInstructionColor(oldPC, newPC) {

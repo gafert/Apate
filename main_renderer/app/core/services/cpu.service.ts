@@ -1,4 +1,4 @@
-import {Injectable, OnDestroy} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Bindings, CPU_STATES} from './bindingSubjects';
 import {readFileSync} from 'fs';
 import {
@@ -22,7 +22,7 @@ import {parseElf, parseElfRISCVInstructions} from './elfParser';
 @Injectable({
   providedIn: 'root'
 })
-export class Cpu implements OnDestroy {
+export class CPUService {
   public bindings = new Bindings();
   public elfIsLoaded = false;
   public parsedElf;
@@ -46,7 +46,7 @@ export class Cpu implements OnDestroy {
     this.elfIsLoaded = true;
   }
 
-  advanceSimulationClock() {
+  advanceSimulationClock(animateTransitions?: boolean) {
     switch (this.bindings.nextCpuState.value) {
       case CPU_STATES.BREAK:
         this.bindings.cpuState.next(CPU_STATES.BREAK);
@@ -193,7 +193,7 @@ export class Cpu implements OnDestroy {
 
       if (this.bindings.branchResult.value === 1) {
         this.bindings.branchAddResult.next(this.bindings.imm.value);
-      } else if(this.bindings.branchResult.value === 0) {
+      } else if (this.bindings.branchResult.value === 0) {
         this.bindings.branchAddResult.next(4);
       }
 
@@ -201,7 +201,7 @@ export class Cpu implements OnDestroy {
         this.bindings.pcAdd.next(this.bindings.imm.value);
       } else if (isBRANCH(this.bindings.instruction.value?.instructionName)) {
         this.bindings.pcAdd.next(this.bindings.branchAddResult.value);
-      } else if(this.bindings.instruction.value?.instructionName) {
+      } else if (this.bindings.instruction.value?.instructionName) {
         this.bindings.pcAdd.next(4);
       }
 
@@ -211,7 +211,7 @@ export class Cpu implements OnDestroy {
 
       if (isJALR(this.bindings.instruction.value?.instructionName)) {
         this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);
-      } else if(this.bindings.instruction.value?.instructionName) {
+      } else if (this.bindings.instruction.value?.instructionName) {
         this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
       }
     } catch (e) {
@@ -223,7 +223,42 @@ export class Cpu implements OnDestroy {
     return this.bindings.cpuState.value;
   }
 
-  callALU(op1, op2, instruction: Instruction): number {
+  runUntilBreak() {
+    let timeout = 10000;
+
+    const advance = () => {
+      if (timeout > 0 && this.bindings.cpuState.value != CPU_STATES.BREAK) {
+        setTimeout(() => {
+          this.advanceSimulationClock();
+          timeout--;
+          advance();
+        }, 1);
+      }
+    };
+
+    advance();
+  }
+
+  runUntilPC(pc: number): Promise<unknown> {
+    let timeout = 10000;
+
+    return new Promise(resolve => {
+      const advance = () => {
+        if (timeout > 0 && this.bindings.cpuState.value != CPU_STATES.BREAK && pc !== this.bindings.pc.value) {
+          setTimeout(() => {
+            this.advanceSimulationClock();
+            timeout--;
+            advance();
+          }, 1);
+        } else {
+          resolve();
+        }
+      };
+      advance();
+    });
+  }
+
+  private callALU(op1, op2, instruction: Instruction): number {
     switch (instruction?.instructionName) {
       case INSTRUCTIONS.JAL:
       case INSTRUCTIONS.JALR:
@@ -269,7 +304,7 @@ export class Cpu implements OnDestroy {
     }
   }
 
-  callMEMORYread(instruction: Instruction, address): number {
+  private callMEMORYread(instruction: Instruction, address): number {
     const memoryValue = this.fetchDataFromMemory(address);
     switch (instruction.instructionName) {
       case INSTRUCTIONS.LB:
@@ -296,7 +331,7 @@ export class Cpu implements OnDestroy {
     }
   }
 
-  callMEMORYwrite(instruction: Instruction, address, value) {
+  private callMEMORYwrite(instruction: Instruction, address, value) {
     const memory = this.bindings.memory.value;
     if (address == 23456) {
       this.bindings.callBufferWriteCallbacks(value);
@@ -323,38 +358,14 @@ export class Cpu implements OnDestroy {
     this.bindings.memory.next(memory);
   }
 
-  runUntilBreak() {
-    let timeout = 10000;
-
-    const advance = () => {
-      if (timeout > 0 && this.bindings.cpuState.value != CPU_STATES.BREAK) {
-        setTimeout(() => {
-          this.advanceSimulationClock();
-          timeout--;
-          advance();
-        }, 1);
-      }
-    };
-
-    advance();
-  }
-
-  read4BytesLittleEndian(data, location) {
+  private read4BytesLittleEndian(data, location) {
     return data[location + 3] * 256 * 256 * 256
       + data[location + 2] * 256 * 256
       + data[location + 1] * 256
       + data[location + 0];
   }
 
-  dec2bin(dec) {
-    return (dec >>> 0).toString(2);
-  }
-
-  fetchDataFromMemory(location) {
+  private fetchDataFromMemory(location) {
     return this.read4BytesLittleEndian(this.bindings.memory.value, location);
-  }
-
-  ngOnDestroy(): void {
-
   }
 }
