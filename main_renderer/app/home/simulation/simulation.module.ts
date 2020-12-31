@@ -28,4 +28,6 @@ import {MatCheckboxModule} from "@angular/material/checkbox";
   imports: [SimulationRoutingModule, SharedModule, MatCheckboxModule],
   providers: [],
 })
-export class SimulationModule {}
+export class SimulationModule {
+
+}

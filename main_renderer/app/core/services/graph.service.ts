@@ -1,17 +1,22 @@
 import {Injectable, NgZone} from '@angular/core';
 import {
+  AmbientLight,
   Box3,
   Clock,
   Color,
   DirectionalLight,
   DoubleSide,
+  ExtrudeGeometry,
   Group,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   PerspectiveCamera,
+  PlaneGeometry,
   Raycaster,
+  RepeatWrapping,
   Scene,
-  ShapeBufferGeometry,
+  TextureLoader,
   Vector2,
   Vector3,
   WebGLRenderer
@@ -20,6 +25,8 @@ import panzoom from '../../utils/drag.js';
 import {CPUService} from './cpu.service';
 import {SVGLoader} from './graphHelpers/SVGLoader';
 import RISC_SVG from '!!raw-loader!./graphHelpers/risc_test.svg';
+import BACKGROUND_IMAGE from 'assets/background.png';
+
 import * as tinycolor from 'tinycolor2';
 import {animate, easeIn, linear} from 'popmotion';
 import * as _ from 'lodash';
@@ -142,6 +149,8 @@ export class GraphService {
         light.target.position.set(0, 0, 0);
         this.scene.add(light);
         this.scene.add(light.target);
+        const ambientLight = new AmbientLight(0xcccccc, 0.2);
+        this.scene.add(ambientLight);
 
         // Initiate objects from svg
         this.initiateObjects();
@@ -177,11 +186,8 @@ export class GraphService {
         // this.separateAreas();
         this.goToArea('overview');
 
-        // Set initiated to true to not reload settings if init was called again by component using the service
-        this.initiated = true;
-
         // for (const key of Object.keys(this.idFlat)) {
-        //   if (key === 'area_cu')
+        //   if (key === 'risc_test')
         //     if (this.idFlat[key].meshes.length !== 0) {
         //       const {center, box} = this.getCenterOfMeshes(this.idFlat[key].meshes);
         //
@@ -195,19 +201,37 @@ export class GraphService {
         //       this.scene.add(sphere);
         //
         //       // Test sphere
-        //       const size = new Vector3();
-        //       box.getSize(size);
-        //       const geometry1 = new PlaneGeometry(size.x, size.y);
-        //       const material1 = new MeshLambertMaterial({
-        //         color: 0xffff00
-        //       });
-        //       material1.transparent = true;
-        //       material1.opacity = 0.05;
-        //       const sphere1 = new Mesh(geometry1, material1);
-        //       sphere1.position.copy(center);
-        //       this.scene.add(sphere1);
+        //       // const size = new Vector3();
+        //       // box.getSize(size);
+        //       // const geometry1 = new PlaneGeometry(size.x, size.y);
+        //       // const material1 = new MeshLambertMaterial({
+        //       //   color: 0xffff00
+        //       // });
+        //       // material1.transparent = true;
+        //       // material1.opacity = 0.05;
+        //       // const sphere1 = new Mesh(geometry1, material1);
+        //       // sphere1.position.copy(center);
+        //       // this.scene.add(sphere1);
         //     }
         // }
+
+        // Add background
+        const loader = new TextureLoader();
+        const backgroundTexture = loader.load(BACKGROUND_IMAGE);
+        backgroundTexture.wrapS = backgroundTexture.wrapT = RepeatWrapping;
+        backgroundTexture.repeat.set(50, 50);
+        const backgroundGeometry = new PlaneGeometry(5000, 5000, 1, 1);
+        const backgroundMaterial = new MeshBasicMaterial({
+          map: backgroundTexture
+        })
+        const backgroundMesh = new Mesh(backgroundGeometry, backgroundMaterial);
+        const backgroundPosiiton = this.getCenterOfMeshes(this.idFlat['risc_test'].meshes).center;
+        backgroundPosiiton.z = -50;
+        backgroundMesh.position.copy(backgroundPosiiton);
+        this.scene.add(backgroundMesh);
+
+        // Set initiated to true to not reload settings if init was called again by component using the service
+        this.initiated = true;
       }
     });
   }
@@ -296,18 +320,19 @@ export class GraphService {
             const meshes: Mesh[] = [];
             if (path.userData.style.fill && path.userData.style.fill !== 'none') {
               const fillColor = tinycolor(this.checkColor(path.userData.style.fill));
-              const material = new MeshBasicMaterial({
+              const material = new MeshLambertMaterial({
                 color: new Color().setStyle(fillColor.toHexString()),
                 opacity: path.userData.style.fillOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * fillColor.getAlpha(),
                 transparent: true,
-                side: DoubleSide,
-                depthWrite: false
+                // side: DoubleSide,
+                // depthWrite: false
               });
               const shapes = path.toShapes(true);
               for (let j = 0; j < shapes.length; j++) {
                 const shape = shapes[j];
-                const geometry = new ShapeBufferGeometry(shape);
+                const geometry = new ExtrudeGeometry(shape, {depth: 100, bevelEnabled: false});
                 const mesh = new Mesh(geometry, material);
+                mesh.translateZ(-100);
                 mesh.name = child.id;
                 childGroup.add(mesh);
                 meshes.push(mesh);
@@ -591,8 +616,6 @@ export class GraphService {
   updateActiveElements() {
     const nextCpuState = this.cpu.bindings.nextCpuState.value;
 
-    console.log("WHat is ths", this.globalAnimationDisabled);
-
     // Reset all lines
     // Dont show any active lines
     if (nextCpuState === CPU_STATES.FETCH) {
@@ -600,12 +623,10 @@ export class GraphService {
         // Hide all elements when the next decoding stage is incoming
         if (key.startsWith('mux_')) {
           this.setOpacity(this.idFlat[key].meshes, 1, !this.globalAnimationDisabled);
-          console.log(this.globalAnimationDisabled);
         }
       }
       // Reset all values
-      // @ts-ignore
-      Object.values(this.cpu.bindings.volatileValues).forEach((value) => value.next(null));
+      this.cpu.bindings.clearAllVolatileValues();
     }
 
     // Show decoded active lines if the current executed state was decoding

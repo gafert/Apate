@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import {byteToHex, range} from '../../globals';
@@ -40,8 +40,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
     public cpu: CPUService,
     private dataService: DataService,
     private router: Router,
-    private graphService: GraphService,
-    private cd: ChangeDetectorRef
+    private graphService: GraphService
   ) {
     this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;
     console.log(graphService);
@@ -79,8 +78,15 @@ export class SimulationComponent implements OnInit, OnDestroy {
   }
 
   initiateSimulation() {
-    const elfPath = this.dataService.getSetting(DataKeys.ELF_PATH);
+    // Reset all cpu values
+    this.cpu.bindings.clearAllValues();
 
+    // For info getting
+    this.instrCounter = 0;
+    this.infoCounter = -1;
+
+    // Load elf into CPU
+    const elfPath = this.dataService.getSetting(DataKeys.ELF_PATH);
     if (elfPath) {
       if (elfPath.indexOf('.elf') > 0) {
         this.cpu.initSimulation(elfPath);
@@ -90,9 +96,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
         }, 100);
       }
     }
-
-    this.instrCounter = 0;
-    this.infoCounter = -1;
   }
 
   async stepSimulation() {
