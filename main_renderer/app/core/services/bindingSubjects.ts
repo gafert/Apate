@@ -86,6 +86,7 @@ export class Bindings {
   public instruction = new BehaviorSubject<Instruction>(null);
   public instructionName = new BehaviorSubject<string>(null);
 
+  // Can be used in the simulation to get subscriptions to these values
   public allValues = {
     'pc': this.pc,
     'rd': this.rd,
@@ -143,6 +144,17 @@ export class Bindings {
     'instr': this.instructionName
   }
 
+  clearAllVolatileValues() {
+    // @ts-ignore
+    Object.values(this.volatileValues).forEach((value) => value.next(null));
+  }
+
+  clearAllValues() {
+    // @ts-ignore
+    Object.values(this.allValues).forEach((value) => value.next(null));
+    this.cpuregs.next(new Array(32).fill(0));
+    this.memory.next(Buffer.alloc(512, 0));
+  }
 
   constructor() {
     // If name changes set this to other subjects
