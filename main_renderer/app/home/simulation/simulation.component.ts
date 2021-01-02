@@ -11,6 +11,7 @@ import {Router} from '@angular/router';
 import {GraphService} from '../../core/services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
 import {Bindings} from '../../core/services/bindingSubjects';
+import {Areas} from "../../core/services/graphHelpers/helpers";
 
 @Component({
   selector: 'app-simulation',
@@ -23,7 +24,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public DataKeys = DataKeys;
   public range = range;
   private ngUnsubscribe = new Subject();
-  public selectedTab = 'overview';
+  public selectedTab: Areas = 'overview';
 
   public elaborateSteps = true;
 
@@ -126,10 +127,10 @@ export class SimulationComponent implements OnInit, OnDestroy {
       this.selectedTab = info.area;
       this.currentArea = info.area;
       if (info.focus) {
-        await this.graphService.focusOnElement(info.focus);
+        await this.graphService.goToFocus(info.focus);
       }
     } else if (info.focus) {
-      await this.graphService.focusOnElement(info.focus);
+      await this.graphService.goToFocus(info.focus);
     }
 
     // Enable step after animation
@@ -137,7 +138,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   }
 
 
-  getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: string; area?: string; focus?: string } {
+  getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: string; area?: Areas; focus?: string } {
     if (this.infoCounter + 1 >= RISCV_STAGES[this.instrCounter].infos.length) {
       // There is no info left in this instruction, go to first info of new instruction
       this.infoCounter = 0;

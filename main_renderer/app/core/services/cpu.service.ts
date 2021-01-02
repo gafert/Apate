@@ -30,7 +30,7 @@ export class CPUService {
   constructor() {
   }
 
-  initSimulation(pathToElf: string) {
+  public initSimulation(pathToElf: string) {
     console.log(pathToElf);
     // Open ELF File
     const elfBuffer = readFileSync(pathToElf);
@@ -46,7 +46,7 @@ export class CPUService {
     this.elfIsLoaded = true;
   }
 
-  advanceSimulationClock(animateTransitions?: boolean) {
+  public advanceSimulationClock() {
     switch (this.bindings.nextCpuState.value) {
       case CPU_STATES.BREAK:
         this.bindings.cpuState.next(CPU_STATES.BREAK);
@@ -223,7 +223,7 @@ export class CPUService {
     return this.bindings.cpuState.value;
   }
 
-  runUntilBreak() {
+  public runUntilBreak() {
     let timeout = 10000;
 
     const advance = () => {
@@ -239,7 +239,7 @@ export class CPUService {
     advance();
   }
 
-  runUntilPC(pc: number): Promise<unknown> {
+  public runUntilPC(pc: number): Promise<unknown> {
     let timeout = 10000;
 
     return new Promise(resolve => {

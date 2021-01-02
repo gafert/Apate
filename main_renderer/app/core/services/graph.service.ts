@@ -1,16 +1,11 @@
 import {Injectable, NgZone} from '@angular/core';
 import {
   AmbientLight,
-  Box3,
   Clock,
-  Color,
   DirectionalLight,
-  DoubleSide,
-  ExtrudeGeometry,
-  Group,
+  Light,
   Mesh,
   MeshBasicMaterial,
-  MeshLambertMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   Raycaster,
@@ -18,38 +13,20 @@ import {
   Scene,
   TextureLoader,
   Vector2,
-  Vector3,
   WebGLRenderer
 } from 'THREE';
 import panzoom from '../../utils/drag.js';
 import {CPUService} from './cpu.service';
-import {SVGLoader} from './graphHelpers/SVGLoader';
-import RISC_SVG from '!!raw-loader!./graphHelpers/risc_test.svg';
 import BACKGROUND_IMAGE from 'assets/background.png';
-
-import * as tinycolor from 'tinycolor2';
-import {animate, easeIn, linear} from 'popmotion';
-import * as _ from 'lodash';
-import {CPU_STATES} from './bindingSubjects';
-import {MeshText2D, textAlign} from 'three-text2d';
-import * as d3 from 'd3';
+import {animate, linear} from 'popmotion';
 import tippy, {Instance, Props} from 'tippy.js';
 import RISCV_DEFINITIONS from '../../yamls/risc.yml';
 import TABS from '../../yamls/tabs.yml';
-
-interface THREENode {
-  meshes: Mesh[];
-  id: string;
-  node: Element;
-  children: THREENode[];
-  group: Group;
-}
-
-interface IdFlatInterface {
-  [key: string]: { meshes: Mesh[]; group: Group };
-}
-
-type areas = 'overview' | 'decoder' | 'alu' | 'memory' | 'registers';
+import {Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface,} from "./graphHelpers/helpers";
+import {focusCameraOnElement} from "./graphHelpers/helperFocus";
+import {hideElement, showElement} from "./graphHelpers/helperVisibility";
+import {getModuleName, getPortName, getSName, getWName} from "./graphHelpers/helperNameMatch";
+import initiateSVGObjects, {addSignalTextsAndUpdate, updateActiveElements} from "./graphHelpers/helperSVGObject";
 
 @Injectable({
   providedIn: 'root',
@@ -70,18 +47,16 @@ export class GraphService {
 
   private time = 0;
   private clock = new Clock();
-  private globalUniforms = {
-    u_time: {type: 'f', value: 0},
-    u_resolution: {type: 'vec2', value: new Vector2(0, 0)}
-  };
+  public currentArea: Areas;
 
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
 
   private renderGroup; // Holds the meshes in js groups named according to svg names
-  private idRoot: THREENode; // Holds the parsed svg and adds meshes to each element
+  private globalUniforms = {
+    u_time: {value: 0},
+    u_resolution: {value: new Vector2(0, 0)}
+  };
   private idFlat: IdFlatInterface; // Takes the parsed svg with meshes and flattens all names to be a 1D array
-  private idMaterials = [];
-  private nonVisibleMeshes = [];
 
   // Intersection related
   // centeredMouse is update once the mouse is moved, so set start to value which never could be to prevent
@@ -90,70 +65,55 @@ export class GraphService {
   private mouse = new Vector2(-10000, -10000);
   private intersectedElement;
   private raycaster: Raycaster;
-  private tippyTooltip: Instance<Props>;
-
-  public currentArea: areas;
-
-  private focusAnimation;
+  private idRoot: IdRootInterface; // Holds the parsed svg and adds meshes to each element
+  private hoverTooltipInstance: Instance<Props>;
 
   public globalAnimationDisabled = false;
+  private backgroundMaterial;
 
   constructor(private ngZone: NgZone, private cpu: CPUService) {
     console.log("Initiated GraphService");
   }
 
-  runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
-    this.renderLoopFunctions.push(func);
-  }
-
-  resize() {
-    const width = this.renderDom.clientWidth;
-    const height = this.renderDom.clientHeight;
-
-    this.renderer.setSize(width, height);
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
-
-    this.globalUniforms.u_resolution.value = new Vector2(width, height);
-  }
-
-  init(domElement: HTMLElement) {
+  /**
+   * Setup scene inside domElement and start rendering
+   * @param domElement Target of render. This function will add a canvas matching the size of the domElement.
+   */
+  public init(domElement: HTMLElement) {
     this.ngZone.runOutsideAngular(() => {
       this.renderDom = domElement;
       if (this.initiated) {
         // Service already loaded scene, only set dom element again and start rendering
-        domElement.appendChild(this.renderer.domElement);
+        this.renderDom.appendChild(this.renderer.domElement);
         this.resize();
         this.render();
-        panzoom(this.camera, domElement);
+        panzoom(this.camera, this.renderDom);
       } else {
-        const width = domElement.clientWidth;
-        const height = domElement.clientHeight;
-
         // Setup renderer
         this.scene = new Scene();
         this.renderer = new WebGLRenderer({alpha: true, antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.domElement.style.outline = 'none';
-        domElement.appendChild(this.renderer.domElement);
+        this.renderDom.appendChild(this.renderer.domElement);
 
         // Setup camera
-        this.camera = new PerspectiveCamera(45, width / height, 0.1, 10000);
-        this.camera.position.z = 50;
+        this.camera = this.setupCamera(this.renderDom.clientWidth, this.renderDom.clientHeight);
 
         // Setup scene with light
-        const color = 0xffffff;
-        const intensity = 1;
-        const light = new DirectionalLight(color, intensity);
-        light.position.set(0, 0, 10);
-        light.target.position.set(0, 0, 0);
-        this.scene.add(light);
-        this.scene.add(light.target);
-        const ambientLight = new AmbientLight(0xcccccc, 0.2);
-        this.scene.add(ambientLight);
+        this.scene.add(...this.setupLights());
 
         // Initiate objects from svg
-        this.initiateObjects();
+        ({
+          idRoot: this.idRoot,
+          idFlat: this.idFlat,
+          renderGroup: this.renderGroup
+        } = initiateSVGObjects());
+
+        // Add render group to scene
+        this.scene.add(this.renderGroup);
+
+        // Update signals texts if they change
+        addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat);
 
         // For intersection
         this.raycaster = new Raycaster();
@@ -167,7 +127,7 @@ export class GraphService {
         panzoom(this.camera, domElement);
 
         // Add tooltips
-        this.tippyTooltip = tippy(this.renderer.domElement, {
+        this.hoverTooltipInstance = tippy(this.renderer.domElement, {
           content: 'Context menu',
           trigger: 'manual',
           theme: 'light',
@@ -184,51 +144,10 @@ export class GraphService {
         // Split areas in world and focus on the first
         // This needs to be away from initiateObjects
         // this.separateAreas();
+
         this.goToArea('overview');
 
-        // for (const key of Object.keys(this.idFlat)) {
-        //   if (key === 'risc_test')
-        //     if (this.idFlat[key].meshes.length !== 0) {
-        //       const {center, box} = this.getCenterOfMeshes(this.idFlat[key].meshes);
-        //
-        //       // Test sphere
-        //       const geometry = new SphereGeometry(1, 10);
-        //       const material = new MeshLambertMaterial({
-        //         color: 0xffff00
-        //       });
-        //       const sphere = new Mesh(geometry, material);
-        //       sphere.position.copy(center);
-        //       this.scene.add(sphere);
-        //
-        //       // Test sphere
-        //       // const size = new Vector3();
-        //       // box.getSize(size);
-        //       // const geometry1 = new PlaneGeometry(size.x, size.y);
-        //       // const material1 = new MeshLambertMaterial({
-        //       //   color: 0xffff00
-        //       // });
-        //       // material1.transparent = true;
-        //       // material1.opacity = 0.05;
-        //       // const sphere1 = new Mesh(geometry1, material1);
-        //       // sphere1.position.copy(center);
-        //       // this.scene.add(sphere1);
-        //     }
-        // }
-
-        // Add background
-        const loader = new TextureLoader();
-        const backgroundTexture = loader.load(BACKGROUND_IMAGE);
-        backgroundTexture.wrapS = backgroundTexture.wrapT = RepeatWrapping;
-        backgroundTexture.repeat.set(50, 50);
-        const backgroundGeometry = new PlaneGeometry(5000, 5000, 1, 1);
-        const backgroundMaterial = new MeshBasicMaterial({
-          map: backgroundTexture
-        })
-        const backgroundMesh = new Mesh(backgroundGeometry, backgroundMaterial);
-        const backgroundPosiiton = this.getCenterOfMeshes(this.idFlat['risc_test'].meshes).center;
-        backgroundPosiiton.z = -50;
-        backgroundMesh.position.copy(backgroundPosiiton);
-        this.scene.add(backgroundMesh);
+        this.scene.add(this.setupBackground(this.idFlat));
 
         // Set initiated to true to not reload settings if init was called again by component using the service
         this.initiated = true;
@@ -236,13 +155,12 @@ export class GraphService {
     });
   }
 
-  public focusOnElement(state): Promise<unknown> {
-    // Block if change comes too early
-    if (!this.idFlat) return;
-    return this.focusCameraOnElement('focus_' + state, true);
-  }
-
-  public async goToArea(newArea, animateTransition?) {
+  /**
+   * Go to a new area.
+   * @param newArea Will be appended with "area_" by function. Camera will focus all elements inside.
+   * @param animateTransition If this transition should be animated
+   */
+  public async goToArea(newArea: Areas, animateTransition?) {
     // Block if change comes too early
     if (!this.idFlat || newArea === this.currentArea) return;
 
@@ -256,11 +174,11 @@ export class GraphService {
     const animationElement = animateTransition ? TABS[reverse ? this.currentArea : newArea] : null;
 
     // Hide elements of current area only if there is one selected, else skip this and only show
-    this.hideElement('area_' + newArea, false);
+    hideElement(this.idFlat, 'area_' + newArea, false);
 
     if (animationElement && !reverse) {
       await Promise.all([new Promise((resolve) => {
-        const {center} = this.getCenterOfMeshes(this.idFlat[animationElement].meshes);
+        const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
         animate({
           from: 0,
           to: 1,
@@ -269,239 +187,110 @@ export class GraphService {
           onUpdate: (v) => this.camera.position.lerp(center, v),
           onComplete: () => resolve()
         });
-      }), this.hideElement('area_' + this.currentArea, true)]);
+      }), hideElement(this.idFlat, 'area_' + this.currentArea, true)]);
 
       // Focus on new area
-      this.focusCameraOnElement('areaborder_' + newArea, false);
+      focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
 
       // This can be async as the camera can move now
       // Show meshes at new location
-      this.showElement('area_' + newArea, true).then(() => this.updateActiveElements())
+      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled))
 
     } else if (animationElement && reverse) {
-      await this.hideElement('area_' + this.currentArea, true);
-      this.focusCameraOnElement('areaborder_' + newArea, false);
+      await hideElement(this.idFlat, 'area_' + this.currentArea, true);
+      focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
 
       // Show meshes at new location async
-      this.showElement('area_' + newArea, true).then(() => this.updateActiveElements())
+      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled))
 
       // Lerp camera from center of animationElement to full view
-      const {center} = this.getCenterOfMeshes(this.idFlat[animationElement].meshes);
+      const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
       this.camera.position.copy(center);
-      await this.focusCameraOnElement('areaborder_' + newArea, true);
+      await focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, true);
     } else {
       if (this.globalAnimationDisabled)
-        this.hideElement('area_' + this.currentArea, false);
+        hideElement(this.idFlat, 'area_' + this.currentArea, false);
       else
-        await this.hideElement('area_' + this.currentArea, true);
-      this.focusCameraOnElement('areaborder_' + newArea, false);
-      this.showElement('area_' + newArea, true).then(() => this.updateActiveElements())
+        await hideElement(this.idFlat, 'area_' + this.currentArea, true);
+      focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
+      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled))
     }
 
     this.currentArea = newArea;
   }
 
-  initiateObjects() {
-    const loader = new SVGLoader();
-    this.idRoot = loader.parse(RISC_SVG).root;
-
-    this.renderGroup = new Group();
-    this.renderGroup.scale.multiplyScalar(0.25);
-    this.renderGroup.position.x = 0;
-    this.renderGroup.position.y = 0;
-    this.renderGroup.scale.y *= -1;
-
-    const generateChildren = (children, childGroup) => {
-      for (const child of children) {
-        // Only generate meshes for non idRoot as in elements which have no children
-        if (!child.children) {
-          if (child.path) {
-            const path = child.path;
-            const meshes: Mesh[] = [];
-            if (path.userData.style.fill && path.userData.style.fill !== 'none') {
-              const fillColor = tinycolor(this.checkColor(path.userData.style.fill));
-              const material = new MeshLambertMaterial({
-                color: new Color().setStyle(fillColor.toHexString()),
-                opacity: path.userData.style.fillOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * fillColor.getAlpha(),
-                transparent: true,
-                // side: DoubleSide,
-                // depthWrite: false
-              });
-              const shapes = path.toShapes(true);
-              for (let j = 0; j < shapes.length; j++) {
-                const shape = shapes[j];
-                const geometry = new ExtrudeGeometry(shape, {depth: 100, bevelEnabled: false});
-                const mesh = new Mesh(geometry, material);
-                mesh.translateZ(-100);
-                mesh.name = child.id;
-                childGroup.add(mesh);
-                meshes.push(mesh);
-              }
-            }
-            if (path.userData.style.stroke && path.userData.style.stroke !== 'none') {
-              const strokeColor = tinycolor(this.checkColor(path.userData.style.stroke));
-              const material1 = new MeshBasicMaterial({
-                color: new Color().setStyle(strokeColor.toHexString()),
-                opacity: path.userData.style.strokeOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * strokeColor.getAlpha(),
-                transparent: true,
-                side: DoubleSide,
-                depthWrite: false
-              });
-
-              for (let j = 0, jl = path.subPaths.length; j < jl; j++) {
-                const subPath = path.subPaths[j];
-                const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path.userData.style);
-                if (geometry) {
-                  const mesh = new Mesh(geometry, material1);
-                  childGroup.add(mesh);
-                  mesh.name = child.id;
-                  meshes.push(mesh);
-
-                  const signalName = this.getSName(child.id);
-                  if (signalName) {
-                    const text = new MeshText2D(signalName, {
-                      align: textAlign.left,
-                      font: '50px Roboto',
-                      fillStyle: '#ffffff',
-                      antialias: true
-                    });
-                    text.scale.set(0.25, -0.25, 0.25);
-
-                    // Get position from signal
-                    const positions = [];
-                    for (let i = 0; i < geometry.attributes.position.count; i++) {
-                      positions.push({
-                        x: geometry.attributes.position.array[i * 3],
-                        y: geometry.attributes.position.array[i * 3 + 1],
-                        z: geometry.attributes.position.array[i * 3 + 2]
-                      });
-                    }
-                    const leftes = d3.scan(positions, (a, b) => a.x - b.x);
-                    text.position.set(positions[leftes].x + 3, positions[leftes].y + 2, positions[leftes].z);
-
-                    const binding = this.cpu.bindings.allValues[signalName];
-                    if (binding) {
-                      binding.subscribe((value) => {
-                        text.text = (value === null || value === undefined) ? 'NaN' : value.toString();
-                      });
-                    }
-
-                    childGroup.add(text);
-                    meshes.push(text.mesh);
-                  }
-                }
-              }
-            }
-            child.meshes = meshes;
-            child.group = childGroup;
-            child.isGroup = false;
-          }
-        } else {
-          const newChildGroup = new Group();
-          newChildGroup.name = child.id;
-          child.group = newChildGroup;
-          child.isGroup = true;
-          generateChildren(child.children, newChildGroup);
-          childGroup.add(newChildGroup);
-        }
-      }
-    };
-
-    this.idRoot.group = this.renderGroup;
-    generateChildren(this.idRoot.children, this.renderGroup);
-    this.idFlat = this.flattenRootToIndexIdArray(this.idRoot);
-
-    // Hide none visible elements
-    for (const key of Object.keys(this.idFlat)) {
-      if (key.startsWith('focus_') || key.startsWith('areaborder_')) {
-        this.nonVisibleMeshes.push(...this.idFlat[key].meshes);
-      }
-    }
-
-    for (const nonVisibleMesh of this.nonVisibleMeshes) {
-      nonVisibleMesh.material.opacity = 0;
-    }
-
-
-    this.scene.add(this.renderGroup);
-    this.initHighlightingUsedPaths();
+  /**
+   * Go to focus element. Camera will fit the focus element.
+   * @param id The id of the element. Will be appended with "focus_" by function.
+   */
+  public async goToFocus(id: string) {
+    await focusCameraOnElement(this.camera, this.idFlat, 'focus_' + id, true);
   }
 
-  separateAreas() {
-    const areas: areas[] = ['overview', 'decoder', 'alu', 'memory', 'registers'];
-
-    let y = 0;
-    for (const area of areas) {
-      if (!this.idFlat['area_' + area]) continue;
-      const group = this.idFlat['area_' + area].group;
-      group.position.set(0, y, 0);
-      y += 1000;
+  /**
+   * Stop the rendering. Start again by calling init().
+   */
+  public stopRender() {
+    if (this.frameId) {
+      cancelAnimationFrame(this.frameId);
     }
   }
 
-  setOpacity<B extends boolean>(meshes: Mesh[], opacity, animateTransition: B): B extends true ? Promise<unknown> : void;
-  setOpacity(meshes, opacity, animateTransition = true): Promise<unknown> | void {
-    if (animateTransition) {
-      return new Promise((resolve) => {
-        for (const mesh of meshes) {
-          animate({
-            from: mesh.material.opacity,
-            to: opacity,
-            duration: 200,
-            elapsed: -Math.random() * 200,
-            onUpdate: (v) => mesh.material.opacity = v,
-            onComplete: () => {
-              resolve();
-            }
-          });
-        }
-      })
-    } else {
-      for (const mesh of meshes) {
-        mesh.material.opacity = opacity;
-      }
-    }
+  /**
+   * Will be called every render function with time and delta time
+   * @param func Callback to call every new render
+   */
+  public runInRenderLoop(func: (time: number, deltaTime: number) => void): void {
+    this.renderLoopFunctions.push(func);
   }
 
-  hideElement<B extends boolean>(id: string, animate: B): B extends true ? Promise<unknown> : void;
-  hideElement<B extends boolean>(meshes: Mesh[], animate: B): B extends true ? Promise<unknown> : void;
-  hideElement(idOrMesh, animate = false): Promise<unknown> | void {
-    let meshes: Mesh[];
-    if (typeof idOrMesh == "string") {
-      meshes = this.idFlat[idOrMesh]?.meshes
-    } else if (typeof idOrMesh == "object") {
-      meshes = idOrMesh;
-    }
-
-    if (!meshes) {
-      console.error("Could not find mesh or id", idOrMesh)
-      return;
-    }
-
-    return this.setOpacity(meshes, 0, animate);
+  /**
+   * Adds the main camera
+   * @private
+   */
+  private setupCamera(width, height): PerspectiveCamera {
+    const camera = new PerspectiveCamera(45, width / height, 0.1, 1000000);
+    camera.position.z = 50;
+    return camera;
   }
 
-  showElement<B extends boolean>(id: string, animate: B): B extends true ? Promise<unknown> : void;
-  showElement<B extends boolean>(meshes: Mesh[], animate: B): B extends true ? Promise<unknown> : void;
-  showElement(idOrMesh, animate = false): Promise<unknown> | void {
-    let meshes: Mesh[];
-    if (typeof idOrMesh == "string") {
-      meshes = this.idFlat[idOrMesh]?.meshes
-    } else if (typeof idOrMesh == "object") {
-      meshes = idOrMesh;
-    }
+  /**
+   * Adds lights.
+   * @private
+   */
+  private setupLights(): Light[] {
+    const color = 0xffffff;
+    const intensity = 1;
+    const light = new DirectionalLight(color, intensity);
+    light.position.set(0, 0, 10);
+    light.target.position.set(0, 0, 0);
+    const ambientLight = new AmbientLight(0xcccccc, 0.2);
 
-    if (!meshes) {
-      console.error("Could not find mesh or id", idOrMesh)
-      return;
-    }
-
-    const meshesWithoutNonVisibleAreas = meshes.filter((mesh) => !this.nonVisibleMeshes.includes(mesh));
-
-    return this.setOpacity(meshesWithoutNonVisibleAreas, 1, animate);
+    return [light, ambientLight]
   }
 
-  handleIntersection() {
+  /**
+   * Adds the background mesh and centers it in the background of riscv_test. Must be called after first render.
+   * @private
+   */
+  private setupBackground(idFlat: IdFlatInterface): Mesh {
+    const loader = new TextureLoader();
+    const backgroundTexture = loader.load(BACKGROUND_IMAGE);
+    backgroundTexture.wrapS = backgroundTexture.wrapT = RepeatWrapping;
+    backgroundTexture.repeat.set(50, 50);
+    const backgroundGeometry = new PlaneGeometry(5000, 5000, 1, 1);
+    const backgroundMaterial = new MeshBasicMaterial({
+      map: backgroundTexture
+    })
+
+    const backgroundMesh = new Mesh(backgroundGeometry, backgroundMaterial);
+    const backgroundPosition = getCenterOfMeshes(idFlat['risc_test'].meshes).center;
+    backgroundPosition.z = -50;
+    backgroundMesh.position.copy(backgroundPosition);
+    return backgroundMesh;
+  }
+
+  private handleIntersection() {
     // Intersection
     this.raycaster.setFromCamera(this.centeredMouse, this.camera);
 
@@ -509,14 +298,14 @@ export class GraphService {
     const removeTooltip = () => {
       if (this.intersectedElement) {
         // this.intersectedElement.material.color.setHex(this.intersectedElement.currentHex);
-        this.tippyTooltip.hide();
+        this.hoverTooltipInstance.hide();
       }
-      this.tippyTooltip.hide();
+      this.hoverTooltipInstance.hide();
       this.intersectedElement = null;
     };
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0) {
-      console.log(intersects);
+      // console.log(intersects);
 
       const getName = (i) => {
         if (i?.parent?.parent?.name?.startsWith('p_')) return {name: i.parent.parent.name, type: 'p'};
@@ -539,11 +328,11 @@ export class GraphService {
       if (object) {
         if (JSON.stringify(this.intersectedElement) != JSON.stringify(object)) {
           if (this.intersectedElement) {
-            this.tippyTooltip.hide();
+            this.hoverTooltipInstance.hide();
           }
           this.intersectedElement = object;
 
-          this.tippyTooltip.setProps({
+          this.hoverTooltipInstance.setProps({
             getReferenceClientRect: () => ({
               width: 0,
               height: 0,
@@ -562,35 +351,35 @@ export class GraphService {
           switch (object.type) {
             case 'w':
             case 's':
-              id = this.getSName(object.name) || this.getWName(object.name);
+              id = getSName(object.name) || getWName(object.name);
               prevalue = this.cpu.bindings.allValues[id]?.value === undefined ? id : this.cpu.bindings.allValues[id]?.value;
               name = RISCV_DEFINITIONS.signals[id]?.name;
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
               desc = RISCV_DEFINITIONS.signals[id]?.desc;
-              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
+              this.hoverTooltipInstance.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
               console.log(object.name, id, name, prevalue, value);
               break;
             case 'm':
-              id = this.getModuleName(object.name);
+              id = getModuleName(object.name);
               name = RISCV_DEFINITIONS.modules[id]?.name;
               desc = RISCV_DEFINITIONS.modules[id]?.desc;
-              this.tippyTooltip.setContent('<strong>' + name + '</strong>' + (desc ? '<br>' + desc : ''));
+              this.hoverTooltipInstance.setContent('<strong>' + name + '</strong>' + (desc ? '<br>' + desc : ''));
               console.log(object.name, id, name);
               break;
             case 'p':
-              id = this.getPortName(object.name);
+              id = getPortName(object.name);
               prevalue = this.cpu.bindings.allValues[id]?.value === undefined ? id : this.cpu.bindings.allValues[id]?.value;
               name = RISCV_DEFINITIONS.ports[id]?.name;
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
               desc = RISCV_DEFINITIONS.ports[id]?.desc;
-              this.tippyTooltip.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
+              this.hoverTooltipInstance.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
               console.log(object.name, id, name, prevalue, value);
               break;
           }
 
-          this.tippyTooltip.show();
+          this.hoverTooltipInstance.show();
         } else {
-          this.tippyTooltip.setProps({
+          this.hoverTooltipInstance.setProps({
             getReferenceClientRect: () => ({
               width: 0,
               height: 0,
@@ -609,64 +398,7 @@ export class GraphService {
     }
   }
 
-  initHighlightingUsedPaths() {
-    this.cpu.bindings.cycleComplete.subscribe(() => this.updateActiveElements());
-  }
-
-  updateActiveElements() {
-    const nextCpuState = this.cpu.bindings.nextCpuState.value;
-
-    // Reset all lines
-    // Dont show any active lines
-    if (nextCpuState === CPU_STATES.FETCH) {
-      for (const key of Object.keys(this.idFlat)) {
-        // Hide all elements when the next decoding stage is incoming
-        if (key.startsWith('mux_')) {
-          this.setOpacity(this.idFlat[key].meshes, 1, !this.globalAnimationDisabled);
-        }
-      }
-      // Reset all values
-      this.cpu.bindings.clearAllVolatileValues();
-    }
-
-    // Show decoded active lines if the current executed state was decoding
-    if (this.cpu.bindings.instruction.value) {
-
-      /**
-       * Checks the idFlat list for mux elements with the given element name.
-       * @param element Name which should be included in the id -> 'add' to match 'mux_xor_add' or 'mux_add_lui'
-       */
-      const checkActiveElementsInGraph = (element: string) => {
-        const meshesToActivate = [];
-        for (const key of Object.keys(this.idFlat)) {
-          // Only match exact word -> 'add' -> match 'add' and not 'addi'
-          const regex = new RegExp(`(\b|_)${element.toLowerCase()}(\b|_|$|-)`);
-          const keySmall = key.toLowerCase();
-          if (keySmall.startsWith('mux_') && regex.test(keySmall)) {
-            meshesToActivate.push(...this.idFlat[key].meshes)
-          }
-        }
-        return meshesToActivate;
-      };
-
-      // Get list with meshes to activate
-      const meshesToActivate = [];
-      meshesToActivate.push(...checkActiveElementsInGraph(this.cpu.bindings.instruction.value?.opcodeName));
-      meshesToActivate.push(...checkActiveElementsInGraph(this.cpu.bindings.instruction.value?.instructionName));
-      // Deactivate all elements with 'mux_' which are currently not on if there are some to activate
-      const allMeshes = [];
-      for (const key of Object.keys(this.idFlat)) {
-        const keySmall = key.toLowerCase();
-        if (keySmall.startsWith('mux_')) {
-          allMeshes.push(...this.idFlat[key].meshes);
-        }
-      }
-      this.setOpacity(_.difference(allMeshes, meshesToActivate), 0.05, !this.globalAnimationDisabled);
-    }
-    console.log("Updated active elements with instruction ", this.cpu.bindings.instruction.value);
-  }
-
-  onDocumentMouseMove(event) {
+  private onDocumentMouseMove(event) {
     event.preventDefault();
     this.mouse.x = event.clientX;
     this.mouse.y = event.clientY;
@@ -678,31 +410,7 @@ export class GraphService {
     this.centeredMouse.y = -((event.clientY - this.renderDom.offsetTop - (window.innerHeight - this.renderDom.clientHeight - this.renderDom.offsetTop)) / this.renderDom.clientHeight) * 2 + 1;
   }
 
-  flattenRootToIndexIdArray(root) {
-    const ids: IdFlatInterface = {};
-
-    const traverseChildren = (child) => {
-      const meshes = [];
-      if (child.meshes) meshes.push(...child.meshes);
-      if (child.children) for (const deeperChild of child.children) meshes.push(...traverseChildren(deeperChild));
-      if (child.id) ids[child.id] = {meshes: meshes, group: child.group};
-      return meshes;
-    };
-
-    traverseChildren(root);
-
-    return ids;
-  }
-
-  checkColor(color) {
-    if (color == 'none' || color == undefined) {
-      return 'rgba(255,255,255,0)';
-    } else {
-      return color;
-    }
-  }
-
-  render() {
+  private render() {
     this.ngZone.runOutsideAngular(() => {
       this.frameId = requestAnimationFrame(this.render.bind(this));
 
@@ -723,107 +431,15 @@ export class GraphService {
     });
   }
 
-  getCenterOfMeshes(meshes: Mesh[]): { center: Vector3; size: Vector3; box: Box3 } {
-    const bboxes = [];
+  private resize() {
+    const width = this.renderDom.clientWidth;
+    const height = this.renderDom.clientHeight;
 
-    for (const mesh of meshes) {
-      mesh.geometry.computeBoundingBox();
-      bboxes.push(new Box3().setFromObject(mesh));
-      // console.log(mesh.geometry.boundingBox)
-    }
+    this.renderer.setSize(width, height);
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
 
-    const minX = bboxes[d3.scan(bboxes, (a, b) => a.min.x - b.min.x)].min.x;
-    const maxX = bboxes[d3.scan(bboxes, (a, b) => b.max.x - a.max.x)].max.x;
-    const minY = bboxes[d3.scan(bboxes, (a, b) => a.min.y - b.min.y)].min.y;
-    const maxY = bboxes[d3.scan(bboxes, (a, b) => b.max.y - a.max.y)].max.y;
-    const minZ = bboxes[d3.scan(bboxes, (a, b) => a.min.z - b.min.z)].min.z;
-    const maxZ = bboxes[d3.scan(bboxes, (a, b) => b.max.z - a.max.z)].max.z;
-
-    const center = new Vector3();
-    const size = new Vector3();
-    const box = new Box3(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
-    box.getCenter(center)
-    box.getSize(size);
-    return {center, size, box}
+    this.globalUniforms.u_resolution.value = new Vector2(width, height);
   }
 
-  private focusCameraOnElement<B extends boolean>(meshes: Mesh[], enableAnimation: B): B extends true ? Promise<unknown> : void;
-  private focusCameraOnElement<B extends boolean>(id: string, enableAnimation: B): B extends true ? Promise<unknown> : void;
-  private focusCameraOnElement(idOrMesh, enableAnimation = false): Promise<unknown> | void {
-    let meshes: Mesh[];
-    if (typeof idOrMesh == "string") {
-      meshes = this.idFlat[idOrMesh]?.meshes
-    } else if (typeof idOrMesh == "object") {
-      meshes = idOrMesh;
-    }
-
-    if (!meshes) return;
-
-    const {center, size, box} = this.getCenterOfMeshes(meshes);
-
-    const padding = 0;
-    const w = size.x + padding;
-    const h = size.y + padding;
-
-    const fovX = this.camera.fov * this.camera.aspect;
-    const fovY = this.camera.fov;
-
-    // TODO: 1.1???
-    const distanceX = (w / 2) / Math.tan(Math.PI * fovX / 360 / 1.1);
-    const distanceY = (h / 2) / Math.tan(Math.PI * fovY / 360 / 1.1);
-
-    const distance = Math.max(distanceX, distanceY);
-
-    const newCameraPos = center.clone();
-    newCameraPos.z = newCameraPos.z + distance;
-
-    this.focusAnimation?.stop();
-    // Lerp to new position if animate is true, otherwise move instantly
-    if (enableAnimation) {
-      return new Promise(resolve => {
-        this.focusAnimation = animate({
-          from: 0,
-          to: 1,
-          ease: easeIn,
-          duration: 1000,
-          onUpdate: (v) => {
-            this.camera.position.lerp(newCameraPos, v);
-          },
-          onComplete: () => resolve()
-        });
-      });
-    } else {
-      this.camera.position.copy(newCameraPos);
-    }
-  }
-
-  getPortName(id) {
-    const regex = /(?:p_)(.*?)(?:-|$)/g;
-    return this.getFirstGroup(regex, id);
-  }
-
-  getSName(id) {
-    const regex = /(?:s_)(.*?)(?:-|$)/g;
-    return this.getFirstGroup(regex, id);
-  }
-
-  getWName(id) {
-    const regex = /(?:w_)(.*?)(?:-|$)/g;
-    return this.getFirstGroup(regex, id);
-  }
-
-  getModuleName(id) {
-    const regex = /(?:m_)(.*?)(?:-|$)/g;
-    return this.getFirstGroup(regex, id);
-  }
-
-  getFirstGroup(regexp, str) {
-    return Array.from(str.matchAll(regexp), m => m[1])[0];
-  }
-
-  stopRender() {
-    if (this.frameId) {
-      cancelAnimationFrame(this.frameId);
-    }
-  }
 }

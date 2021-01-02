@@ -1,8 +1,17 @@
 /**
+ * Restrictions:
+ * Text is not rendered as svg instead as text with different font
+ * Only paths with normal alignment are supported (middle), inner and outer render false and dont count as stroke
+ * Strokes of filled shapes must contain the 'stroke' attribute to be rendered
+ * Svg path cannot be contain two subpaths
+ *
  * @author mrdoob / http://mrdoob.com/
  * @author zz85 / http://joshuakoo.com/
  * @author yomboprime / https://yombo.org
  */
+
+/* eslint-disable */
+
 
 import {
   BufferGeometry,
@@ -14,9 +23,9 @@ import {
   ShapePath,
   Vector2,
   Vector3
-} from 'three';
+} from 'THREE';
 
-var SVGLoader = function(manager) {
+const SVGLoader = function (manager?) {
 
   Loader.call(this, manager);
 
@@ -32,13 +41,13 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
   constructor: SVGLoader,
 
-  load: function(url, onLoad, onProgress, onError) {
+  load: function (url, onLoad, onProgress, onError) {
 
-    var scope = this;
+    const scope = this;
 
-    var loader = new FileLoader(scope.manager);
+    const loader = new FileLoader(scope.manager);
     loader.setPath(scope.path);
-    loader.load(url, function(text) {
+    loader.load(url, function (text) {
 
       try {
 
@@ -64,8 +73,8 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
   },
 
-  parse: function(text) {
-    var scope = this;
+  parse: function (text) {
+    const scope = this;
 
     function parseNode(node, style) {
 
@@ -75,7 +84,15 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
       let path = null;
       let isDefs = false;
       let isGroup = false;
-      const group = { id: node.getAttribute('id') };
+      let isText = false;
+      let text = null;
+      const group = {
+        id: node.getAttribute('id'),
+        path: undefined,
+        text: undefined,
+        group: undefined,
+        children: undefined
+      };
 
       switch (node.nodeName) {
         case 'svg':
@@ -130,6 +147,13 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
           break;
 
         case 'text':
+          style = parseStyle(node, style);
+          isText = true;
+          break;
+
+        case "tspan":
+          style = parseStyle(node, style);
+          text = parseTextNode(node);
           break;
 
         default:
@@ -138,14 +162,22 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
 
       if (path) {
-        if (style.fill !== undefined && style.fill !== 'none') {
-          path.color.setStyle(style.fill);
-        }
+        //if (style.fill !== undefined && style.fill !== 'none') {
+        //  path.color.setStyle(style.fill);
+        //}
 
         transformPath(path, currentTransform);
         paths.push(path);
-        path.userData = { node: node, style: style };
+        path.userData = {node: node, style: style};
         group.path = path;
+      }
+
+      if (text) {
+        // transformPath(path, currentTransform);
+        var vec = new Vector3(1, 1, 1);
+        vec.applyMatrix3(transform);
+        text.userData = {node: node, style: style, position: vec};
+        group.text = text;
       }
 
       // Do not parse defs
@@ -153,7 +185,8 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
         const nodes = node.childNodes;
         for (let i = 0; i < nodes.length; i++) {
           const child = parseNode(nodes[i], style);
-          if((child && child.path) || (child && child.id)) {
+          // Child = path / group / text
+          if ((child?.path) || (child?.id) || (child?.text)) {
             if (!group.children) group.children = [];
             group.children.push(child);
           }
@@ -174,27 +207,27 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function parsePathNode(node) {
 
-      var path = new ShapePath();
+      const path = new ShapePath();
 
-      var point = new Vector2();
-      var control = new Vector2();
+      const point = new Vector2();
+      const control = new Vector2();
 
-      var firstPoint = new Vector2();
-      var isFirstPoint = true;
-      var doSetFirstPoint = false;
+      const firstPoint = new Vector2();
+      let isFirstPoint = true;
+      let doSetFirstPoint = false;
 
-      var d = node.getAttribute('d');
+      const d = node.getAttribute('d');
 
       // console.log( d );
 
-      var commands = d.match(/[a-df-z][^a-df-z]*/ig);
+      const commands = d.match(/[a-df-z][^a-df-z]*/ig);
 
-      for (var i = 0, l = commands.length; i < l; i++) {
+      for (let i = 0, l = commands.length; i < l; i++) {
 
-        var command = commands[i];
+        const command = commands[i];
 
-        var type = command.charAt(0);
-        var data = command.substr(1).trim();
+        const type = command.charAt(0);
+        const data = command.substr(1).trim();
 
         if (isFirstPoint === true) {
 
@@ -616,18 +649,18 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       if (!node.sheet || !node.sheet.cssRules || !node.sheet.cssRules.length) return;
 
-      for (var i = 0; i < node.sheet.cssRules.length; i++) {
+      for (let i = 0; i < node.sheet.cssRules.length; i++) {
 
-        var stylesheet = node.sheet.cssRules[i];
+        const stylesheet = node.sheet.cssRules[i];
 
         if (stylesheet.type !== 1) continue;
 
-        var selectorList = stylesheet.selectorText
+        const selectorList = stylesheet.selectorText
           .split(/,/gm)
           .filter(Boolean)
           .map(i => i.trim());
 
-        for (var j = 0; j < selectorList.length; j++) {
+        for (let j = 0; j < selectorList.length; j++) {
 
           stylesheets[selectorList[j]] = Object.assign(
             stylesheets[selectorList[j]] || {},
@@ -658,24 +691,24 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
       ry = Math.abs(ry);
 
       // Compute (x1′, y1′)
-      var dx2 = (start.x - end.x) / 2.0;
-      var dy2 = (start.y - end.y) / 2.0;
-      var x1p = Math.cos(x_axis_rotation) * dx2 + Math.sin(x_axis_rotation) * dy2;
-      var y1p = -Math.sin(x_axis_rotation) * dx2 + Math.cos(x_axis_rotation) * dy2;
+      const dx2 = (start.x - end.x) / 2.0;
+      const dy2 = (start.y - end.y) / 2.0;
+      const x1p = Math.cos(x_axis_rotation) * dx2 + Math.sin(x_axis_rotation) * dy2;
+      const y1p = -Math.sin(x_axis_rotation) * dx2 + Math.cos(x_axis_rotation) * dy2;
 
       // Compute (cx′, cy′)
-      var rxs = rx * rx;
-      var rys = ry * ry;
-      var x1ps = x1p * x1p;
-      var y1ps = y1p * y1p;
+      let rxs = rx * rx;
+      let rys = ry * ry;
+      const x1ps = x1p * x1p;
+      const y1ps = y1p * y1p;
 
       // Ensure radii are large enough
-      var cr = x1ps / rxs + y1ps / rys;
+      const cr = x1ps / rxs + y1ps / rys;
 
       if (cr > 1) {
 
         // scale up rx,ry equally so cr == 1
-        var s = Math.sqrt(cr);
+        const s = Math.sqrt(cr);
         rx = s * rx;
         ry = s * ry;
         rxs = rx * rx;
@@ -683,20 +716,20 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       }
 
-      var dq = (rxs * y1ps + rys * x1ps);
-      var pq = (rxs * rys - dq) / dq;
-      var q = Math.sqrt(Math.max(0, pq));
+      const dq = (rxs * y1ps + rys * x1ps);
+      const pq = (rxs * rys - dq) / dq;
+      let q = Math.sqrt(Math.max(0, pq));
       if (large_arc_flag === sweep_flag) q = -q;
-      var cxp = q * rx * y1p / ry;
-      var cyp = -q * ry * x1p / rx;
+      const cxp = q * rx * y1p / ry;
+      const cyp = -q * ry * x1p / rx;
 
       // Step 3: Compute (cx, cy) from (cx′, cy′)
-      var cx = Math.cos(x_axis_rotation) * cxp - Math.sin(x_axis_rotation) * cyp + (start.x + end.x) / 2;
-      var cy = Math.sin(x_axis_rotation) * cxp + Math.cos(x_axis_rotation) * cyp + (start.y + end.y) / 2;
+      const cx = Math.cos(x_axis_rotation) * cxp - Math.sin(x_axis_rotation) * cyp + (start.x + end.x) / 2;
+      const cy = Math.sin(x_axis_rotation) * cxp + Math.cos(x_axis_rotation) * cyp + (start.y + end.y) / 2;
 
       // Step 4: Compute θ1 and Δθ
-      var theta = svgAngle(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
-      var delta = svgAngle((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry) % (Math.PI * 2);
+      const theta = svgAngle(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
+      const delta = svgAngle((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry) % (Math.PI * 2);
 
       path.currentPath.absellipse(cx, cy, rx, ry, theta, theta + delta, sweep_flag === 0, x_axis_rotation);
 
@@ -704,9 +737,9 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function svgAngle(ux, uy, vx, vy) {
 
-      var dot = ux * vx + uy * vy;
-      var len = Math.sqrt(ux * ux + uy * uy) * Math.sqrt(vx * vx + vy * vy);
-      var ang = Math.acos(Math.max(-1, Math.min(1, dot / len))); // floating point precision, slightly over allValues appear
+      const dot = ux * vx + uy * vy;
+      const len = Math.sqrt(ux * ux + uy * uy) * Math.sqrt(vx * vx + vy * vy);
+      let ang = Math.acos(Math.max(-1, Math.min(1, dot / len))); // floating point precision, slightly over allValues appear
       if ((ux * vy - uy * vx) < 0) ang = -ang;
       return ang;
 
@@ -718,14 +751,14 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
     */
     function parseRectNode(node) {
 
-      var x = parseFloatWithUnits(node.getAttribute('x') || 0);
-      var y = parseFloatWithUnits(node.getAttribute('y') || 0);
-      var rx = parseFloatWithUnits(node.getAttribute('rx') || 0);
-      var ry = parseFloatWithUnits(node.getAttribute('ry') || 0);
-      var w = parseFloatWithUnits(node.getAttribute('width'));
-      var h = parseFloatWithUnits(node.getAttribute('height'));
+      const x = parseFloatWithUnits(node.getAttribute('x') || 0);
+      const y = parseFloatWithUnits(node.getAttribute('y') || 0);
+      const rx = parseFloatWithUnits(node.getAttribute('rx') || 0);
+      const ry = parseFloatWithUnits(node.getAttribute('ry') || 0);
+      const w = parseFloatWithUnits(node.getAttribute('width'));
+      const h = parseFloatWithUnits(node.getAttribute('height'));
 
-      var path = new ShapePath();
+      const path = new ShapePath();
       path.moveTo(x + 2 * rx, y);
       path.lineTo(x + w - 2 * rx, y);
       if (rx !== 0 || ry !== 0) path.bezierCurveTo(x + w, y, x + w, y, x + w, y + 2 * ry);
@@ -755,8 +788,8 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       function iterator(match, a, b) {
 
-        var x = parseFloatWithUnits(a);
-        var y = parseFloatWithUnits(b);
+        const x = parseFloatWithUnits(a);
+        const y = parseFloatWithUnits(b);
 
         if (index === 0) {
 
@@ -772,7 +805,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       }
 
-      var regex = /(-?[\d\.?]+)[,|\s](-?[\d\.?]+)/g;
+      const regex = /(-?[\d\.?]+)[,|\s](-?[\d\.?]+)/g;
 
       var path = new ShapePath();
 
@@ -790,8 +823,8 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       function iterator(match, a, b) {
 
-        var x = parseFloatWithUnits(a);
-        var y = parseFloatWithUnits(b);
+        const x = parseFloatWithUnits(a);
+        const y = parseFloatWithUnits(b);
 
         if (index === 0) {
 
@@ -807,7 +840,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       }
 
-      var regex = /(-?[\d\.?]+)[,|\s](-?[\d\.?]+)/g;
+      const regex = /(-?[\d\.?]+)[,|\s](-?[\d\.?]+)/g;
 
       var path = new ShapePath();
 
@@ -823,14 +856,14 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function parseCircleNode(node) {
 
-      var x = parseFloatWithUnits(node.getAttribute('cx'));
-      var y = parseFloatWithUnits(node.getAttribute('cy'));
-      var r = parseFloatWithUnits(node.getAttribute('r'));
+      const x = parseFloatWithUnits(node.getAttribute('cx'));
+      const y = parseFloatWithUnits(node.getAttribute('cy'));
+      const r = parseFloatWithUnits(node.getAttribute('r'));
 
-      var subpath = new Path();
-      subpath.absarc(x, y, r, 0, Math.PI * 2);
+      const subpath = new Path();
+      subpath.absarc(x, y, r, 0, Math.PI * 2, true);
 
-      var path = new ShapePath();
+      const path = new ShapePath();
       path.subPaths.push(subpath);
 
       return path;
@@ -839,15 +872,15 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function parseEllipseNode(node) {
 
-      var x = parseFloatWithUnits(node.getAttribute('cx'));
-      var y = parseFloatWithUnits(node.getAttribute('cy'));
-      var rx = parseFloatWithUnits(node.getAttribute('rx'));
-      var ry = parseFloatWithUnits(node.getAttribute('ry'));
+      const x = parseFloatWithUnits(node.getAttribute('cx'));
+      const y = parseFloatWithUnits(node.getAttribute('cy'));
+      const rx = parseFloatWithUnits(node.getAttribute('rx'));
+      const ry = parseFloatWithUnits(node.getAttribute('ry'));
 
-      var subpath = new Path();
-      subpath.absellipse(x, y, rx, ry, 0, Math.PI * 2);
+      const subpath = new Path();
+      subpath.absellipse(x, y, rx, ry, 0, Math.PI * 2, true, 0);
 
-      var path = new ShapePath();
+      const path = new ShapePath();
       path.subPaths.push(subpath);
 
       return path;
@@ -856,12 +889,17 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function parseLineNode(node) {
 
-      var x1 = parseFloatWithUnits(node.getAttribute('x1'));
-      var y1 = parseFloatWithUnits(node.getAttribute('y1'));
-      var x2 = parseFloatWithUnits(node.getAttribute('x2'));
-      var y2 = parseFloatWithUnits(node.getAttribute('y2'));
+      let x1 = parseFloatWithUnits(node.getAttribute('x1'));
+      let y1 = parseFloatWithUnits(node.getAttribute('y1'));
+      let x2 = parseFloatWithUnits(node.getAttribute('x2'));
+      let y2 = parseFloatWithUnits(node.getAttribute('y2'));
 
-      var path = new ShapePath();
+      if (isNaN(x1)) x1 = 0;
+      if (isNaN(x2)) x2 = 0;
+      if (isNaN(y1)) y1 = 0;
+      if (isNaN(y2)) y2 = 0;
+
+      const path = new ShapePath();
       path.moveTo(x1, y1);
       path.lineTo(x2, y2);
       path.currentPath.autoClose = false;
@@ -871,7 +909,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
     }
 
     function parseTextNode(node) {
-
+      return {text: node.textContent};
     }
 
     //
@@ -880,16 +918,16 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       style = Object.assign({}, style); // clone style
 
-      var stylesheetStyles = {};
+      let stylesheetStyles = {};
 
       if (node.hasAttribute('class')) {
 
-        var classSelectors = node.getAttribute('class')
+        const classSelectors = node.getAttribute('class')
           .split(/\s/)
           .filter(Boolean)
           .map(i => i.trim());
 
-        for (var i = 0; i < classSelectors.length; i++) {
+        for (let i = 0; i < classSelectors.length; i++) {
 
           stylesheetStyles = Object.assign(stylesheetStyles, stylesheets['.' + classSelectors[i]]);
 
@@ -901,7 +939,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
         stylesheetStyles = Object.assign(stylesheetStyles, stylesheets['#' + node.getAttribute('id')]);
       }
 
-      function addStyle(svgName, jsName, adjustFunction) {
+      function addStyle(svgName, jsName, adjustFunction?) {
 
         if (adjustFunction === undefined) adjustFunction = function copy(v) {
 
@@ -937,6 +975,9 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
       addStyle('stroke-linecap', 'strokeLineCap');
       addStyle('stroke-miterlimit', 'strokeMiterLimit', positive);
       addStyle('visibility', 'visibility');
+      addStyle('font-family', 'fontFamily');
+      addStyle('font-size', 'fontSize');
+      addStyle('font-weight', 'fontWeight');
 
       return style;
 
@@ -952,20 +993,20 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function parseFloats(string) {
 
-      var array = string.split(/[\s,]+|(?=\s?[+\-])/);
+      const array = string.split(/[\s,]+|(?=\s?[+\-])/);
 
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
 
-        var number = array[i];
+        const number = array[i];
 
         // Handle allValues like 48.6037.7.8
         // TODO Find a regex for this
 
         if (number.indexOf('.') !== number.lastIndexOf('.')) {
 
-          var split = number.split('.');
+          const split = number.split('.');
 
-          for (var s = 2; s < split.length; s++) {
+          for (let s = 2; s < split.length; s++) {
 
             array.splice(i + s - 1, 0, '0.' + split[s]);
 
@@ -984,10 +1025,10 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     // Units
 
-    var units = ['mm', 'cm', 'in', 'pt', 'pc', 'px'];
+    const units = ['mm', 'cm', 'in', 'pt', 'pc', 'px'];
 
     // Conversion: [ fromUnit ][ toUnit ] (-1 means dpi dependent)
-    var unitConversion = {
+    const unitConversion = {
 
       'mm': {
         'mm': 1,
@@ -1037,13 +1078,13 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function parseFloatWithUnits(string) {
 
-      var theUnit = 'px';
+      let theUnit = 'px';
 
       if (typeof string === 'string' || string instanceof String) {
 
-        for (var i = 0, n = units.length; i < n; i++) {
+        for (let i = 0, n = units.length; i < n; i++) {
 
-          var u = units[i];
+          const u = units[i];
 
           if (string.endsWith(u)) {
 
@@ -1057,7 +1098,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       }
 
-      var scale = undefined;
+      let scale = undefined;
 
       if (theUnit === 'px' && scope.defaultUnit !== 'px') {
 
@@ -1087,13 +1128,25 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function getNodeTransform(node) {
 
-      if (!node.hasAttribute('transform')) {
+      let transform, tspanTransform;
 
-        return null;
-
+      if (node.hasAttribute('transform')) {
+        transform = parseNodeTransform(node);
       }
 
-      var transform = parseNodeTransform(node);
+      if (((node.hasAttribute('x') || !node.hasAttribute('y')) && node.nodeName === 'tspan')) {
+        tspanTransform = parseNodeTspanTransform(node);
+      }
+
+      if (transform && tspanTransform) {
+        transform.premultiply(tspanTransform);
+      } else if (tspanTransform) {
+        transform = tspanTransform;
+      }
+
+      if (!transform) {
+        return null;
+      }
 
       if (transformStack.length > 0) {
 
@@ -1107,28 +1160,45 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
       return transform;
     }
 
-    function parseNodeTransform(node) {
-      var transform = new Matrix3();
-      var currentTransform = tempTransform0;
-      var transformsTexts = node.getAttribute('transform').split(')');
+    function parseNodeTspanTransform(node) {
+      let x = parseFloatWithUnits(node.getAttribute('x'));
+      let y = parseFloatWithUnits(node.getAttribute('y'));
 
-      for (var tIndex = transformsTexts.length - 1; tIndex >= 0; tIndex--) {
-        var transformText = transformsTexts[tIndex].trim();
+      if (isNaN(x)) x = 0;
+      if (isNaN(y)) y = 0;
+
+      const transform = new Matrix3();
+      const currentTransform = tempTransform0;
+
+      currentTransform.identity();
+      currentTransform.translate(x, y);
+      transform.premultiply(currentTransform);
+
+      return transform;
+    }
+
+    function parseNodeTransform(node) {
+      const transform = new Matrix3();
+      const currentTransform = tempTransform0;
+      const transformsTexts = node.getAttribute('transform').split(')');
+
+      for (let tIndex = transformsTexts.length - 1; tIndex >= 0; tIndex--) {
+        const transformText = transformsTexts[tIndex].trim();
 
         if (transformText === '') continue;
 
-        var openParPos = transformText.indexOf('(');
-        var closeParPos = transformText.length;
+        const openParPos = transformText.indexOf('(');
+        const closeParPos = transformText.length;
 
         if (openParPos > 0 && openParPos < closeParPos) {
-          var transformType = transformText.substr(0, openParPos);
-          var array = parseFloats(transformText.substr(openParPos + 1, closeParPos - openParPos - 1));
+          const transformType = transformText.substr(0, openParPos);
+          const array = parseFloats(transformText.substr(openParPos + 1, closeParPos - openParPos - 1));
           currentTransform.identity();
           switch (transformType) {
             case 'translate':
               if (array.length >= 1) {
-                var tx = array[0];
-                var ty = 0;
+                const tx = array[0];
+                let ty = 0;
 
                 if (array.length >= 2) {
                   ty = array[1];
@@ -1142,9 +1212,9 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
               if (array.length >= 1) {
 
-                var angle = 0;
-                var cx = 0;
-                var cy = 0;
+                let angle = 0;
+                let cx = 0;
+                let cy = 0;
 
                 // Angle
                 angle = -array[0] * Math.PI / 180;
@@ -1172,8 +1242,8 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
               if (array.length >= 1) {
 
-                var scaleX = array[0];
-                var scaleY = scaleX;
+                const scaleX = array[0];
+                let scaleY = scaleX;
 
                 if (array.length >= 2) {
 
@@ -1237,6 +1307,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       }
 
+
       return transform;
 
     }
@@ -1251,18 +1322,18 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
       }
 
-      var isRotated = isTransformRotated(m);
+      const isRotated = isTransformRotated(m);
 
-      var subPaths = path.subPaths;
+      const subPaths = path.subPaths;
 
-      for (var i = 0, n = subPaths.length; i < n; i++) {
+      for (let i = 0, n = subPaths.length; i < n; i++) {
 
-        var subPath = subPaths[i];
-        var curves = subPath.curves;
+        const subPath = subPaths[i];
+        const curves = subPath.curves;
 
-        for (var j = 0; j < curves.length; j++) {
+        for (let j = 0; j < curves.length; j++) {
 
-          var curve = curves[j];
+          const curve = curves[j];
 
           if (curve.isLineCurve) {
 
@@ -1314,14 +1385,14 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     function getTransformScaleX(m) {
 
-      var te = m.elements;
+      const te = m.elements;
       return Math.sqrt(te[0] * te[0] + te[1] * te[1]);
 
     }
 
     function getTransformScaleY(m) {
 
-      var te = m.elements;
+      const te = m.elements;
       return Math.sqrt(te[3] * te[3] + te[4] * te[4]);
 
     }
@@ -1342,9 +1413,9 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     var currentTransform = new Matrix3();
 
-    var xml = new DOMParser().parseFromString(text, 'image/svg+xml'); // application/xml
+    const xml = new DOMParser().parseFromString(text, 'image/svg+xml'); // application/xml
 
-    var root = parseNode(xml.documentElement, {
+    const root = parseNode(xml.documentElement, {
       fill: '#000000',
       fillOpacity: 1,
       opacity: 1,
@@ -1355,7 +1426,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
       strokeMiterLimit: 4
     });
 
-    var data = { paths: paths, xml: xml.documentElement, root: root };
+    const data = {paths: paths, xml: xml.documentElement, root: root};
 
     // console.log( paths );
     return data;
@@ -1364,7 +1435,7 @@ SVGLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
 });
 
-SVGLoader.getStrokeStyle = function(width, color, lineJoin, lineCap, miterLimit) {
+SVGLoader.getStrokeStyle = function (width, color, lineJoin, lineCap, miterLimit) {
 
   // Param width: Stroke width
   // Param color: As returned by THREE.Color.getStyle()
@@ -1389,7 +1460,7 @@ SVGLoader.getStrokeStyle = function(width, color, lineJoin, lineCap, miterLimit)
 
 };
 
-SVGLoader.pointsToStroke = function(points, style, arcDivisions, minDistance) {
+SVGLoader.pointsToStroke = function (points, style, arcDivisions?, minDistance?) {
 
   // Generates a stroke with some witdh around the given path.
   // The path can be open or closed (last point equals to first point)
@@ -1399,9 +1470,9 @@ SVGLoader.pointsToStroke = function(points, style, arcDivisions, minDistance) {
   // Param minDistance: Points closer to this distance will be merged. (Optional)
   // Returns BufferGeometry with stroke triangles (In plane z = 0). UV coordinates are generated ('u' along path. 'v' across it, from left to right)
 
-  var vertices = [];
-  var normals = [];
-  var uvs = [];
+  const vertices = [];
+  const normals = [];
+  const uvs = [];
 
   if (SVGLoader.pointsToStrokeWithBuffers(points, style, arcDivisions, minDistance, vertices, normals, uvs) === 0) {
 
@@ -1409,7 +1480,7 @@ SVGLoader.pointsToStroke = function(points, style, arcDivisions, minDistance) {
 
   }
 
-  var geometry = new BufferGeometry();
+  const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
   geometry.setAttribute('normal', new Float32BufferAttribute(normals, 3));
   geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
@@ -1418,27 +1489,27 @@ SVGLoader.pointsToStroke = function(points, style, arcDivisions, minDistance) {
 
 };
 
-SVGLoader.pointsToStrokeWithBuffers = function() {
+SVGLoader.pointsToStrokeWithBuffers = function () {
 
-  var tempV2_1 = new Vector2();
-  var tempV2_2 = new Vector2();
-  var tempV2_3 = new Vector2();
-  var tempV2_4 = new Vector2();
-  var tempV2_5 = new Vector2();
-  var tempV2_6 = new Vector2();
-  var tempV2_7 = new Vector2();
-  var lastPointL = new Vector2();
-  var lastPointR = new Vector2();
-  var point0L = new Vector2();
-  var point0R = new Vector2();
-  var currentPointL = new Vector2();
-  var currentPointR = new Vector2();
-  var nextPointL = new Vector2();
-  var nextPointR = new Vector2();
-  var innerPoint = new Vector2();
-  var outerPoint = new Vector2();
+  const tempV2_1 = new Vector2();
+  const tempV2_2 = new Vector2();
+  const tempV2_3 = new Vector2();
+  const tempV2_4 = new Vector2();
+  const tempV2_5 = new Vector2();
+  const tempV2_6 = new Vector2();
+  const tempV2_7 = new Vector2();
+  const lastPointL = new Vector2();
+  const lastPointR = new Vector2();
+  const point0L = new Vector2();
+  const point0R = new Vector2();
+  const currentPointL = new Vector2();
+  const currentPointR = new Vector2();
+  const nextPointL = new Vector2();
+  const nextPointR = new Vector2();
+  const innerPoint = new Vector2();
+  const outerPoint = new Vector2();
 
-  return function(points, style, arcDivisions, minDistance, vertices, normals, uvs, vertexOffset) {
+  return function (points, style, arcDivisions, minDistance, vertices, normals, uvs, vertexOffset?) {
 
     // This function can be called to update existing arrays or buffers.
     // Accepts same parameters as pointsToStroke, plus the buffers and optional offset.
@@ -1454,29 +1525,29 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
     // First ensure there are no duplicated points
     points = removeDuplicatedPoints(points);
 
-    var numPoints = points.length;
+    const numPoints = points.length;
 
     if (numPoints < 2) return 0;
 
-    var isClosed = points[0].equals(points[numPoints - 1]);
+    const isClosed = points[0].equals(points[numPoints - 1]);
 
-    var currentPoint;
-    var previousPoint = points[0];
-    var nextPoint;
+    let currentPoint;
+    let previousPoint = points[0];
+    let nextPoint;
 
-    var strokeWidth2 = style.strokeWidth / 2;
+    const strokeWidth2 = style.strokeWidth / 2;
 
-    var deltaU = 1 / (numPoints - 1);
-    var u0 = 0;
+    const deltaU = 1 / (numPoints - 1);
+    let u0 = 0;
 
-    var innerSideModified;
-    var joinIsOnLeftSide;
-    var isMiter;
-    var initialJoinIsOnLeftSide = false;
+    let innerSideModified;
+    let joinIsOnLeftSide;
+    let isMiter;
+    let initialJoinIsOnLeftSide = false;
 
-    var numVertices = 0;
-    var currentCoordinate = vertexOffset * 3;
-    var currentCoordinateUV = vertexOffset * 2;
+    let numVertices = 0;
+    let currentCoordinate = vertexOffset * 3;
+    let currentCoordinateUV = vertexOffset * 2;
 
     // Get initial left and right stroke points
     getNormal(points[0], points[1], tempV2_1).multiplyScalar(strokeWidth2);
@@ -1485,7 +1556,7 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
     point0L.copy(lastPointL);
     point0R.copy(lastPointR);
 
-    for (var iPoint = 1; iPoint < numPoints; iPoint++) {
+    for (let iPoint = 1; iPoint < numPoints; iPoint++) {
 
       currentPoint = points[iPoint];
 
@@ -1506,7 +1577,7 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
       }
 
       // Normal of previous segment in tempV2_1
-      var normal1 = tempV2_1;
+      const normal1 = tempV2_1;
       getNormal(previousPoint, currentPoint, normal1);
 
       tempV2_3.copy(normal1).multiplyScalar(strokeWidth2);
@@ -1538,22 +1609,22 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
 
         tempV2_3.subVectors(nextPoint, currentPoint);
         tempV2_3.normalize();
-        var dot = Math.abs(normal1.dot(tempV2_3));
+        const dot = Math.abs(normal1.dot(tempV2_3));
 
         // If path is straight, don't create join
         if (dot !== 0) {
 
           // Compute inner and outer segment intersections
-          var miterSide = strokeWidth2 / dot;
+          const miterSide = strokeWidth2 / dot;
           tempV2_3.multiplyScalar(-miterSide);
           tempV2_4.subVectors(currentPoint, previousPoint);
           tempV2_5.copy(tempV2_4).setLength(miterSide).add(tempV2_3);
           innerPoint.copy(tempV2_5).negate();
-          var miterLength2 = tempV2_5.length();
-          var segmentLengthPrev = tempV2_4.length();
+          const miterLength2 = tempV2_5.length();
+          const segmentLengthPrev = tempV2_4.length();
           tempV2_4.divideScalar(segmentLengthPrev);
           tempV2_6.subVectors(nextPoint, currentPoint);
-          var segmentLengthNext = tempV2_6.length();
+          const segmentLengthNext = tempV2_6.length();
           tempV2_6.divideScalar(segmentLengthNext);
           // Check that previous and next segments doesn't overlap with the innerPoint of intersection
           if (tempV2_4.dot(innerPoint) < segmentLengthPrev && tempV2_6.dot(innerPoint) < segmentLengthNext) {
@@ -1799,8 +1870,8 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
 
       // Modify path first segment vertices to adjust to the segments inner and outer intersections
 
-      var lastOuter = outerPoint;
-      var lastInner = innerPoint;
+      let lastOuter = outerPoint;
+      let lastInner = innerPoint;
 
       if (initialJoinIsOnLeftSide !== joinIsOnLeftSide) {
 
@@ -1897,15 +1968,15 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
       tempV2_1.copy(p1).sub(center).normalize();
       tempV2_2.copy(p2).sub(center).normalize();
 
-      var angle = Math.PI;
-      var dot = tempV2_1.dot(tempV2_2);
+      let angle = Math.PI;
+      const dot = tempV2_1.dot(tempV2_2);
       if (Math.abs(dot) < 1) angle = Math.abs(Math.acos(dot));
 
       angle /= arcDivisions;
 
       tempV2_3.copy(p1);
 
-      for (var i = 0, il = arcDivisions - 1; i < il; i++) {
+      for (let i = 0, il = arcDivisions - 1; i < il; i++) {
 
         tempV2_4.copy(tempV2_3).rotateAround(center, angle);
 
@@ -2101,7 +2172,7 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
             tempV2_3.addVectors(tempV2_1, tempV2_2).add(center);
             tempV2_4.subVectors(tempV2_2, tempV2_1).add(center);
 
-            var vl = vertices.length;
+            const vl = vertices.length;
 
             // Modify already existing vertices
             if (joinIsOnLeftSide) {
@@ -2137,7 +2208,7 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
       // Creates a new array if necessary with duplicated points removed.
       // This does not remove duplicated initial and ending points of a closed path.
 
-      var dupPoints = false;
+      let dupPoints = false;
       for (var i = 1, n = points.length - 1; i < n; i++) {
 
         if (points[i].distanceTo(points[i + 1]) < minDistance) {
@@ -2151,7 +2222,7 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
 
       if (!dupPoints) return points;
 
-      var newPoints = [];
+      const newPoints = [];
       newPoints.push(points[0]);
 
       for (var i = 1, n = points.length - 1; i < n; i++) {
@@ -2174,4 +2245,4 @@ SVGLoader.pointsToStrokeWithBuffers = function() {
 
 }();
 
-export { SVGLoader };
+export {SVGLoader};
