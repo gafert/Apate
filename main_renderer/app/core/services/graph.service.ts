@@ -56,7 +56,6 @@ export class GraphService {
     u_time: {value: 0},
     u_resolution: {value: new Vector2(0, 0)}
   };
-  private idFlat: IdFlatInterface; // Takes the parsed svg with meshes and flattens all names to be a 1D array
 
   // Intersection related
   // centeredMouse is update once the mouse is moved, so set start to value which never could be to prevent
@@ -65,11 +64,16 @@ export class GraphService {
   private mouse = new Vector2(-10000, -10000);
   private intersectedElement;
   private raycaster: Raycaster;
-  private idRoot: IdRootInterface; // Holds the parsed svg and adds meshes to each element
   private hoverTooltipInstance: Instance<Props>;
 
+  // These arrays are linked by their elements
+  // They only hold the data in different ways
+  // If a mesh is added it first needs to be added to the idRoot
+  // Than the idFlat needs to be regenerated to allow the element to be accessed by e.g. mux identifiers
+  private idFlat: IdFlatInterface; // Takes the parsed svg with meshes and flattens all names to be a 1D array
+  private idRoot: IdRootInterface; // Holds the parsed svg and adds meshes to each element
+
   public globalAnimationDisabled = false;
-  private backgroundMaterial;
 
   constructor(private ngZone: NgZone, private cpu: CPUService) {
     console.log("Initiated GraphService");
@@ -113,7 +117,12 @@ export class GraphService {
         this.scene.add(this.renderGroup);
 
         // Update signals texts if they change
-        addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat);
+        addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot);
+
+        // Add signal change if cpuCycle is complete
+        this.cpu.bindings.cycleComplete.subscribe(() => {
+          updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled);
+        })
 
         // For intersection
         this.raycaster = new Raycaster();

@@ -11,7 +11,7 @@ import {
   Vector2,
   Vector3
 } from "THREE";
-import {checkColor, flattenRootToIndexIdArray, IdFlatInterface} from "./helpers";
+import {checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface} from "./helpers";
 import {computeUVsOfPlane} from "./helper3D";
 import {getSName} from "./helperNameMatch";
 import {MeshText2D, textAlign} from "three-text2d";
@@ -21,10 +21,12 @@ import {Bindings, CPU_STATES} from "../bindingSubjects";
 import {hideNonVisibleElements, setOpacity} from "./helperVisibility";
 import * as _ from "lodash";
 
-
-export default function initiateSVGObjects(): { idRoot; idFlat; renderGroup } {
+/**
+ * Loads the SVG and generates meshes. Does not add anything to the scene.
+ */
+export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat: IdFlatInterface; renderGroup: Group } {
   const loader = new SVGLoader();
-  const idRoot = loader.parse(RISC_SVG).root;
+  const idRoot: IdRootInterface = loader.parse(RISC_SVG).root;
   const renderGroup = new Group();
 
   // SVG transforms -> boundingBox may not be accurate use centerOfMeshes instead
@@ -35,7 +37,8 @@ export default function initiateSVGObjects(): { idRoot; idFlat; renderGroup } {
 
   idRoot.group = renderGroup;
 
-  const generateChildren = (children, childGroup) => {
+  const generateChildren = (parent: IdRootInterface, childGroup) => {
+    const children: IdRootInterface[] = parent.children;
     for (const child of children) {
       // Only generate meshes for non idRoot as in elements which have no children
       if (!child.children) {
@@ -44,7 +47,7 @@ export default function initiateSVGObjects(): { idRoot; idFlat; renderGroup } {
           const meshes: Mesh[] = [];
 
           if (path.userData.style.fill && path.userData.style.fill !== 'none') { // && child.id === 'alu'
-            const fillColor = tinycolor(checkColor(path.userData.style.fill));
+            const fillColor = tinycolor(checkNoneColor(path.userData.style.fill));
 
             const shapes = path.toShapes(true);
             for (let j = 0; j < shapes.length; j++) {
@@ -82,7 +85,7 @@ export default function initiateSVGObjects(): { idRoot; idFlat; renderGroup } {
             }
           }
           if (path.userData.style.stroke && path.userData.style.stroke !== 'none') {
-            const strokeColor = tinycolor(checkColor(path.userData.style.stroke));
+            const strokeColor = tinycolor(checkNoneColor(path.userData.style.stroke));
             const material1 = new MeshLambertMaterial({
               color: new Color().setStyle(strokeColor.toHexString()),
               opacity: path.userData.style.strokeOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * strokeColor.getAlpha(),
@@ -103,13 +106,14 @@ export default function initiateSVGObjects(): { idRoot; idFlat; renderGroup } {
             }
           }
           child.meshes = meshes;
-          child.group = childGroup;
           child.isGroup = false;
+          child.group = childGroup;
+          child.parent = parent;
         }
         if (child.text) {
           const style = child.text.userData.style;
           const text = new MeshText2D(child.text.text, {
-            align: new Vector2(1, 1.7), // Point is a bit further down
+            align: new Vector2(1, 0.8), // Point is a bit further down
             font: (style.fontWeight ? style.fontWeight : '') + ' ' + style.fontSize * 4 + 'px ' + style.fontFamily,
             fillStyle: style.fill,
             antialias: true,
@@ -126,19 +130,20 @@ export default function initiateSVGObjects(): { idRoot; idFlat; renderGroup } {
           child.meshes.push(text.mesh);
           child.isGroup = false;
           child.group = childGroup;
+          child.parent = parent;
         }
       } else {
         const newChildGroup = new Group();
         newChildGroup.name = child.id;
         child.group = newChildGroup;
         child.isGroup = true;
-        generateChildren(child.children, newChildGroup);
+        generateChildren(child, newChildGroup);
         childGroup.add(newChildGroup);
       }
     }
   };
 
-  generateChildren(idRoot.children, renderGroup);
+  generateChildren(idRoot, renderGroup);
 
   const idFlat = flattenRootToIndexIdArray(idRoot);
 
@@ -216,23 +221,27 @@ export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterf
   console.log("Updated active elements with instruction ", cpuBindings.instruction.value);
 }
 
-export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInterface) {
+/**
+ * Add text meshes to all signals with ids "s_*" and updates them if that said signal is changed and inside the {@link Bindings.allValues | cpu.bindings.allValues}
+ * @param cpuBindings CPU Bindings to subscribe to
+ * @param idFlat idFlat to lookup signals. Attention: This object will be refilled after the signal texts were added.
+ * @param idRoot idRoot to regenerate idFlat after mesh was added.
+ */
+export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInterface, idRoot: IdRootInterface) {
   for (const key of Object.keys(idFlat)) {
 
     if (!idFlat[key]?.meshes[0]) {
       continue;
     }
 
-    const meshOfSignal = idFlat[key].meshes[0];
-    let signalName = getSName(meshOfSignal.name);
+    let signalName = getSName(key);
 
     if (signalName) {
       // This is a string, tell typescript
       signalName = signalName as string;
-
+      const meshOfSignal = idFlat[key].meshes[0];
       const geometry = (meshOfSignal.geometry as BufferGeometry);
       const renderGroup = idFlat[key].group;
-      const meshes = idFlat[key].meshes;
 
       const text = new MeshText2D(signalName, {
         align: textAlign.left,
@@ -261,8 +270,17 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
         });
       }
 
+      // Render it
       renderGroup.add(text);
-      meshes.push(text.mesh);
+      // Get position at root ref
+      console.log(key, signalName, idFlat[key].rootRef);
+      idFlat[key].rootRef.meshes.push(text.mesh);
     }
   }
+
+  // Replace all elements in idFlat but dont destroy its reference
+  Object.keys(idFlat).forEach(function (key) {
+    delete idFlat[key];
+  });
+  flattenRootToIndexIdArray(idRoot, idFlat);
 }
