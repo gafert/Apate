@@ -1,4 +1,4 @@
-import {Material, Mesh} from "THREE";
+import {Color, Material, Mesh} from "THREE";
 import {animate} from "popmotion";
 import {IdFlatInterface} from "./helpers";
 
@@ -13,7 +13,7 @@ export function setOpacity(meshes, opacity, animateTransition = true): Promise<u
           from: mesh.material.opacity,
           to: opacity,
           duration: 200,
-          elapsed: -Math.random() * 200,
+          elapsed: 0,
           onUpdate: (v) => mesh.material.opacity = v,
           onComplete: () => {
             resolve();
@@ -24,6 +24,35 @@ export function setOpacity(meshes, opacity, animateTransition = true): Promise<u
   } else {
     for (const mesh of meshes) {
       mesh.material.opacity = opacity;
+    }
+  }
+}
+
+/**
+ * Set the material color of meshes
+ * @param meshes The meshes to change material color of
+ * @param color Hex color value like "#fefefe"
+ * @param animateTransition If the transition should be animated
+ */
+export function setColor<B extends boolean>(meshes: Mesh[], color, animateTransition: B): B extends true ? Promise<unknown> : void;
+export function setColor(meshes, color, animateTransition = true): Promise<unknown> | void {
+  if (animateTransition) {
+    return new Promise((resolve) => {
+      for (const mesh of meshes) {
+        animate({
+          from: '#' + mesh.material.color.getHexString(),
+          to: color,
+          duration: 200,
+          onUpdate: (v) => mesh.material.color = new Color(v),
+          onComplete: () => {
+            resolve();
+          }
+        });
+      }
+    })
+  } else {
+    for (const mesh of meshes) {
+      mesh.material.color = new Color(color);
     }
   }
 }

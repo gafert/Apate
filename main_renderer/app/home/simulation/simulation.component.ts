@@ -1,17 +1,17 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { byteToHex, range } from '../../globals';
-import { CPUService } from '../../core/services/cpu.service';
-import { InstructionsComponent } from './instructions/instructions.component';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
-import { DataKeys, DataService } from '../../core/services/data.service';
-import { Router } from '@angular/router';
-import { GraphService } from '../../core/services/graph.service';
+import {byteToHex, range} from '../../globals';
+import {CPUService} from '../../core/services/cpu.service';
+import {InstructionsComponent} from './instructions/instructions.component';
+import {takeUntil} from 'rxjs/operators';
+import {Subject} from 'rxjs';
+import {DataKeys, DataService} from '../../core/services/data.service';
+import {Router} from '@angular/router';
+import {GraphService} from '../../core/services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
-import { Bindings, CPU_STATE_IDS, CPU_STATES } from '../../core/services/bindingSubjects';
-import { Areas } from '../../core/services/graphHelpers/helpers';
+import {Bindings, CPU_STATE_NAMES, CPU_STATES} from '../../core/services/bindingSubjects';
+import {Areas} from '../../core/services/graphHelpers/helpers';
 
 @Component({
   selector: 'app-simulation',
@@ -29,7 +29,8 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public stepDisabled = false;
   public selectedTab: Areas = 'overview';
   // Displayed on top
-  public stage: CPU_STATES | string = 'Initiate the simulation';
+  public stageName = 'Initiate the simulation';
+  public stage: CPU_STATES;
   // Infotext
   public info;
   private ngUnsubscribe = new Subject();
@@ -57,7 +58,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
     if (!this.elaborateSteps) {
       this.info = null;
     } else {
-      this.setNextInfoByStage(this.stage as CPU_STATES);
+      this.setNextInfoByStage(this.stage);
     }
   }
 
@@ -91,7 +92,9 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.infoCounter = -1;
 
     // Set first stage text manually
+    this.stageName = CPU_STATE_NAMES[CPU_STATES.FETCH];
     this.stage = CPU_STATES.FETCH;
+    this.graphService.highlightStage(this.stage, false);
 
     // Load elf into CPU
     const elfPath = this.dataService.getSetting(DataKeys.ELF_PATH);
@@ -109,7 +112,9 @@ export class SimulationComponent implements OnInit, OnDestroy {
   async stepSimulation() {
     if (!this.elaborateSteps) {
       this.stage = this.cpu.advanceSimulationClock();
-      console.log('%cCPU STATE: ' + this.stage, 'color: #7827e0');
+      this.stageName = CPU_STATE_NAMES[this.stage];
+      this.graphService.highlightStage(this.stage, true);
+      console.log('%cCPU STATE: ' + this.stageName, 'color: #7827e0');
       return;
     }
 
@@ -124,8 +129,11 @@ export class SimulationComponent implements OnInit, OnDestroy {
       console.log('%cCPU STATE: ' + this.cpu.advanceSimulationClock(), 'color: #7827e0');
     }
 
-    if (info.startOfStage)
-      this.stage = Object.keys(CPU_STATE_IDS).find(key => CPU_STATE_IDS[key] === info.startOfStage);
+    if (info.startOfStage) {
+      this.stage = info.startOfStage;
+      this.stageName = CPU_STATE_NAMES[this.stage];
+      this.graphService.highlightStage(this.stage, true);
+    }
 
     // Go to focusArea which should be displayed if the focusArea is not changing this time
     if (this.selectedTab !== this.currentArea && !info.focusArea) {
@@ -159,13 +167,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
-  cpuStateToString(cpuState) {
-    switch (cpuState) {
-      default:
-        return cpuState;
-    }
-  }
-
   /**
    * Find point in RISCV_STAGES to continue from. Uses the 'exec' property and finds the first matching stage
    * @param stage From which stage to continue
@@ -174,7 +175,8 @@ export class SimulationComponent implements OnInit, OnDestroy {
     for (let i = 0; i < RISCV_STAGES.length; i++) {
       for (let j = 0; j < RISCV_STAGES[i].infos.length; j++) {
         const info = RISCV_STAGES[i].infos[j];
-        if (stage === Object.keys(CPU_STATE_IDS).find(key => CPU_STATE_IDS[key] === info.exec)) {
+        console.log(stage, info.exec);
+        if (stage === info.exec) {
           this.infoCounter = j;
           this.instrCounter = i;
           return;
@@ -207,7 +209,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
    * @param bindings Bin
    * @private
    */
-  private getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: string; focusArea?: Areas; focusElement?: string; startOfStage?: string } {
+  private getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: CPU_STATES; focusArea?: Areas; focusElement?: string; startOfStage?: CPU_STATES } {
     let startOfStage = null;
 
     if (this.infoCounter + 1 >= RISCV_STAGES[this.instrCounter].infos.length) {

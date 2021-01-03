@@ -692,11 +692,11 @@ export function isAUIPC(name: string): boolean {
   return name === INSTRUCTIONS.AUIPC
 }
 
-export function isBREAK(name: string): boolean {
+export function isSystem(name: string): boolean {
   return name === INSTRUCTIONS.ECALL || name === INSTRUCTIONS.EBREAK;
 }
 
-export function getNameOfGroup(name): 'imm' | 'op' | 'lui' | 'auipc' | 'jal'  | 'jalr' | 'load' | 'store' | 'branch' | 'break' {
+export function getNameOfGroup(name): 'imm' | 'op' | 'lui' | 'auipc' | 'jal' | 'jalr' | 'load' | 'store' | 'branch' | 'system' {
   // TODO: Group is just the opcode --> Replace group with opcode and make this easier
   if (isIMM(name)) return 'imm';
   if (isOP(name)) return 'op';
@@ -707,7 +707,7 @@ export function getNameOfGroup(name): 'imm' | 'op' | 'lui' | 'auipc' | 'jal'  | 
   if (isLOAD(name)) return 'load';
   if (isSTORE(name)) return 'store';
   if (isBRANCH(name)) return 'branch';
-  if (isBREAK(name)) return 'break';
+  if (isSystem(name)) return 'system';
 }
 
 /**

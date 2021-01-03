@@ -18,8 +18,9 @@ import {MeshText2D, textAlign} from "three-text2d";
 import * as d3 from "d3";
 import * as tinycolor from 'tinycolor2';
 import {Bindings, CPU_STATES} from "../bindingSubjects";
-import {hideNonVisibleElements, setOpacity} from "./helperVisibility";
+import {hideNonVisibleElements, setColor, setOpacity} from "./helperVisibility";
 import * as _ from "lodash";
+import {readStyleProperty} from "../../../utils/helper";
 
 /**
  * Loads the SVG and generates meshes. Does not add anything to the scene.
@@ -113,7 +114,7 @@ export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat:
         if (child.text) {
           const style = child.text.userData.style;
           const text = new MeshText2D(child.text.text, {
-            align: new Vector2(1, 0.8), // Point is a bit further down
+            align: new Vector2(1, 1.7), // Point is a bit further down
             font: (style.fontWeight ? style.fontWeight : '') + ' ' + style.fontSize * 4 + 'px ' + style.fontFamily,
             fillStyle: style.fill,
             antialias: true,
@@ -218,7 +219,6 @@ export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterf
     }
     setOpacity(_.difference(allMeshes, meshesToActivate), 0.05, animateTransition);
   }
-  console.log("Updated active elements with instruction ", cpuBindings.instruction.value);
 }
 
 /**
@@ -273,7 +273,6 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
       // Render it
       renderGroup.add(text);
       // Get position at root ref
-      console.log(key, signalName, idFlat[key].rootRef);
       idFlat[key].rootRef.meshes.push(text.mesh);
     }
   }
@@ -283,4 +282,19 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
     delete idFlat[key];
   });
   flattenRootToIndexIdArray(idRoot, idFlat);
+}
+
+export function highlightStage(idFlat: IdFlatInterface, cpuStage: CPU_STATES | boolean, animateTransition: boolean) {
+  const colorAccent = readStyleProperty('accent');
+  const colorGrey = readStyleProperty('grey1');
+
+  for (const key of Object.keys(idFlat)) {
+    if (key.startsWith('stagebox_') && !key.startsWith('stagebox_' + cpuStage)) {
+      console.log('deactivate', idFlat[key], colorGrey);
+      setColor(idFlat[key].meshes, colorGrey, animateTransition);
+    } else if (key.startsWith('stagebox_' + cpuStage)) {
+      console.log('activate', idFlat[key], colorAccent);
+      setColor(idFlat[key].meshes, colorAccent, animateTransition);
+    }
+  }
 }

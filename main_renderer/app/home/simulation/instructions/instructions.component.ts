@@ -89,8 +89,10 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   runUntilPC(pc: number) {
+    this.graphService.animateStateChangesAutomaticallyOnCPUChange = true;
     this.graphService.globalAnimationDisabled = true
     this.cpu.runUntilPC(pc).then(() => {
+      this.graphService.animateStateChangesAutomaticallyOnCPUChange = false;
       this.graphService.globalAnimationDisabled = false;
     });
   }

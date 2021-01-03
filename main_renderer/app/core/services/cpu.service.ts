@@ -6,7 +6,6 @@ import {
   INSTRUCTIONS,
   isAUIPC,
   isBRANCH,
-  isBREAK,
   isIMM,
   isJAL,
   isJALR,
@@ -14,6 +13,7 @@ import {
   isLUI,
   isOP,
   isSTORE,
+  isSystem,
   parseInstruction
 } from './instructionParser';
 import {parseElf, parseElfRISCVInstructions} from './elfParser';
@@ -50,8 +50,7 @@ export class CPUService {
     switch (this.bindings.nextCpuState.value) {
       case CPU_STATES.BREAK:
         this.bindings.cpuState.next(CPU_STATES.BREAK);
-        console.log('BREAK');
-        return;
+        break;
       case CPU_STATES.FETCH:
         this.bindings.instrMemRead.next(this.fetchDataFromMemory(this.bindings.pc.value));
         this.bindings.cpuState.next(CPU_STATES.FETCH);
@@ -74,7 +73,7 @@ export class CPUService {
 
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
 
-        if (isBREAK(this.bindings.instruction.value.instructionName)) {
+        if (isSystem(this.bindings.instruction.value.instructionName)) {
           this.bindings.nextCpuState.next(CPU_STATES.BREAK);
         } else {
           this.bindings.nextCpuState.next(CPU_STATES.EXECUTE);

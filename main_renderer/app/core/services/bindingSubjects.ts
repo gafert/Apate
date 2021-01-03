@@ -7,25 +7,25 @@
  * import bindings from "./bindingSubjects.ts";
  *
  */
-import { BehaviorSubject } from 'rxjs';
-import { Instruction } from './instructionParser';
+import {BehaviorSubject} from 'rxjs';
+import {Instruction} from './instructionParser';
 
 export enum CPU_STATES {
-  FETCH = 'Fetch Next Instruction',
-  DECODE_INSTRUCTION = 'Decode Instruction',
-  EXECUTE = 'Execute Instruction',
-  WRITE_BACK = 'Write Back to Register',
-  ADVANCE_PC = 'Advanced Program Counter',
-  BREAK = 'Break',
+  FETCH = 'fetch',
+  DECODE_INSTRUCTION = 'decode',
+  EXECUTE = 'execute',
+  WRITE_BACK = 'writeback',
+  ADVANCE_PC = 'advanceprogramcounter',
+  BREAK = 'break',
 }
 
-export const CPU_STATE_IDS = {
-  [CPU_STATES.FETCH]: 'fetch',
-  [CPU_STATES.DECODE_INSTRUCTION]: 'decode',
-  [CPU_STATES.EXECUTE]: 'execute',
-  [CPU_STATES.WRITE_BACK]: 'writeback',
-  [CPU_STATES.ADVANCE_PC]: 'advanceprogramcounter',
-  [CPU_STATES.BREAK]: 'break'
+export const CPU_STATE_NAMES = {
+  [CPU_STATES.FETCH]: 'Fetch Next Instruction',
+  [CPU_STATES.DECODE_INSTRUCTION]: 'Decode Instruction',
+  [CPU_STATES.EXECUTE]: 'Execute Instruction',
+  [CPU_STATES.WRITE_BACK]: 'Write Back to Register',
+  [CPU_STATES.ADVANCE_PC]: 'Advanced Program Counter',
+  [CPU_STATES.BREAK]: 'Break'
 };
 
 export class Bindings {

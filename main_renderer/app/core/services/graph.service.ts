@@ -26,7 +26,12 @@ import {Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface,} from "./gra
 import {focusCameraOnElement} from "./graphHelpers/helperFocus";
 import {hideElement, showElement} from "./graphHelpers/helperVisibility";
 import {getModuleName, getPortName, getSName, getWName} from "./graphHelpers/helperNameMatch";
-import initiateSVGObjects, {addSignalTextsAndUpdate, updateActiveElements} from "./graphHelpers/helperSVGObject";
+import initiateSVGObjects, {
+  addSignalTextsAndUpdate,
+  highlightStage,
+  updateActiveElements
+} from "./graphHelpers/helperSVGObject";
+import {CPU_STATES} from "./bindingSubjects";
 
 @Injectable({
   providedIn: 'root',
@@ -74,9 +79,9 @@ export class GraphService {
   private idRoot: IdRootInterface; // Holds the parsed svg and adds meshes to each element
 
   public globalAnimationDisabled = false;
+  public animateStateChangesAutomaticallyOnCPUChange = false;
 
   constructor(private ngZone: NgZone, private cpu: CPUService) {
-    console.log("Initiated GraphService");
   }
 
   /**
@@ -122,6 +127,9 @@ export class GraphService {
         // Add signal change if cpuCycle is complete
         this.cpu.bindings.cycleComplete.subscribe(() => {
           updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled);
+          if (this.animateStateChangesAutomaticallyOnCPUChange) {
+            highlightStage(this.idFlat, this.cpu.bindings.cpuState.value, !this.globalAnimationDisabled);
+          }
         })
 
         // For intersection
@@ -157,6 +165,9 @@ export class GraphService {
         this.goToArea('overview');
 
         this.scene.add(this.setupBackground(this.idFlat));
+
+        // Default no stage on
+        highlightStage(this.idFlat, false, false);
 
         // Set initiated to true to not reload settings if init was called again by component using the service
         this.initiated = true;
@@ -234,6 +245,16 @@ export class GraphService {
    */
   public async goToFocus(id: string) {
     await focusCameraOnElement(this.camera, this.idFlat, 'focus_' + id, true);
+  }
+
+  /**
+   * Highlight stage elements of selected cpuStage
+   * @param idFlat
+   * @param cpuStage
+   * @param animateTransition
+   */
+  public highlightStage(cpuStage: CPU_STATES, animateTransition) {
+    highlightStage(this.idFlat, cpuStage, animateTransition);
   }
 
   /**
