@@ -150,7 +150,7 @@ export class GraphService {
         if (document.readyState !== 'loading') this.render();
         else window.addEventListener('DOMContentLoaded', this.render.bind(this));
 
-        // Split areas in world and focus on the first
+        // Split areas in world and focusElement on the first
         // This needs to be away from initiateObjects
         // this.separateAreas();
 
@@ -165,8 +165,8 @@ export class GraphService {
   }
 
   /**
-   * Go to a new area.
-   * @param newArea Will be appended with "area_" by function. Camera will focus all elements inside.
+   * Go to a new focusArea.
+   * @param newArea Will be appended with "area_" by function. Camera will focusElement all elements inside.
    * @param animateTransition If this transition should be animated
    */
   public async goToArea(newArea: Areas, animateTransition?) {
@@ -182,7 +182,7 @@ export class GraphService {
     // Get the animation element if animateTransitions is on
     const animationElement = animateTransition ? TABS[reverse ? this.currentArea : newArea] : null;
 
-    // Hide elements of current area only if there is one selected, else skip this and only show
+    // Hide elements of current focusArea only if there is one selected, else skip this and only show
     hideElement(this.idFlat, 'area_' + newArea, false);
 
     if (animationElement && !reverse) {
@@ -198,7 +198,7 @@ export class GraphService {
         });
       }), hideElement(this.idFlat, 'area_' + this.currentArea, true)]);
 
-      // Focus on new area
+      // Focus on new focusArea
       focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
 
       // This can be async as the camera can move now
@@ -229,7 +229,7 @@ export class GraphService {
   }
 
   /**
-   * Go to focus element. Camera will fit the focus element.
+   * Go to focusElement element. Camera will fit the focusElement element.
    * @param id The id of the element. Will be appended with "focus_" by function.
    */
   public async goToFocus(id: string) {

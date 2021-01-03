@@ -1,17 +1,17 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import {byteToHex, range} from '../../globals';
-import {CPUService} from '../../core/services/cpu.service';
-import {InstructionsComponent} from './instructions/instructions.component';
-import {takeUntil} from 'rxjs/operators';
-import {Subject} from 'rxjs';
-import {DataKeys, DataService} from '../../core/services/data.service';
-import {Router} from '@angular/router';
-import {GraphService} from '../../core/services/graph.service';
+import { byteToHex, range } from '../../globals';
+import { CPUService } from '../../core/services/cpu.service';
+import { InstructionsComponent } from './instructions/instructions.component';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { DataKeys, DataService } from '../../core/services/data.service';
+import { Router } from '@angular/router';
+import { GraphService } from '../../core/services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
-import {Bindings} from '../../core/services/bindingSubjects';
-import {Areas} from "../../core/services/graphHelpers/helpers";
+import { Bindings, CPU_STATE_IDS, CPU_STATES } from '../../core/services/bindingSubjects';
+import { Areas } from '../../core/services/graphHelpers/helpers';
 
 @Component({
   selector: 'app-simulation',
@@ -23,19 +23,21 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public byteToHex = byteToHex;
   public DataKeys = DataKeys;
   public range = range;
-  private ngUnsubscribe = new Subject();
-  public selectedTab: Areas = 'overview';
-
+  // If step by step should be enabled
   public elaborateSteps = true;
-
-  public stage = 'Initiate the simulation';
+  // Step may be disabled if animations are running
+  public stepDisabled = false;
+  public selectedTab: Areas = 'overview';
+  // Displayed on top
+  public stage: CPU_STATES | string = 'Initiate the simulation';
+  // Infotext
   public info;
+  private ngUnsubscribe = new Subject();
+  // Set by elaborate steps, will reset selectedTab to this
+  private currentArea = this.selectedTab;
+  // Used by getNextInfo()
   private instrCounter = 0;
   private infoCounter = 0;
-
-  public stepDisabled = false;
-
-  private currentArea = this.selectedTab;
 
   constructor(
     public cpu: CPUService,
@@ -54,6 +56,8 @@ export class SimulationComponent implements OnInit, OnDestroy {
     // Hide infos if not elaborate
     if (!this.elaborateSteps) {
       this.info = null;
+    } else {
+      this.setNextInfoByStage(this.stage as CPU_STATES);
     }
   }
 
@@ -86,6 +90,9 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.instrCounter = 0;
     this.infoCounter = -1;
 
+    // Set first stage text manually
+    this.stage = CPU_STATES.FETCH;
+
     // Load elf into CPU
     const elfPath = this.dataService.getSetting(DataKeys.ELF_PATH);
     if (elfPath) {
@@ -102,6 +109,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   async stepSimulation() {
     if (!this.elaborateSteps) {
       this.stage = this.cpu.advanceSimulationClock();
+      console.log('%cCPU STATE: ' + this.stage, 'color: #7827e0');
       return;
     }
 
@@ -109,36 +117,99 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.stepDisabled = true;
 
     const info = this.getNextInfo(this.cpu.bindings);
+    console.log(info);
     this.info = info.text;
 
-    if (info.exec)
-      this.stage = this.cpu.advanceSimulationClock();
+    if (info.exec) {
+      console.log('%cCPU STATE: ' + this.cpu.advanceSimulationClock(), 'color: #7827e0');
+    }
 
-    // Go to area which should be displayed if the area is not changing this time
-    if (this.selectedTab !== this.currentArea && !info.area) {
+    if (info.startOfStage)
+      this.stage = Object.keys(CPU_STATE_IDS).find(key => CPU_STATE_IDS[key] === info.startOfStage);
+
+    // Go to focusArea which should be displayed if the focusArea is not changing this time
+    if (this.selectedTab !== this.currentArea && !info.focusArea) {
       await this.graphService.goToArea(this.currentArea, true);
       this.selectedTab = this.currentArea;
     }
 
-    // Animations to area
-    if (info.area) {
-      // First show area then focus element
-      await this.graphService.goToArea(info.area, true)
-      this.selectedTab = info.area;
-      this.currentArea = info.area;
-      if (info.focus) {
-        await this.graphService.goToFocus(info.focus);
+    // Animations to focusArea
+    if (info.focusArea) {
+      // First show focusArea then focusElement element
+      await this.graphService.goToArea(info.focusArea, true);
+      this.selectedTab = info.focusArea;
+      this.currentArea = info.focusArea;
+      if (info.focusElement) {
+        await this.graphService.goToFocus(info.focusElement);
       }
-    } else if (info.focus) {
-      await this.graphService.goToFocus(info.focus);
+    } else if (info.focusElement) {
+      await this.graphService.goToFocus(info.focusElement);
     }
 
     // Enable step after animation
     this.stepDisabled = false;
   }
 
+  runSimulation() {
+    this.cpu.runUntilBreak();
+  }
 
-  getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: string; area?: Areas; focus?: string } {
+  ngOnDestroy() {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
+  }
+
+  cpuStateToString(cpuState) {
+    switch (cpuState) {
+      default:
+        return cpuState;
+    }
+  }
+
+  /**
+   * Find point in RISCV_STAGES to continue from. Uses the 'exec' property and finds the first matching stage
+   * @param stage From which stage to continue
+   */
+  private setNextInfoByStage(stage: CPU_STATES) {
+    for (let i = 0; i < RISCV_STAGES.length; i++) {
+      for (let j = 0; j < RISCV_STAGES[i].infos.length; j++) {
+        const info = RISCV_STAGES[i].infos[j];
+        if (stage === Object.keys(CPU_STATE_IDS).find(key => CPU_STATE_IDS[key] === info.exec)) {
+          this.infoCounter = j;
+          this.instrCounter = i;
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * Get the next info text which fits current instruction and other {@link Bindings | Binding values} which can be checked by the 'if' property.
+   *
+   * Depends on {@link RISCV_STAGES | RISCV_STAGES}, this.infoCounter, this.instrCounter.
+   *
+   * Example {@link RISCV_STAGES | RISCV_STAGES} yaml:
+   *
+   * ```yaml
+   * - instr: [branch]
+   *   if: !!js/function  'function (bindings) { return bindings.branchResult.value == true; }'
+   *   infos:
+   * ```
+   *
+   * Checks:
+   *
+   * 1. 'bindings.instruction.value.opcodeName' needs to be inside the 'instr' array. <br>
+   *
+   * 2. If there is an 'if' parameter (optional, default true) this function will be executed.
+   *
+   * Both must equal true to display infos
+   *
+   * @param bindings Bin
+   * @private
+   */
+  private getNextInfo(bindings: Bindings): { text: string; highlight: []; exec?: string; focusArea?: Areas; focusElement?: string; startOfStage?: string } {
+    let startOfStage = null;
+
     if (this.infoCounter + 1 >= RISCV_STAGES[this.instrCounter].infos.length) {
       // There is no info left in this instruction, go to first info of new instruction
       this.infoCounter = 0;
@@ -162,6 +233,12 @@ export class SimulationComponent implements OnInit, OnDestroy {
             compliesWithInstruction = instr.instr.indexOf(bindings.instruction.value.opcodeName) >= 0;
           }
 
+          if (instr.start) {
+            // Start of new stage
+            // But must not be executed
+            startOfStage = instr.start;
+          }
+
           if ((compliesWithIf && compliesWithInstruction)) {
             // Does comply, break out of loop with new instruction counter set
             break;
@@ -171,22 +248,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
     } else {
       this.infoCounter++;
     }
-    return RISCV_STAGES[this.instrCounter].infos[this.infoCounter];
-  }
-
-  runSimulation() {
-    this.cpu.runUntilBreak();
-  }
-
-  ngOnDestroy() {
-    this.ngUnsubscribe.next();
-    this.ngUnsubscribe.complete();
-  }
-
-  cpuStateToString(cpuState) {
-    switch (cpuState) {
-      default:
-        return cpuState;
-    }
+    return { ...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage };
   }
 }
