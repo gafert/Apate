@@ -36,6 +36,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
   // Set by elaborate steps, will reset selectedTab to this
   private currentArea = this.selectedTab;
+  private currentFocus;
   // Used by getNextInfo()
   private instrCounter = 0;
   private infoCounter = 0;
@@ -122,11 +123,10 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.stepDisabled = true;
 
     const info = this.getNextInfo(this.cpu.bindings);
-    console.log(info);
     this.info = info.text;
 
     if (info.exec) {
-      console.log('%cCPU STATE: ' + this.cpu.advanceSimulationClock(), 'color: #7827e0');
+      console.log('%cCPU STATE: ' + this.cpu.advanceSimulationClock(), 'color: #7F2FeF');
     }
 
     if (info.startOfStage) {
@@ -135,24 +135,40 @@ export class SimulationComponent implements OnInit, OnDestroy {
       this.graphService.highlightStage(this.stage, true);
     }
 
-    // Go to focusArea which should be displayed if the focusArea is not changing this time
-    if (this.selectedTab !== this.currentArea && !info.focusArea) {
-      await this.graphService.goToArea(this.currentArea, true);
-      this.selectedTab = this.currentArea;
-    }
-
+    // New area --> focus area
+    // New focus --> apply new focus
     // Animations to focusArea
     if (info.focusArea) {
       // First show focusArea then focusElement element
       await this.graphService.goToArea(info.focusArea, true);
       this.selectedTab = info.focusArea;
       this.currentArea = info.focusArea;
+      this.currentFocus = null; // Assume that we dont focus inside of area
       if (info.focusElement) {
         await this.graphService.goToFocus(info.focusElement);
+        this.currentFocus = info.focusElement;
       }
-    } else if (info.focusElement) {
-      await this.graphService.goToFocus(info.focusElement);
+    } else {
+      // No new area but area is not the same --> focus area
+      // Go to focusArea which should be displayed if the focusArea is not changing this time
+      if (this.selectedTab !== this.currentArea) {
+        await this.graphService.goToArea(this.currentArea, true);
+        this.selectedTab = this.currentArea;
+      }
+
+      // No new area but new focus
+      if (info.focusElement) {
+        await this.graphService.goToFocus(info.focusElement)
+        this.currentFocus = info.focusElement;
+      }
+
+      // No new focus but there is a current focus
+      if (!info.focusElement && this.currentFocus) {
+        // No new focus and no area --> apply old focus
+        await this.graphService.goToFocus(this.currentFocus);
+      }
     }
+
 
     // Enable step after animation
     this.stepDisabled = false;
@@ -172,11 +188,16 @@ export class SimulationComponent implements OnInit, OnDestroy {
    * @param stage From which stage to continue
    */
   private setNextInfoByStage(stage: CPU_STATES) {
+    let focusElement, focusArea;
     for (let i = 0; i < RISCV_STAGES.length; i++) {
       for (let j = 0; j < RISCV_STAGES[i].infos.length; j++) {
         const info = RISCV_STAGES[i].infos[j];
+        focusArea = info.focusArea ? info.focusArea : focusArea;
+        focusElement = info.focusElement ? info.focusElement : focusElement;
         console.log(stage, info.exec);
         if (stage === info.exec) {
+          this.currentArea = focusArea;
+          this.currentFocus = focusElement;
           this.infoCounter = j;
           this.instrCounter = i;
           return;
@@ -250,6 +271,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
     } else {
       this.infoCounter++;
     }
-    return { ...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage };
+    return {...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage};
   }
 }

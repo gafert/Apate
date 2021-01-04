@@ -7,7 +7,7 @@ import {
   ExtrudeGeometry,
   Group,
   Mesh,
-  MeshLambertMaterial,
+  MeshLambertMaterial, ShapeGeometry,
   Vector2,
   Vector3
 } from "three";
@@ -59,8 +59,8 @@ export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat:
               });
 
               const shape = shapes[j];
-              // const geometry = new ShapeGeometry(shape);
-              const geometry = new ExtrudeGeometry(shape, {depth: 50, bevelEnabled: false});
+              const geometry = new ShapeGeometry(shape);
+              // const geometry = new ExtrudeGeometry(shape, {depth: 50, bevelEnabled: false});
 
               // Compute uvs
               computeUVsOfPlane(geometry);
@@ -78,7 +78,7 @@ export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat:
               // });
 
               const mesh = new Mesh(geometry, material);
-              mesh.translateZ(-51); // Compensate depth of extruded element and behind strokes
+              // mesh.translateZ(-51); // Compensate depth of extruded element and behind strokes
 
               mesh.name = child.id;
               childGroup.add(mesh);
@@ -290,10 +290,8 @@ export function highlightStage(idFlat: IdFlatInterface, cpuStage: CPU_STATES | b
 
   for (const key of Object.keys(idFlat)) {
     if (key.startsWith('stagebox_') && !key.startsWith('stagebox_' + cpuStage)) {
-      console.log('deactivate', idFlat[key], colorGrey);
       setColor(idFlat[key].meshes, colorGrey, animateTransition);
     } else if (key.startsWith('stagebox_' + cpuStage)) {
-      console.log('activate', idFlat[key], colorAccent);
       setColor(idFlat[key].meshes, colorAccent, animateTransition);
     }
   }
