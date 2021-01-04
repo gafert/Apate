@@ -10,7 +10,7 @@ import {
   MeshLambertMaterial,
   Vector2,
   Vector3
-} from "THREE";
+} from "three";
 import {checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface} from "./helpers";
 import {computeUVsOfPlane} from "./helper3D";
 import {getSName} from "./helperNameMatch";

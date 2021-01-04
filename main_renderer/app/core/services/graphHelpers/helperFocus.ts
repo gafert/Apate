@@ -1,4 +1,4 @@
-import {Camera, Mesh} from "THREE";
+import {Camera, Mesh} from "three";
 import {animate, easeIn} from "popmotion";
 import {getCenterOfMeshes, IdFlatInterface} from "./helpers";
 

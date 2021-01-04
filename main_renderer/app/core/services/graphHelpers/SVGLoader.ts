@@ -23,7 +23,7 @@ import {
   ShapePath,
   Vector2,
   Vector3
-} from 'THREE';
+} from 'three';
 
 const SVGLoader = function (manager?) {
 

@@ -1,5 +1,7 @@
 const arch = process.env.ARCH || process.arch;
 const platform = process.env.PLATFORM || process.platform;
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = (config, options) => {
   config.target = 'electron-renderer';
@@ -47,7 +49,6 @@ module.exports = (config, options) => {
     'electron-is-dev': 'require(\'electron-is-dev\')'
   };
 
-  // yaml unsafe to load js functions from yaml
   config.module.rules = [
     ...config.module.rules,
     {
@@ -75,6 +76,21 @@ module.exports = (config, options) => {
       }]
     }
   ];
+
+  config.plugins = [
+    ...config.plugins,
+    new BundleAnalyzerPlugin({
+      generateStatsFile: true
+    })
+  ];
+
+  // Could be fun
+  /*config.optimization.minimizer.push(new TerserPlugin({
+    terserOptions: {
+      topLevel: true,
+      ecma: 6
+    }
+  }))*/
 
   return config;
 };

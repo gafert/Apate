@@ -1,4 +1,4 @@
-import {Box3, Group, Mesh, ShapePath, Vector3} from "THREE";
+import {Box3, Group, Mesh, ShapePath, Vector3} from "three";
 import * as d3 from "d3";
 
 // Interfaces

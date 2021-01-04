@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { JWT } from 'google-auth-library';
 import * as fs from 'fs';
 import * as isDev from 'electron-is-dev';
 import * as path from 'path';
@@ -19,7 +19,7 @@ export function authorize() {
       if (err) return console.log('Error loading client secret file:', err);
       const privatekey = JSON.parse(String(content));
       // configure a JWT auth client
-      const jwtClient = new google.auth.JWT(privatekey.client_email, null, privatekey.private_key, [
+      const jwtClient = new JWT(privatekey.client_email, null, privatekey.private_key, [
         'https://www.googleapis.com/auth/drive',
       ]);
       // authenticate request

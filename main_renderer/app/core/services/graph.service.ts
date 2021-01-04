@@ -14,7 +14,7 @@ import {
   TextureLoader,
   Vector2,
   WebGLRenderer
-} from 'THREE';
+} from 'three';
 import panzoom from '../../utils/drag.js';
 import {CPUService} from './cpu.service';
 import BACKGROUND_IMAGE from 'assets/background.png';

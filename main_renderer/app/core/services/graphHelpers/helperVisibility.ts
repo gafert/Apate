@@ -1,4 +1,4 @@
-import {Color, Material, Mesh} from "THREE";
+import {Color, Material, Mesh} from "three";
 import {animate} from "popmotion";
 import {IdFlatInterface} from "./helpers";
 
