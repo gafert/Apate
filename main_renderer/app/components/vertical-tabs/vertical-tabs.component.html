@@ -1,8 +1,8 @@
-<div class="vertical-tabs-container">
+<div class="vertical-tabs-container" #tabsContainer>
   <div class="vertical-tabs-content">
     <ng-content></ng-content>
   </div>
-  <div class="vertical-tabs-list">
+  <div class="vertical-tabs-list" #tabsList>
     <div *ngFor="let tab of tabs" (click)="selectTab(tab)" [class.active]="tab.active"
          class="vertical-tabs-list-component">
       {{tab.title}}

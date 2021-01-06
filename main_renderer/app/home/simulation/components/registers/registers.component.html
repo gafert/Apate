@@ -1,18 +1,57 @@
+<ng-template #registerInfo>
+  <strong>Registers</strong><br>
+  Displays all 32 registers and their currently stored values.
+  Hover over the short name to see the full name.<br><br>
+  Each instruction cycle up to three addresses (RD, RS1, RS2) are read from the instruction.
+  These addresses correspond to a position in the registers and are also marked.<br><br>
+
+  <table>
+    <tr style="vertical-align: top">
+      <td>
+        <div class="rd-info">RD (Return Address)</div>
+      </td>
+      <td>
+        Address at which the calculated / loaded data is stored in the 'Write Back' stage.
+      </td>
+    </tr>
+    <tr style="vertical-align: top">
+      <td>
+        <div class="rs1-info">RS1 (Register Source 1)</div>
+      </td>
+      <td>
+        Address at which data is loaded from a register. RS values are read form the register in the 'Decoder' stage.
+      </td>
+    </tr>
+    <tr style="vertical-align: top">
+      <td>
+        <div class="rs2-info">RS2 (Register Source 2)</div>
+      </td>
+      <td>
+        Additional address at which data is loaded from a register.
+      </td>
+    </tr>
+  </table>
+</ng-template>
+
 <div class="grid-container">
-  <div class="grid-container--header">Registers</div>
+  <div class="grid-container--header">
+    <div style="width: fit-content" [tippy]="registerInfo">
+      Registers<i class="fas fa-question-circle" style="margin-left: 0.5em"></i>
+    </div>
+  </div>
   <div class="grid-container--content">
     <table class="reg-table">
       <tr>
-        <th style="width: 20%">
+        <th style="width: 22%">
           Signal
         </th>
         <th style="width: 10%">
           No.
         </th>
-        <th style="width: 15%">
+        <th style="width: 13%">
           Name
         </th>
-        <th style="width: 30%">
+        <th style="width: 25%">
           Hex
         </th>
         <th style="width: 10%">

@@ -1,4 +1,4 @@
-import {Component, ContentChildren, QueryList} from '@angular/core';
+import { AfterViewInit, Component, ContentChildren, OnInit, QueryList, ViewChild } from '@angular/core';
 import {VerticalTabsItemComponent} from "../vertical-tabs-item/vertical-tabs-item.component";
 
 @Component({
@@ -6,8 +6,10 @@ import {VerticalTabsItemComponent} from "../vertical-tabs-item/vertical-tabs-ite
   templateUrl: './vertical-tabs.component.html',
   styleUrls: ['./vertical-tabs.component.scss']
 })
-export class VerticalTabsComponent {
+export class VerticalTabsComponent implements AfterViewInit {
   @ContentChildren(VerticalTabsItemComponent) tabs: QueryList<VerticalTabsItemComponent>;
+  @ViewChild('tabsList') tabsList;
+  @ViewChild('tabsContainer') tabsContainer;
 
   // contentChildren are set
   ngAfterContentInit() {
@@ -18,6 +20,10 @@ export class VerticalTabsComponent {
     if (activeTabs.length === 0) {
       this.selectTab(this.tabs.first);
     }
+  }
+
+  ngAfterViewInit() {
+    this.tabsList.nativeElement.style.width = getComputedStyle(this.tabsContainer.nativeElement).height;
   }
 
   selectTab(tab: VerticalTabsItemComponent) {
