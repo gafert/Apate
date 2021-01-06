@@ -23,8 +23,20 @@
   }
 
   .desc {
+    padding-bottom: 0.3em;
     padding-top: 0.5em;
-    padding-bottom: 0.5em;
+    font-size: large;
+
+    &::before {
+      content:"";
+      display: block;
+      height: 1px;
+      vertical-align: bottom;
+      width: 100%;
+      margin-right: -100%;
+      border-bottom: #ffffff24 solid 1px;
+      margin-bottom: 0.3em;
+    }
   }
 
   .formula {
@@ -40,4 +52,12 @@
     font-style: italic;
     padding: 0;
   }
+}
+
+.warning-symbol {
+  position: absolute;
+  font-size: 10em;
+  color: $grey1;
+  left: calc(50% - 0.5em - 0.05em);
+  top: calc(50% - 0.5em);
 }

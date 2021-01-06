@@ -1,10 +1,26 @@
+<ng-template #instructionsInfo>
+  <strong>Instructions</strong><br>
+  A list of all instructions decoded directly from the .elf file.
+  <br><br>
+  These were not parsed by the CPU but instead help to understand the order of instructions and which instruction the
+  CPU is currently working on.
+  <br><br>
+  The current Program Counter (PC) marks the instruction currently decoded and executed by the CPU.
+</ng-template>
+
 <div class="grid-container">
   <div class="grid-container--header">
-    Instructions
+    <div style="width: fit-content" [tippy]="instructionsInfo">
+      Instructions<i class="fas fa-question-circle" style="margin-left: 0.5em"></i>
+    </div>
   </div>
   <div class="grid-container--content" #scrollContainer>
-    <div *ngIf="!parsedElf" style="text-align: center; width: 100%; margin-top: 1em">
-      No ELF loaded. Please initiate first.
+    <div *ngIf="!parsedElf" style="text-align: left; width: 90%; margin: auto; margin-top: 1em">
+      Currently no ELF loaded. Please initiate first.
+      <br><br>
+      If no ELF file was found in the currently opened folder you can set the path manually in the settings.
+      <br>
+      <i class="fas fa-exclamation-triangle warning-symbol"></i>
     </div>
     <ng-container *ngIf="parsedElf">
       <ng-container *ngFor="let section of parsedElf.section_headers">
@@ -31,6 +47,36 @@
   <div (click)="hide(); runUntilPC(instruction.pc);" class="context-menu-item">Continue to {{instruction.pc}}</div>
 </ng-template>
 
+<ng-template #rawInstruction let-hide let-instruction="data">
+  <strong>Raw unparsed data of the instruction</strong><br>
+  <table>
+    <tr style="vertical-align: top">
+      <td>
+        <div class="rd-info">as hex:</div>
+      </td>
+      <td>
+        {{byteToHex(instruction.unparsedInstruction, 8)}}
+      </td>
+    </tr>
+    <tr style="vertical-align: top">
+      <td>
+        <div class="rs1-info">as decimal:</div>
+      </td>
+      <td>
+        {{instruction.unparsedInstruction}}
+      </td>
+    </tr>
+    <tr style="vertical-align: top">
+      <td>
+        <div class="rs2-info">as binary:</div>
+      </td>
+      <td>
+        {{byteToBinary(instruction.unparsedInstruction, 32, 8)}}
+      </td>
+    </tr>
+  </table>
+</ng-template>
+
 <ng-template #instruction_template let-instruction="instruction" let-info="info">
   <div id="assembly-code-div-{{instruction.pc}}"
        [data]="instruction"
@@ -39,32 +85,42 @@
        variation="contextMenu">
     <div style="display: flex; justify-content: space-between; align-items: center;"
          (click)="expandInfo(instruction.pc)">
-      <div class="text-rounded-container mono" id="assembly-code-div-pc-{{instruction.pc}}">{{instruction.pc}}</div>
-      <div style="flex-grow: 1; padding-left: 0.5em">{{info ? info.name : instruction.instructionName }}</div>
+      <div class="text-rounded-container mono" id="assembly-code-div-pc-{{instruction.pc}}"
+           tippy="Program Counter (PC) of the instruction" maxWidth="20em">{{instruction.pc}}</div>
+      <div style="flex-grow: 1; padding-left: 0.5em"
+           ><span tippy="Click to show more">{{info ? info.name : instruction.instructionName }}</span></div>
       <div id="assembly-code-div-hex-{{instruction.pc}}"
-           class="text-rounded-container mono">{{byteToHex(instruction.unparsedInstruction, 8)}}</div>
+           class="text-rounded-container mono" [tippy]="rawInstruction" maxWidth="30em"
+           [data]="instruction">{{byteToHex(instruction.unparsedInstruction, 8)}}</div>
     </div>
     <div *ngIf="info" id="assembly-info-div-{{instruction.pc}}" class="assembly-info">
       <div class="desc">{{info.desc}}</div>
       <div class="formula">{{info.formula}}</div>
-      <table>
-        <tr *ngIf="info.rs1">
-          <td class="data-header">RS1</td>
-          <td class="data-value">{{instruction.rs1}}</td>
-        </tr>
-        <tr *ngIf="info.rs2">
-          <td class="data-header">RS2</td>
-          <td class="data-value">{{instruction.rs2}}</td>
-        </tr>
-        <tr *ngIf="info.imm">
-          <td class="data-header">IMM</td>
-          <td class="data-value">{{instruction.imm}}</td>
-        </tr>
-        <tr *ngIf="info.rd">
-          <td class="data-header">RD</td>
-          <td class="data-value">{{instruction.rd}}</td>
-        </tr>
-      </table>
+      <ng-container *ngIf="info.rs1 || info.rs2 || info.imm || info.rd">
+        <div class="desc">Values</div>
+        <table>
+          <tr *ngIf="info.rs1">
+            <td class="data-header">RS1 Addr.</td>
+            <td class="data-value">{{instruction.rs1}}</td>
+          </tr>
+          <tr *ngIf="info.rs2">
+            <td class="data-header">RS2 Addr.</td>
+            <td class="data-value">{{instruction.rs2}}</td>
+          </tr>
+          <tr *ngIf="info.rd">
+            <td class="data-header">RD Addr.</td>
+            <td class="data-value">{{instruction.rd}}</td>
+          </tr>
+          <tr *ngIf="info.imm">
+            <td class="data-header">IMM Value</td>
+            <td class="data-value">{{instruction.imm}}</td>
+          </tr>
+        </table>
+      </ng-container>
+      <ng-container *ngIf="info.text">
+        <div class="desc">Description</div>
+        {{info.text}}
+      </ng-container>
     </div>
   </div>
 </ng-template>

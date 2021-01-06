@@ -50,7 +50,8 @@
         "@angular-eslint/no-attribute-decorator": "error",
         "@typescript-eslint/no-case-declarations": 0,
         "no-case-declarations": 0,
-        "@typescript-eslint/explicit-function-return-type": 0
+        "@typescript-eslint/explicit-function-return-type": 0,
+        "@typescript-eslint/prefer-regexp-exec": 0
       }
     },
     {

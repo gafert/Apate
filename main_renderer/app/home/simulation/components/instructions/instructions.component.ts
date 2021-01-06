@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
-import {byteToHex} from '../../../../globals';
+import {byteToHex, byteToBinary} from '../../../../globals';
 import * as d3 from 'd3';
 import {animate, easeInOut, easeOut} from 'popmotion';
 import styler from 'stylefire';
@@ -38,6 +38,7 @@ class Section {
 })
 export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   public readonly byteToHex = byteToHex;
+  public readonly byteToBinary = byteToBinary;
 
   @ViewChild('scrollContainer') scrollContainer;
 

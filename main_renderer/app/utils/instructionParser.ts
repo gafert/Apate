@@ -146,6 +146,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   [INSTRUCTIONS.ADDI]: {
     name: 'addi',
     desc: 'Add immediate',
+    text: 'Takes the value at register location RS1, adds the immediate value (IMM) and stores it back to the register at location RD.',
     formula: 'rd = rs1 + imm',
     rs1: true,
     rs2: false,
@@ -155,6 +156,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   [INSTRUCTIONS.SLLI]: {
     name: 'slli',
     desc: 'Shift Left Logical Imm',
+    text: 'Takes the value at register location RS1, shifts it to the left by the amount of immediate value (IMM) and stores it back to the register at location RD.',
     formula: 'rd = rs1 << imm[0:4]',
     rs1: true,
     rs2: false,
@@ -164,6 +166,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   [INSTRUCTIONS.SLTI]: {
     name: 'slti',
     desc: 'Set Less Than Imm',
+    text: 'Takes the value at register location RS1 and compares it to the immediate value (IMM). If the value of RS1 is smaller than IMM, store 1 back to the register at location RD, else store a 0.',
     formula: 'rd = (rs1 < imm)?1:0',
     rs1: true,
     rs2: false,
@@ -173,6 +176,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   [INSTRUCTIONS.SLTIU]: {
     name: 'sltiu',
     desc: 'Set Less Than Imm (U)',
+    text: 'Takes the value at register location RS1 and compares it to the immediate value (IMM). If the value of RS1 is smaller than IMM, store 1 back to the register at location RD, else store a 0.',
     formula: 'rd = (rs1 < imm)?1:0',
     rs1: true,
     rs2: false,
@@ -182,6 +186,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   [INSTRUCTIONS.XORI]: {
     name: 'xori',
     desc: 'Exclusive OR Immediate',
+    text: 'Takes the value at register location RS1, performs a "bitwise exclusive or" (XOR) operation with the immediate value and stores the result back to the register at location RD.',
     formula: 'rd = rs1 ˆ imm',
     rs1: true,
     rs2: false,
@@ -192,6 +197,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
     name: 'srli',
     desc: 'Shift Right Logical Imm',
     formula: 'rd = rs1 >> imm[0:4]',
+    text: 'Takes the value at register location RS1, shifts it to the right by the amount of immediate value (IMM) and stores it back to the register at location RD.',
     rs1: true,
     rs2: false,
     imm: true,
@@ -200,6 +206,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   [INSTRUCTIONS.SRAI]: {
     name: 'srai',
     desc: 'Shift Right Arith. Imm',
+    text: 'Takes the value at register location RS1, shifts it to the right by the amount of immediate value (IMM) and stores it back to the register at location RD.',
     formula: 'rd = rs1 >> imm[0:4]',
     rs1: true,
     rs2: false,
@@ -209,6 +216,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   [INSTRUCTIONS.ORI]:  {
     name: 'ori',
     desc: 'OR Immediate',
+    text: 'Takes the value at register location RS1, performs a "bitwise or" (OR) operation with the immediate value and stores the result back to the register at location RD.',
     formula: 'rd = rs1 | imm',
     rs1: true,
     rs2: false,
@@ -218,6 +226,7 @@ export const INSTRUCTIONS_DESCRIPTIONS = {
   [INSTRUCTIONS.ANDI]:  {
     name: 'andi',
     desc: 'AND Immediate',
+    text: 'Takes the value at register location RS1, performs a "bitwise and" (AND) operation with the immediate value and stores the result back to the register at location RD.',
     formula: 'rd = rs1 & imm',
     rs1: true,
     rs2: false,
