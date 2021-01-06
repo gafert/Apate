@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { DataKeys, DataService } from '../../core/services/data.service';
+import { DataKeys, DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-setting',

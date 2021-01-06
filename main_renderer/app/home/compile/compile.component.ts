@@ -6,7 +6,7 @@ import * as path from 'path';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CodemirrorComponent } from '@ctrl/ngx-codemirror';
-import { DataKeys, DataService } from '../../core/services/data.service';
+import { DataKeys, DataService } from '../../services/data.service';
 import Timeout = NodeJS.Timeout;
 
 declare let CodeMirror: any;

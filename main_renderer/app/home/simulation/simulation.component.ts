@@ -2,16 +2,16 @@ import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import {byteToHex, range} from '../../globals';
-import {CPUService} from '../../core/services/cpu.service';
-import {InstructionsComponent} from './instructions/instructions.component';
+import {CPUService} from './services/cpu.service';
+import {InstructionsComponent} from './components/instructions/instructions.component';
 import {takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
-import {DataKeys, DataService} from '../../core/services/data.service';
+import {DataKeys, DataService} from '../../services/data.service';
 import {Router} from '@angular/router';
-import {GraphService} from '../../core/services/graph.service';
+import {GraphService} from './services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
-import {Bindings, CPU_STATE_NAMES, CPU_STATES} from '../../core/services/bindingSubjects';
-import {Areas} from '../../core/services/graphHelpers/helpers';
+import {Bindings, CPU_STATE_NAMES, CPU_STATES} from './services/bindingSubjects';
+import {Areas} from './services/graphHelpers/helpers';
 
 @Component({
   selector: 'app-simulation',

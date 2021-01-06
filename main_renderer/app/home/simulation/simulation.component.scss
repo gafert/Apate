@@ -106,11 +106,15 @@ $controlHeight: 3em;
   left: 0;
 }
 
-.app-registers {
+.app-tabs {
   width: $gridWidth * 2;
   height: calc(100% - (#{$gridHeight} * 0));
   right: 0;
   bottom: 0;
+}
+
+.app-registers {
+  height: 100%;
 }
 
 .app-graph {

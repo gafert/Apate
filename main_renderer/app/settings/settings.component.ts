@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { ToolchainDownEnum, ToolchainDownloaderService } from '../core/services/toolchain-downloader.service';
-import { DataKeys, DataService } from '../core/services/data.service';
+import { ToolchainDownEnum, ToolchainDownloaderService } from './services/toolchain-downloader.service';
+import { DataKeys, DataService } from '../services/data.service';
 import * as electron from 'electron';
 import { SettingComponent } from '../components/setting/setting.component';
 

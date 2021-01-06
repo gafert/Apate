@@ -6,7 +6,7 @@ import * as url from 'url';
 import * as isDev from 'electron-is-dev';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { DataKeys, DataService } from '../core/services/data.service';
+import { DataKeys, DataService } from '../services/data.service';
 
 @Component({
   selector: 'app-home',

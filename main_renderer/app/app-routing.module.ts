@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { SettingsComponent } from './settings/settings.component';
 
 const routes: Routes = [
   {
@@ -9,7 +8,7 @@ const routes: Routes = [
     pathMatch: 'full',
   },
   { path: 'home', loadChildren: () => import('./home/home.module').then((m) => m.HomeModule) },
-  { path: 'settings', component: SettingsComponent },
+  { path: 'settings', loadChildren: () => import('./settings/settings.module').then((m) => m.SettingsModule)  },
 ];
 
 @NgModule({

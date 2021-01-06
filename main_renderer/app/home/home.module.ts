@@ -1,11 +1,29 @@
 import {NgModule} from '@angular/core';
-import {HomeRoutingModule} from './home-routing.module';
 import {HomeComponent} from './home.component';
-import {SharedModule} from "../components/shared/shared.module";
+import {CommonModule} from "@angular/common";
+import {RouterModule, Routes} from "@angular/router";
+
+const routes: Routes = [
+  {
+    path: '',
+    component: HomeComponent,
+    children: [
+      { path: 'simulation',
+        loadChildren: () => import('./simulation/simulation.module').then((m) => m.SimulationModule),
+      },
+      { path: 'compile',
+        loadChildren: () => import('./compile/compile.module').then((m) => m.CompileModule) },
+      {
+        path: '**',
+        redirectTo: 'compile',
+      },
+    ],
+  },
+];
 
 @NgModule({
   declarations: [HomeComponent],
-  imports: [HomeRoutingModule, SharedModule],
+  imports: [RouterModule.forChild(routes), CommonModule],
 })
 export class HomeModule {
 }

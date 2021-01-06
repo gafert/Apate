@@ -8,9 +8,12 @@ import {HttpClientModule} from '@angular/common/http';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {SettingsComponent} from './settings/settings.component';
-import {SharedModule} from './components/shared/shared.module';
+import {SettingComponent} from "./components/setting/setting.component";
+import {ActionButtonModule} from "./components/action-button/action-button.module";
+import {CommonModule} from "@angular/common";
 import {popperVariation, TippyModule, withContextMenuVariation} from "@ngneat/helipopper";
 import {Props} from "tippy.js";
+import {FormsModule} from "@angular/forms";
 
 const tooltipVariation1: Partial<Props> = {
   theme: 'light',
@@ -21,17 +24,15 @@ const tooltipVariation1: Partial<Props> = {
 };
 
 @NgModule({
-  declarations: [AppComponent, SettingsComponent],
-  imports: [BrowserModule, BrowserAnimationsModule, HttpClientModule, AppRoutingModule,
-    SharedModule.forRoot(),
-    TippyModule.forRoot({
-      defaultVariation: 'tooltip',
-      variations: {
-        tooltip: tooltipVariation1,
-        popper: popperVariation,
-        contextMenu: withContextMenuVariation(popperVariation),
-      }
-    })],
+  declarations: [AppComponent],
+  imports: [CommonModule, BrowserModule, BrowserAnimationsModule, FormsModule, HttpClientModule, AppRoutingModule, TippyModule.forRoot({
+    defaultVariation: 'tooltip',
+    variations: {
+      tooltip: tooltipVariation1,
+      popper: popperVariation,
+      contextMenu: withContextMenuVariation(popperVariation),
+    }
+  })],
   providers: [],
   bootstrap: [AppComponent],
   exports: []
