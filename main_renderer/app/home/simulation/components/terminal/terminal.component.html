@@ -1,4 +1,18 @@
+<ng-template #terminalInfo>
+  <strong>Registers</strong><br>
+  Data written to the address 23456 will not be written to the memory but instead passed to this terminal.
+  <br><br>
+  C example code to print character 'x' to this terminal:<br>
+  <span style="font-family: 'Roboto Mono', monospace">
+    (*((volatile uint32_t *) <span style="color: #572f9d">23456</span>)) = <span style="color: #005375">'x'</span>;
+  </span>
+</ng-template>
+
 <div class="grid-container">
-  <div class="grid-container--header">Terminal</div>
+  <div class="grid-container--header">
+    <div style="width: fit-content" [tippy]="terminalInfo">
+      Terminal<i class="fas fa-question-circle" style="margin-left: 0.5em"></i>
+    </div>
+  </div>
   <div class="grid-container--content" style="white-space: pre-wrap; padding: 0.3em">{{terminal}}</div>
 </div>
