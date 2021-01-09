@@ -1,23 +1,72 @@
+<ng-template #memoryInfo>
+  <strong>Memory</strong><br>
+  The internal instruction and data memory. The memory is {{memory.length}} bytes long.<br><br>
+  The Stack Pointer (sp, Register 2) is set at the beginning of the program to the highest memory address.
+  All memory locations will be relative to this first location. Entering a function the stack pointer will change.<br><br>
+  <img src="./assets/memory_map.svg" style="width: 100%">
+</ng-template>
+
+<ng-template #addressTooltip let-addr="data">
+  <strong>Address</strong><br>
+  <table style="border-spacing: 0">
+    <tr>
+      <td>as hex:</td>
+      <td>{{byteToHex(addr, 2)}}
+    </tr>
+    <tr>
+      <td>as decimal:</td>
+      <td>{{addr}}</td>
+    </tr>
+  </table>
+</ng-template>
+
+<ng-template #dataTooltip let-data="data">
+  <strong>Data</strong><br>
+  <table style="border-spacing: 0">
+    <tr>
+      <td>as hex:</td>
+      <td>{{byteToHex(data, 8)}}
+    </tr>
+    <tr>
+      <td>as decimal:</td>
+      <td>{{data}}</td>
+    </tr>
+  </table>
+</ng-template>
+
 <div class="grid-container">
   <div class="resizer" (mousedown)="resizerClick($event)"></div>
   <div class="grid-container--header" style="display: flex; justify-content: left">
-    <div>Memory</div>
+    <div style="width: fit-content" [tippy]="memoryInfo" placement="bottom" maxWidth="20em">Memory<i class="fas fa-question-circle" style="margin-left: 0.5em"></i></div>
   </div>
-  <div class="grid-container--content">
-    <div style="overflow: scroll; margin: 0.5em">
-      <table style="font-size: 1em; font-family: 'Roboto Mono'; border-spacing: 0" *ngIf="memory; else noloadedmemory">
+  <div class="grid-container--content" style="overflow: hidden; display: flex; flex-direction: column">
+    <div style="margin: 0.5em">
+      <mat-checkbox [(ngModel)]="addressAsDecimal">Address as decimal</mat-checkbox><br>
+      <mat-checkbox [(ngModel)]="dataAsDecimal">Data as decimal</mat-checkbox>
+    </div>
+    <div style="overflow: scroll;">
+      <table class="memory-table" *ngIf="memory; else noloadedmemory">
+        <tr>
+          <th class="header-address">Addr.</th>
+          <th class="separator"></th>
+          <th class="header-data">Data</th>
+          <th class="separator"></th>
+          <th class="header-ascii">ASCII</th>
+        </tr>
         <tr *ngFor="let i of range(0, memory.length-1, bytesInLine);">
-          <td style="padding-right: 0.5em; padding-bottom: 0; padding-top: 0;">{{byteToHex(i, 2)}}</td>
-          <td style="padding-right: 0.5em;padding-bottom: 0; padding-top: 0;">{{i}}</td>
-          <td style="padding-right: 0.1em;padding-bottom: 0; padding-top: 0;">|</td>
-          <td style="display: flex;padding-bottom: 0; padding-top: 0;">
-            <div style="display: flex; padding-left: 0.4em" *ngFor="let r of range(0, bytesInLine-1, 4)">
-              <app-memory-cell style="margin-left: 0.2em" *ngFor="let a of range(0, 4-1, 1)"
-                               [cellIndex]="r + i + a" [cellValue]="memory[r + i + a]"></app-memory-cell>
-            </div>
-          </td>
-          <td style="padding: 0 0.5em;">|</td>
-          <td style="display: flex; white-space: nowrap;padding-bottom: 0; padding-top: 0;">
+          <td *ngIf="!addressAsDecimal" class="address" [tippy]="addressTooltip" [data]="i">{{byteToHex(i, 2)}}</td>
+          <td *ngIf="addressAsDecimal" class="address" [tippy]="addressTooltip" [data]="i">{{i}}</td>
+          <td class="separator"></td>
+          <ng-container *ngIf="!dataAsDecimal">
+            <td style="display: flex;"  class="data-hex" >
+              <div style="display: flex;" *ngFor="let r of range(0, bytesInLine-1, 4)" [tippy]="dataTooltip" [data]="read4BytesLittleEndian(memory, i)">
+                <div *ngFor="let a of range(0, 4-1, 1)" [style]="a !== 0 ? 'margin-left: 0.2em' : ''" >{{byteToHex(memory[r + i + a], 2)}}</div>
+              </div>
+            </td>
+          </ng-container>
+          <td *ngIf="dataAsDecimal" class="data-decimal">{{read4BytesLittleEndian(memory, i)}}</td>
+          <td class="separator"></td>
+          <td class="data-ascii">
             <ng-container *ngFor="let r of range(0, bytesInLine-1, 1)">
               <ng-container
                 *ngVar="memory[r + i] as m">{{m > 31 && m < 127 ? String.fromCharCode(m) : '.'}}</ng-container>

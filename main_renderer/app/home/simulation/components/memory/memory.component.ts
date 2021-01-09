@@ -14,10 +14,13 @@ export class MemoryComponent implements OnInit, OnDestroy {
   public String = String;
   public range = range;
   public memory;
-  public bytesInLine = 24;
+  public bytesInLine = 4;
 
   private ngUnsubscribe = new Subject();
   private onResizer = false;
+
+  public addressAsDecimal = false;
+  public dataAsDecimal = false;
 
   constructor(private el: ElementRef, private cpu: CPUService) {
     cpu.bindings.memory.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
@@ -51,5 +54,12 @@ export class MemoryComponent implements OnInit, OnDestroy {
 
   resizerClick(e) {
     this.onResizer = true;
+  }
+
+  read4BytesLittleEndian(data, location) {
+    return data[location + 3] * 256 * 256 * 256
+      + data[location + 2] * 256 * 256
+      + data[location + 1] * 256
+      + data[location + 0];
   }
 }

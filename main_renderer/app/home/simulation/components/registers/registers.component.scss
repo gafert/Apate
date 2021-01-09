@@ -61,14 +61,17 @@ $registerColors: (
 
   td:nth-last-child(2) {
     text-align: right;
+    font-family: 'Roboto Mono', monospace;
   }
 
   td:nth-last-child(1) {
     text-align: center;
+    font-family: 'Roboto Mono', monospace;
   }
 
   th {
     border-bottom: $border;
     line-height: 1.5em;
+    background-color: $grey2;
   }
 }

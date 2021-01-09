@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="169" height="300" viewBox="0 0 169 300">
+  <defs>
+    <clipPath id="clip-memory_map">
+      <rect width="169" height="300"/>
+    </clipPath>
+  </defs>
+  <g id="memory_map" clip-path="url(#clip-memory_map)">
+    <rect width="169" height="300" fill="#fff"/>
+    <rect id="Rechteck_81" data-name="Rechteck 81" width="169" height="74" transform="translate(0 165)" fill="#ebebeb"/>
+    <rect id="Rechteck_78" data-name="Rechteck 78" width="169" height="50" transform="translate(0 117)" fill="#1d1128"/>
+    <rect id="Rechteck_79" data-name="Rechteck 79" width="169" height="50" transform="translate(0 17)" fill="#6d72c3"/>
+    <rect id="Rechteck_80" data-name="Rechteck 80" width="169" height="50" transform="translate(0 233)" fill="#a695ff"/>
+    <text id="Application_Data" data-name="Application Data" transform="translate(85 40)" fill="#fff" font-size="16" font-family="Roboto-Medium, Roboto" font-weight="500"><tspan x="-59.176" y="0">Application Data</tspan></text>
+    <text id="Heap" transform="translate(85 139)" fill="#fff" font-size="16" font-family="Roboto-Medium, Roboto" font-weight="500"><tspan x="-18.809" y="0">Heap</tspan></text>
+    <text id="Stack" transform="translate(85 255)" fill="#fff" font-size="16" font-family="Roboto-Medium, Roboto" font-weight="500"><tspan x="-20.18" y="0">Stack</tspan></text>
+    <rect id="Rechteck_82" data-name="Rechteck 82" width="169" height="50" transform="translate(0 67)" fill="#5941a9"/>
+    <text id="Static_Data" data-name="Static Data" transform="translate(85 90)" fill="#fff" font-size="16" font-family="Roboto-Medium, Roboto" font-weight="500"><tspan x="-39.242" y="0">Static Data</tspan></text>
+    <g id="Gruppe_440" data-name="Gruppe 440" transform="translate(91.96 189.515) rotate(180)">
+      <path id="Pfad_500" data-name="Pfad 500" d="M0,0V11.4" transform="translate(6.468 5.127)" fill="none" stroke="#000" stroke-width="5"/>
+      <path id="Pfad_501" data-name="Pfad 501" d="M0,8.415H13.265L6.628,0Z" transform="translate(0 0)" stroke="#000" stroke-width="1"/>
+    </g>
+    <text id="Free_memory" data-name="Free memory" transform="translate(85 203)" font-size="10" font-family="Roboto-Regular, Roboto"><tspan x="-29.25" y="0">Free memory</tspan></text>
+    <text id="End_of_memory" data-name="End of memory" transform="translate(87 297)" font-size="10" font-family="Roboto-Regular, Roboto"><tspan x="-33.806" y="0">End of memory</tspan></text>
+    <text id="Start_of_memory_address_0" data-name="Start of memory address 0" transform="translate(86 10)" font-size="10" font-family="Roboto-Regular, Roboto"><tspan x="-59.292" y="0">Start of memory address 0</tspan></text>
+    <g id="Gruppe_441" data-name="Gruppe 441" transform="translate(78.695 210.953)">
+      <path id="Pfad_500-2" data-name="Pfad 500" d="M12151-79.375v11.4" transform="translate(-12144.532 84.502)" fill="none" stroke="#000" stroke-width="5"/>
+      <path id="Pfad_501-2" data-name="Pfad 501" d="M12144.922-73.48h13.266l-6.639-8.415Z" transform="translate(-12144.922 81.894)" stroke="#000" stroke-width="1"/>
+    </g>
+    <text id="_.text" data-name=".text" transform="translate(85 57)" fill="#fff" font-size="10" font-family="Roboto-Regular, Roboto"><tspan x="-9.709" y="0">.text</tspan></text>
+    <text id="_.bss_.data" data-name=".bss .data" transform="translate(85 108)" fill="#fff" font-size="10" font-family="Roboto-Regular, Roboto"><tspan x="-21.724" y="0">.bss .data</tspan></text>
+    <text id="malloc_" data-name="malloc()" transform="translate(85 157)" fill="#fff" font-size="10" font-family="Roboto-Regular, Roboto"><tspan x="-18.445" y="0">malloc()</tspan></text>
+    <text id="local_variables" data-name="local variables" transform="translate(85 272)" fill="#fff" font-size="10" font-family="Roboto-Regular, Roboto"><tspan x="-31.829" y="0">local variables</tspan></text>
+  </g>
+</svg>

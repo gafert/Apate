@@ -17,6 +17,8 @@ import {VerticalTabsComponent} from "../../components/vertical-tabs/vertical-tab
 import {VerticalTabsItemComponent} from "../../components/vertical-tabs-item/vertical-tabs-item.component";
 import {VarDirective} from "../../components/ngVar.directive";
 import {ActionButtonModule} from "../../components/action-button/action-button.module";
+import {FormsModule} from "@angular/forms";
+import {ScrollingModule} from "@angular/cdk/scrolling";
 
 @NgModule({
   declarations: [
@@ -31,7 +33,7 @@ import {ActionButtonModule} from "../../components/action-button/action-button.m
     SignalsComponent, VerticalTabsComponent, VerticalTabsItemComponent, VarDirective
   ],
   imports: [CommonModule, SimulationRoutingModule, MatCheckboxModule, TippyModule,
-    ActionButtonModule],
+    ActionButtonModule, FormsModule, ScrollingModule],
   providers: [],
 })
 export class SimulationModule {
