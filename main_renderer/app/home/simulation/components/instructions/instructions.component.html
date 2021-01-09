@@ -14,7 +14,7 @@
       Instructions<i class="fas fa-question-circle" style="margin-left: 0.5em"></i>
     </div>
   </div>
-  <div class="grid-container--content" #scrollContainer>
+  <div class="grid-container--content">
     <div *ngIf="!parsedElf" style="text-align: left; width: 90%; margin: auto; margin-top: 1em">
       Currently no ELF loaded. Please initiate first.
       <br><br>
@@ -22,24 +22,22 @@
       <br>
       <i class="fas fa-exclamation-triangle warning-symbol"></i>
     </div>
-    <ng-container *ngIf="parsedElf">
-      <ng-container *ngFor="let section of parsedElf.section_headers">
-        <div *ngIf="isSHFExecInstr(section.sh_flags)" class="small-rounded-container grey2">
-          {{section.name}}
-          <div *ngFor="let symbol of section.symbols" class="small-rounded-container grey3">
-            <div class="symbol-header">
-              {{symbol.name}}
-              <div class="text-rounded-container grey2 mono">{{byteToHex(symbol.st_value, 8)}}</div>
-            </div>
-            <ng-container *ngFor="let instruction of symbol.instructions">
-              <ng-container
-                *ngTemplateOutlet="instruction_template; context: { instruction: instruction, info: getInfoOfInstruction(instruction.instructionName)}">
-              </ng-container>
-            </ng-container>
-          </div>
+    <virtual-scroller #scroll [items]="optimizedInstructionList" *ngIf="parsedElf" style="width: 100%; height: 100%"
+                      [enableUnequalChildrenSizes]="true">
+      <div *ngFor="let listElement of scroll.viewPortItems">
+        <ng-container *ngIf="listElement.instruction">
+          <ng-container
+            *ngTemplateOutlet="instruction_template; context: { instruction: listElement.instruction, info: getInfoOfInstruction(listElement.instruction.instructionName)}">
+          </ng-container>
+        </ng-container>
+        <div *ngIf="listElement.symbol" class="small-edged-container grey3">
+          Symbol {{listElement.symbol.name}}
         </div>
-      </ng-container>
-    </ng-container>
+        <div *ngIf="listElement.section" class="small-edged-container grey3">
+          Section {{listElement.section.name}}
+        </div>
+      </div>
+    </virtual-scroller>
   </div>
 </div>
 
@@ -78,22 +76,22 @@
 </ng-template>
 
 <ng-template #instruction_template let-instruction="instruction" let-info="info">
-  <div id="assembly-code-div-{{instruction.pc}}"
-       [data]="instruction"
-       [tippy]="contextMenu"
-       class="small-rounded-container grey2"
-       variation="contextMenu">
-    <div style="display: flex; justify-content: space-between; align-items: center;"
-         (click)="expandInfo(instruction.pc)">
-      <div class="text-rounded-container mono" id="assembly-code-div-pc-{{instruction.pc}}"
-           tippy="Program Counter (PC) of the instruction" maxWidth="20em">{{instruction.pc}}</div>
-      <div style="flex-grow: 1; padding-left: 0.5em"
-           ><span tippy="Click to show more">{{info ? info.name : instruction.instructionName }}</span></div>
-      <div id="assembly-code-div-hex-{{instruction.pc}}"
-           class="text-rounded-container mono" [tippy]="rawInstruction" maxWidth="30em"
+  <div
+    [data]="instruction"
+    [tippy]="contextMenu"
+    class="grey2 instruction-container"
+    [class.active]="instruction.active"
+    [class.was-active]="instruction.wasActive"
+    variation="contextMenu">
+    <div style="display: flex; justify-content: space-between; align-items: center;" (click)="expandInfo(instruction)">
+      <div class="text-rounded-container mono pc" tippy="Program Counter (PC) of the instruction"
+           maxWidth="20em">{{instruction.pc}}</div>
+      <div style="flex-grow: 1; padding-left: 0.5em"><span
+        tippy="Click to show more">{{info ? info.name : instruction.instructionName }}</span></div>
+      <div class="text-rounded-container mono raw-instruction" [tippy]="rawInstruction" maxWidth="30em"
            [data]="instruction">{{byteToHex(instruction.unparsedInstruction, 8)}}</div>
     </div>
-    <div *ngIf="info" id="assembly-info-div-{{instruction.pc}}" class="assembly-info">
+    <div *ngIf="info && instruction.infoExpanded" class="assembly-info" [@infoAnimation]>
       <div class="desc">{{info.desc}}</div>
       <div class="formula">{{info.formula}}</div>
       <ng-container *ngIf="info.rs1 || info.rs2 || info.imm || info.rd">

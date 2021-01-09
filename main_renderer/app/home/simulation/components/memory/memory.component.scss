@@ -9,14 +9,19 @@
   margin: -5px;
 }
 
+.virtual-scroller {
+  height: 100%;
+  width: 100%;
+}
+
 .memory-table {
   font-size: 1em;
   border-spacing: 0;
   width: 100%;
 
   th {
-    position: sticky;
-    top: 0;
+    // position: sticky;
+    // top: 0;
     border-bottom: $border;
     border-top: $border;
     background-color: $grey2;
@@ -44,13 +49,11 @@
   }
 
   .data-hex {
-    justify-content: center;
+    text-align: center;
   }
 
   .data-ascii {
-    display: flex;
-    white-space: nowrap;
-    justify-content: center;
+    text-align: center;
   }
 
   .address {

@@ -2,83 +2,48 @@
   <strong>Memory</strong><br>
   The internal instruction and data memory. The memory is {{memory.length}} bytes long.<br><br>
   The Stack Pointer (sp, Register 2) is set at the beginning of the program to the highest memory address.
-  All memory locations will be relative to this first location. Entering a function the stack pointer will change.<br><br>
+  All memory locations will be relative to this first location. Entering a function the stack pointer will
+  change.<br><br>
   <img src="./assets/memory_map.svg" style="width: 100%">
 </ng-template>
 
-<ng-template #addressTooltip let-addr="data">
-  <strong>Address</strong><br>
-  <table style="border-spacing: 0">
-    <tr>
-      <td>as hex:</td>
-      <td>{{byteToHex(addr, 2)}}
-    </tr>
-    <tr>
-      <td>as decimal:</td>
-      <td>{{addr}}</td>
-    </tr>
-  </table>
-</ng-template>
-
-<ng-template #dataTooltip let-data="data">
-  <strong>Data</strong><br>
-  <table style="border-spacing: 0">
-    <tr>
-      <td>as hex:</td>
-      <td>{{byteToHex(data, 8)}}
-    </tr>
-    <tr>
-      <td>as decimal:</td>
-      <td>{{data}}</td>
-    </tr>
-  </table>
-</ng-template>
-
 <div class="grid-container">
-  <div class="resizer" (mousedown)="resizerClick($event)"></div>
   <div class="grid-container--header" style="display: flex; justify-content: left">
-    <div style="width: fit-content" [tippy]="memoryInfo" placement="bottom" maxWidth="20em">Memory<i class="fas fa-question-circle" style="margin-left: 0.5em"></i></div>
+    <div style="width: fit-content" [tippy]="memoryInfo" placement="bottom" maxWidth="20em">Memory<i
+      class="fas fa-question-circle" style="margin-left: 0.5em"></i></div>
   </div>
   <div class="grid-container--content" style="overflow: hidden; display: flex; flex-direction: column">
     <div style="margin: 0.5em">
-      <mat-checkbox [(ngModel)]="addressAsDecimal">Address as decimal</mat-checkbox><br>
+      <mat-checkbox [(ngModel)]="addressAsDecimal">Address as decimal</mat-checkbox>
+      <br>
       <mat-checkbox [(ngModel)]="dataAsDecimal">Data as decimal</mat-checkbox>
     </div>
-    <div style="overflow: scroll;">
-      <table class="memory-table" *ngIf="memory; else noloadedmemory">
-        <tr>
-          <th class="header-address">Addr.</th>
-          <th class="separator"></th>
-          <th class="header-data">Data</th>
-          <th class="separator"></th>
-          <th class="header-ascii">ASCII</th>
-        </tr>
-        <tr *ngFor="let i of range(0, memory.length-1, bytesInLine);">
-          <td *ngIf="!addressAsDecimal" class="address" [tippy]="addressTooltip" [data]="i">{{byteToHex(i, 2)}}</td>
-          <td *ngIf="addressAsDecimal" class="address" [tippy]="addressTooltip" [data]="i">{{i}}</td>
+    <virtual-scroller #scroll [items]="memoryElements" *ngIf="memory; else noloadedmemory" class="virtual-scroller">
+      <table class="memory-table">
+        <thead #header>
+        <th class="header-address">Addr.</th>
+        <th class="separator"></th>
+        <th class="header-data">Data</th>
+        <th class="separator"></th>
+        <th class="header-ascii">ASCII</th>
+        </thead>
+        <tbody #container>
+        <tr *ngFor="let i of scroll.viewPortItems">
+          <td *ngIf="!addressAsDecimal" class="address">{{byteToHex(i, 2)}}</td>
+          <td *ngIf="addressAsDecimal" class="address">{{i}}</td>
           <td class="separator"></td>
-          <ng-container *ngIf="!dataAsDecimal">
-            <td style="display: flex;"  class="data-hex" >
-              <div style="display: flex;" *ngFor="let r of range(0, bytesInLine-1, 4)" [tippy]="dataTooltip" [data]="read4BytesLittleEndian(memory, i)">
-                <div *ngFor="let a of range(0, 4-1, 1)" [style]="a !== 0 ? 'margin-left: 0.2em' : ''" >{{byteToHex(memory[r + i + a], 2)}}</div>
-              </div>
-            </td>
-          </ng-container>
+          <td *ngIf="!dataAsDecimal" class="data-hex" >{{get4BytesHex(memory, i)}}</td>
           <td *ngIf="dataAsDecimal" class="data-decimal">{{read4BytesLittleEndian(memory, i)}}</td>
           <td class="separator"></td>
-          <td class="data-ascii">
-            <ng-container *ngFor="let r of range(0, bytesInLine-1, 1)">
-              <ng-container
-                *ngVar="memory[r + i] as m">{{m > 31 && m < 127 ? String.fromCharCode(m) : '.'}}</ng-container>
-            </ng-container>
-          </td>
+          <td class="data-ascii">{{get4BytesAscii(memory, i)}}</td>
         </tr>
+        </tbody>
       </table>
-      <ng-template #noloadedmemory>
-        <div style="text-align: center; width: 100%; margin-top: 1em">
-          Memory not loaded. Initiate the simulation.
-        </div>
-      </ng-template>
-    </div>
+    </virtual-scroller>
+    <ng-template #noloadedmemory>
+      <div style="text-align: center; width: 100%; margin-top: 1em">
+        Memory not loaded. Initiate the simulation.
+      </div>
+    </ng-template>
   </div>
 </div>

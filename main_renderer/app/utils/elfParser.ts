@@ -38,7 +38,7 @@ export interface ElfSymbol {
   name: string;
 }
 
-export interface SectionHeader {
+export interface ELFSectionHeader {
   name: string;
   sh_name: number;
   sh_type: number;
@@ -70,7 +70,7 @@ export interface ELF {
   /** Program memory */
   program: Buffer;
   /** Section Headers */
-  section_headers: SectionHeader[];
+  section_headers: ELFSectionHeader[];
   /** Symbols */
   symbols: ElfSymbol[];
 }
@@ -129,7 +129,7 @@ export function parseElf(elf: Buffer): ELF {
 
   for (let i = 0; i < parsedElf.e_shnum; i++) {
     // @ts-ignore
-    const sectionHeader: SectionHeader = {};
+    const sectionHeader: ELFSectionHeader = {};
     sectionHeader.sh_name = read4BytesLittleEndian(elf, parsedElf.e_shoff + parsedElf.e_shentsize * i);
     sectionHeader.sh_type = read4BytesLittleEndian(elf, parsedElf.e_shoff + parsedElf.e_shentsize * i + 0x04);
     sectionHeader.sh_offset = read4BytesLittleEndian(elf, parsedElf.e_shoff + parsedElf.e_shentsize * i + 0x10);

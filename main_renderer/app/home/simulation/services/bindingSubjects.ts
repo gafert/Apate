@@ -10,6 +10,8 @@
 import {BehaviorSubject} from 'rxjs';
 import {Instruction} from '../../../utils/instructionParser';
 
+export const MEMORY_SIZE = 1024 * 5;
+
 export enum CPU_STATES {
   FETCH = 'fetch',
   DECODE_INSTRUCTION = 'decode',
@@ -31,7 +33,7 @@ export const CPU_STATE_NAMES = {
 export class Bindings {
   public bufferWriteCallbacks = [];
   // Memory
-  public memory = new BehaviorSubject(Buffer.alloc(512, 0));
+  public memory = new BehaviorSubject(Buffer.alloc(MEMORY_SIZE, 0));
   // Registers
   public cpuregs = new BehaviorSubject<number[]>(new Array(32).fill(0));
   // Data path
@@ -160,7 +162,7 @@ export class Bindings {
     // @ts-ignore
     Object.values(this.allValues).forEach((value) => value.next(null));
     this.cpuregs.next(new Array(32).fill(0));
-    this.memory.next(Buffer.alloc(512, 0));
+    this.memory.next(Buffer.alloc(MEMORY_SIZE, 0));
   }
 
 

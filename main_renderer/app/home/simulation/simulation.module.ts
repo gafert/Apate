@@ -18,7 +18,7 @@ import {VerticalTabsItemComponent} from "../../components/vertical-tabs-item/ver
 import {VarDirective} from "../../components/ngVar.directive";
 import {ActionButtonModule} from "../../components/action-button/action-button.module";
 import {FormsModule} from "@angular/forms";
-import {ScrollingModule} from "@angular/cdk/scrolling";
+import { VirtualScrollerModule } from 'ngx-virtual-scroller';
 
 @NgModule({
   declarations: [
@@ -33,7 +33,7 @@ import {ScrollingModule} from "@angular/cdk/scrolling";
     SignalsComponent, VerticalTabsComponent, VerticalTabsItemComponent, VarDirective
   ],
   imports: [CommonModule, SimulationRoutingModule, MatCheckboxModule, TippyModule,
-    ActionButtonModule, FormsModule, ScrollingModule],
+    ActionButtonModule, FormsModule, VirtualScrollerModule],
   providers: [],
 })
 export class SimulationModule {

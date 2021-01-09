@@ -8,16 +8,9 @@
   border-bottom: $border;
 }
 
-::ng-deep .assembly-info-open {
-  max-height: 500px !important;
-  transition: max-height 1s !important;
-  margin-bottom: 0.1em;
-}
-
 .assembly-info {
-  max-height: 0;
   overflow: hidden;
-  transition: max-height 0.2s;
+
   table {
     border-collapse: collapse;
   }
@@ -28,7 +21,7 @@
     font-size: large;
 
     &::before {
-      content:"";
+      content: "";
       display: block;
       height: 1px;
       vertical-align: bottom;
@@ -51,6 +44,29 @@
   .data-value {
     font-style: italic;
     padding: 0;
+  }
+}
+
+.instruction-container {
+  margin: 0.3em;
+  padding: 0.3em;
+
+  &.was-active {
+    background-color: $accentDark;
+
+    .raw-instruction, .pc {
+      background-color: $accent;
+      border-color: $accent;
+    }
+  }
+
+  &.active {
+    background-color: $accent;
+
+    .raw-instruction, .pc {
+      background-color: $accentDark;
+      border-color: $accentDark;
+    }
   }
 }
 

@@ -1,5 +1,3 @@
-export const MEMORY_SIZE = 512;
-
 export function byteToBinary(num: number, padding: number, bitsInAChunk = 8) {
   if (!num) {
     num = 0;

@@ -1,49 +1,56 @@
 import {AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {byteToHex, byteToBinary} from '../../../../globals';
-import * as d3 from 'd3';
-import {animate, easeInOut, easeOut} from 'popmotion';
-import styler from 'stylefire';
-import {readStyleProperty} from '../../../../utils/helper';
-import {ELF, SHF_CONSTANTS} from '../../../../utils/elfParser';
-import {INSTRUCTIONS_DESCRIPTIONS} from '../../../../utils/instructionParser';
+import {ELF, ElfSymbol, ELFSectionHeader, SHF_CONSTANTS} from '../../../../utils/elfParser';
+import {Instruction, INSTRUCTIONS_DESCRIPTIONS} from '../../../../utils/instructionParser';
 import {CPUService} from "../../services/cpu.service";
 import {GraphService} from "../../services/graph.service";
+import {VirtualScrollerComponent} from "ngx-virtual-scroller";
+import {style, transition, trigger, animate} from "@angular/animations";
 
-class Assembly {
-  opcode: string;
-  hex: string;
-  pc: number;
-}
-
-class SectionSymbol {
-  name?: string;
-  hex?: string;
-  code?: {
-    code?: string;
-    line?: number;
-    file?: string;
-    assembly?: Assembly[] | Assembly;
-  }[];
-}
-
-class Section {
-  name: string;
-  symbols: SectionSymbol[];
+interface OptimizedList {
+  instruction?: Instruction;
+  section?: ELFSectionHeader;
+  symbol?: ElfSymbol;
 }
 
 @Component({
   selector: 'app-instructions',
   templateUrl: './instructions.component.html',
-  styleUrls: ['./instructions.component.scss']
+  styleUrls: ['./instructions.component.scss'],
+  animations: [
+    trigger(
+      'infoAnimation',
+      [
+        transition(
+          ':enter',
+          [
+            style({ maxHeight: 0 }),
+            animate('1s ease-out',
+              style({ maxHeight: 500 }))
+          ]
+        ),
+        transition(
+          ':leave',
+          [
+            style({ maxHeight: 500 }),
+            animate('0.5s ease-out',
+              style({ maxHeight: 0 }))
+          ]
+        )
+      ]
+    )
+  ]
 })
 export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   public readonly byteToHex = byteToHex;
   public readonly byteToBinary = byteToBinary;
 
-  @ViewChild('scrollContainer') scrollContainer;
+  @ViewChild(VirtualScrollerComponent) private virtualScroller: VirtualScrollerComponent;
 
   @Input() public programCounter;
   @Input() public parsedElf: ELF;
+
+  public optimizedInstructionList: OptimizedList[] = [];
 
   constructor(public cpu: CPUService, public graphService: GraphService) {
     console.log(this);
@@ -60,10 +67,29 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.programCounter)
+    if (changes.programCounter) {
       if (changes.programCounter.currentValue !== changes.programCounter.previousValue) {
         this.setInstructionColor(changes.programCounter.previousValue, changes.programCounter.currentValue);
       }
+    }
+    if (changes.parsedElf?.currentValue) {
+      this.optimizedInstructionList = [];
+      for (const sectionHeader of this.parsedElf.section_headers) {
+        if (this.isSHFExecInstr(sectionHeader.sh_flags)) {
+          this.optimizedInstructionList.push({section: sectionHeader});
+          if (sectionHeader?.symbols) {
+            for (const symbol of sectionHeader.symbols) {
+              this.optimizedInstructionList.push({symbol: symbol});
+              if (symbol?.instructions) {
+                for (const instruction of symbol.instructions) {
+                  this.optimizedInstructionList.push({instruction: instruction});
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   reload() {
@@ -74,13 +100,8 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
     }, 100);
   }
 
-  expandInfo(pc) {
-    const infoElement = document.getElementById('assembly-info-div-' + pc);
-    if (infoElement.classList.contains('assembly-info-open')) {
-      infoElement.classList.remove('assembly-info-open');
-    } else {
-      infoElement.classList.add('assembly-info-open');
-    }
+  expandInfo(instruction: Instruction) {
+    (instruction as any).infoExpanded = !(instruction as any).infoExpanded;
   }
 
   getInfoOfInstruction(instructionName) {
@@ -101,56 +122,24 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   scrollToPc(pc) {
-    if(!pc) return;
-    const offestTop =  document.getElementById('assembly-code-div-' + pc).offsetTop;
-
-    // instant scroll
-    // this.scrollContainer.nativeElement.scrollTop = offestTop - this.scrollContainer.nativeElement.offsetHeight / 2;
-
-    animate({
-      from:  this.scrollContainer.nativeElement.scrollTop,
-      to: offestTop - this.scrollContainer.nativeElement.offsetHeight / 2,
-      ease: easeInOut,
-      duration: 200,
-      onUpdate: (v) =>  this.scrollContainer.nativeElement.scrollTop = v
-    });
+    if (!pc) return;
+    const elements = this.optimizedInstructionList.filter((e) => e.instruction?.pc == pc)
+    if (elements.length > 0)
+      this.virtualScroller.scrollInto(elements[0]);
   }
 
   private setInstructionColor(oldPC, newPC) {
     this.scrollToPc(newPC);
-    // Change colors accordingly
-    const oldAssemblyDiv = document.getElementById('assembly-code-div-' + oldPC);
-    if (oldAssemblyDiv) {
-      const oldAssemblyStyler = styler(oldAssemblyDiv);
-      animate({
-        from: {backgroundColor: oldAssemblyStyler.get('background-color')},
-        to: {backgroundColor: readStyleProperty('accent-dark')},
-        ease: easeOut,
-        duration: 500,
-        onUpdate: (v) => oldAssemblyStyler.set(v)
-      });
+    const elementsOld = this.optimizedInstructionList.filter((e) => e.instruction?.pc == oldPC)
+    if (elementsOld.length > 0) {
+      (elementsOld[0].instruction as any).wasActive = true;
+      (elementsOld[0].instruction as any).active = false;
     }
-    const oldAssemblyPcDiv = document.getElementById('assembly-code-div-pc-' + oldPC);
-    const oldAssemblyHexDiv = document.getElementById('assembly-code-div-hex-' + oldPC);
-    if (oldAssemblyPcDiv && oldAssemblyHexDiv) {
-      const oldAssemblyPcStyler = styler(oldAssemblyPcDiv);
-      const oldAssemblyHexStyler = styler(oldAssemblyHexDiv);
-      animate({
-        from: {backgroundColor: oldAssemblyPcStyler.get('background-color')},
-        to: {backgroundColor: readStyleProperty('accent')},
-        ease: easeOut,
-        duration: 500,
-        onUpdate: (v) => {
-          oldAssemblyPcStyler.set(v);
-          oldAssemblyHexStyler.set(v);
-        }
-      });
+
+    const elementsNew = this.optimizedInstructionList.filter((e) => e.instruction?.pc == newPC);
+    if (elementsNew.length > 0) {
+      (elementsNew[0].instruction as any).wasActive = false;
+      (elementsNew[0].instruction as any).active = true;
     }
-    d3.select('#assembly-code-div-' + newPC).style('background', readStyleProperty('accent'));
-    d3.select('#assembly-code-div-' + newPC).style('border-color', 'transparent');
-    d3.select('#assembly-code-div-pc-' + newPC).style('background', readStyleProperty('accent-dark'));
-    d3.select('#assembly-code-div-pc-' + newPC).style('border-color', 'transparent');
-    d3.select('#assembly-code-div-hex-' + newPC).style('background', readStyleProperty('accent-dark'));
-    d3.select('#assembly-code-div-hex-' + newPC).style('border-color', 'transparent');
   }
 }

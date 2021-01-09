@@ -121,6 +121,12 @@ button {
   padding: 0.3em;
 }
 
+.small-edged-container {
+  border: $border;
+  margin: 0.3em;
+  padding: 0.3em;
+}
+
 .text-rounded-container {
   border-radius: 1em;
   border: $border;

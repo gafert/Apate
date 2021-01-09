@@ -8,6 +8,7 @@ import { takeUntil } from 'rxjs/operators';
 import { CodemirrorComponent } from '@ctrl/ngx-codemirror';
 import { DataKeys, DataService } from '../../services/data.service';
 import Timeout = NodeJS.Timeout;
+import {EditorConfiguration} from "codemirror";
 
 declare let CodeMirror: any;
 
@@ -45,11 +46,13 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   /** The file which is selected but its content is not yet displayed */
   public selectedFile;
   /** The default settings the editor uses. Changes in these allValues to not affect the editor */
-  public editorOptions = {
+  public editorOptions: EditorConfiguration = {
     lineNumbers: true,
     theme: 'dracula',
     mode: 'clike',
-    readOnly: false
+    readOnly: false,
+    inputStyle: 'contenteditable',
+    pasteLinesPerSelection: true
   };
   /** Holds the editor so settings can be changed */
   public fileContent = '';
