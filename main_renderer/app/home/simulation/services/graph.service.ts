@@ -161,6 +161,8 @@ export class GraphService {
         if (document.readyState !== 'loading') this.render();
         else window.addEventListener('DOMContentLoaded', this.render.bind(this));
 
+        window.addEventListener('mousedown', this.checkClickOnElement.bind(this))
+
         // Split areas in world and focusElement on the first
         // This needs to be away from initiateObjects
         // this.separateAreas();
@@ -332,6 +334,10 @@ export class GraphService {
     return backgroundMesh;
   }
 
+  /**
+   * Handle intersections with mouse
+   * @private
+   */
   private handleIntersection() {
     // Intersection
     this.raycaster.setFromCamera(this.centeredMouse, this.camera);
@@ -347,8 +353,6 @@ export class GraphService {
     };
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0) {
-      // console.log(intersects);
-
       const getName = (i) => {
         if (i?.parent?.parent?.name?.startsWith('p_')) return { name: i.parent.parent.name, type: 'p' };
         if (i?.parent?.parent?.name?.startsWith('m_')) return { name: i.parent.parent.name, type: 'm' };
@@ -437,6 +441,12 @@ export class GraphService {
       }
     } else {
       removeTooltip();
+    }
+  }
+
+  private checkClickOnElement() {
+    if(this.intersectedElement) {
+      console.log('clicked', this.intersectedElement);
     }
   }
 
