@@ -125,7 +125,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
     if (!pc) return;
     const elements = this.optimizedInstructionList.filter((e) => e.instruction?.pc == pc)
     if (elements.length > 0)
-      this.virtualScroller.scrollInto(elements[0]);
+      this.virtualScroller.scrollInto(elements[0], true, -100);
   }
 
   private setInstructionColor(oldPC, newPC) {

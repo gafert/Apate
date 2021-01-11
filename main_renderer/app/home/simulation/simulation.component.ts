@@ -5,7 +5,7 @@ import {byteToHex, range} from '../../globals';
 import {CPUService} from './services/cpu.service';
 import {InstructionsComponent} from './components/instructions/instructions.component';
 import {takeUntil} from 'rxjs/operators';
-import {Subject} from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import {DataKeys, DataService} from '../../services/data.service';
 import {Router} from '@angular/router';
 import {GraphService} from './services/graph.service';
@@ -30,7 +30,19 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public selectedTab: Areas = 'overview';
   // Displayed on top
   public stageName = 'Initiate the simulation';
-  public stage: CPU_STATES;
+  private _stage: CPU_STATES;
+
+  public set stage(stage: CPU_STATES) {
+    this._stage = stage;
+    this.stageSubject.next(this._stage)
+  }
+
+  public get stage() {
+    return this._stage;
+  }
+
+  public stageSubject = new BehaviorSubject<CPU_STATES>(null);
+
   // Infotext
   public info;
   private ngUnsubscribe = new Subject();

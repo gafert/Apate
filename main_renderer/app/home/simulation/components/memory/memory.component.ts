@@ -1,9 +1,12 @@
-import {AfterContentInit, AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {byteToHex, range} from '../../../../globals';
-import {CPUService} from '../../services/cpu.service';
-import {fromEvent, Subject} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
-import {CdkVirtualScrollViewport} from "@angular/cdk/scrolling";
+import { AfterViewInit, Component, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import { byteToHex, range } from '../../../../globals';
+import { CPUService } from '../../services/cpu.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
+import { INSTRUCTIONS_DESCRIPTIONS, isLOAD, isSTORE } from '../../../../utils/instructionParser';
+import { CPU_STATES } from '../../services/bindingSubjects';
+import { SimulationComponent } from '../../simulation.component';
 
 @Component({
   selector: 'app-memory',
@@ -12,24 +15,34 @@ import {CdkVirtualScrollViewport} from "@angular/cdk/scrolling";
 })
 export class MemoryComponent implements OnInit, OnDestroy, AfterViewInit {
   public byteToHex = byteToHex;
-  public String = String;
-  public range = range;
-  public ceil = Math.ceil;
-  public memory = null;
-  public bytesInLine = 4;
-
-  public memoryElements;
-
   private ngUnsubscribe = new Subject();
 
+  // Memory Buffer
+  public memory = null;
+
+  // Used by *ngFor, created here to prevent regeneration
+  public memoryElements;
+
+  // Control of values are decimal or hex
   public addressAsDecimal = false;
   public dataAsDecimal = false;
-  @ViewChild(CdkVirtualScrollViewport, {static: false}) cdkVirtualScrollViewport;
 
-  constructor(private el: ElementRef, private cpu: CPUService) {
+  // Address currently used, is null if memory is not used
+  public address = null;
+
+  // Infos of current instruction / what the memory is doing
+  public topInfo;
+  public leftInfo;
+  public rightInfo;
+
+  @ViewChild('scroll') scroll: VirtualScrollerComponent;
+
+  constructor(public cpu: CPUService, @Optional() public simulationComponent: SimulationComponent) {
     cpu.bindings.memory.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+      // Set this memory to the new value on change
       this.memory = value;
-      if(!this.memoryElements) this.memoryElements = range(0, this.memory.length, this.bytesInLine);
+      // Create memoryElements to iterate over memory in *ngFor once
+      if (!this.memoryElements) this.memoryElements = range(0, this.memory.length, 4);
     });
   }
 
@@ -43,33 +56,108 @@ export class MemoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    fromEvent(window, 'resize').subscribe(() => {
-      this.cdkVirtualScrollViewport.checkViewportSize()
-      console.log('resize');
+    // Rerun check on signal changes
+    this.simulationComponent.stageSubject.pipe(takeUntil(this.ngUnsubscribe)).subscribe((stage) => {
+      this.checkActiveMemory()
+    });
+    this.cpu.bindings.instrMemRead.pipe(takeUntil(this.ngUnsubscribe)).subscribe((stage) => {
+      this.checkActiveMemory()
+    });
+    this.cpu.bindings.memread.pipe(takeUntil(this.ngUnsubscribe)).subscribe((stage) => {
+      this.checkActiveMemory()
     });
   }
 
-
-  read4BytesLittleEndian(data, location) {
+  /**
+   * Get 4 bytes form buffer and return decimal integer representation
+   * e.g. 0x484850 -> 0d4737104
+   * @param data Memory array buffer
+   * @param location Start of the four bytes
+   */
+  read4BytesLittleEndian(data: Buffer, location) {
     return data[location + 3] * 256 * 256 * 256
       + data[location + 2] * 256 * 256
       + data[location + 1] * 256
       + data[location + 0];
   }
 
-  get4BytesHex(data, location) {
-    let s = byteToHex(data[location + 3], 2) + " ";
-    s += byteToHex(data[location + 2], 2) + " ";
-    s += byteToHex(data[location + 1], 2) + " ";
-    s += byteToHex(data[location], 2)
+  /**
+   * Get 4 bytes form buffer and display as hex string with space between.
+   * e.g. 0x484850 -> "48 49 50"
+   * @param data Memory array buffer
+   * @param location Start of the four bytes
+   */
+  get4BytesHex(data: Buffer, location) {
+    let s = byteToHex(data[location + 3], 2) + ' ';
+    s += byteToHex(data[location + 2], 2) + ' ';
+    s += byteToHex(data[location + 1], 2) + ' ';
+    s += byteToHex(data[location], 2);
     return s;
   }
 
-  get4BytesAscii(data, location) {
+  /**
+   * Get 4 bytes from memory and display them as ascii.
+   * e.g. 0x484950 -> "012"
+   * @param data Memory array buffer
+   * @param location Start of the four bytes
+   */
+  get4BytesAscii(data: Buffer, location) {
     let s = String.fromCharCode(data[location + 3]);
-    s += String.fromCharCode(data[location + 2])
-    s += String.fromCharCode(data[location + 1])
-    s += String.fromCharCode(data[location])
+    s += String.fromCharCode(data[location + 2]);
+    s += String.fromCharCode(data[location + 1]);
+    s += String.fromCharCode(data[location]);
     return s;
+  }
+
+  /**
+   * Check if the memory is used.
+   * If used set address, leftInfo, rightInfo, topInfo
+   */
+  checkActiveMemory() {
+    let address = null;
+    if (this.isExecStage()) {
+      if (this.isLoad()) {
+        address = this.cpu.bindings.rs1Imm.value;
+        this.leftInfo = address;
+        this.rightInfo = this.cpu.bindings.memread.value;
+        const info = INSTRUCTIONS_DESCRIPTIONS[this.cpu.bindings.instruction.value?.instructionName];
+        this.topInfo = `${info?.desc} (${info?.name})`;
+      } else if(this.isStore()) {
+        address = this.cpu.bindings.rs1Imm.value;
+        this.rightInfo = address;
+        this.leftInfo = this.cpu.bindings.rs2.value;
+        const info = INSTRUCTIONS_DESCRIPTIONS[this.cpu.bindings.instruction.value?.instructionName];
+        this.topInfo = `${info?.desc} (${info?.name})`;
+      }
+    }
+    if (this.isFetchStage()) {
+      address = this.cpu.bindings.pc.value;
+      this.leftInfo = address;
+      this.rightInfo = this.cpu.bindings.instrMemRead.value;
+      this.topInfo = 'Load instruction';
+    }
+    this.scroll.scrollInto(address, true, -100);
+    this.address = address;
+  }
+
+  isLoad() {
+    return isLOAD(this.cpu.bindings.instruction.value?.instructionName);
+  }
+
+  isStore() {
+    return isSTORE(this.cpu.bindings.instruction.value?.instructionName);
+  }
+
+  isExecStage() {
+    // Use stage of simulation and not of CPU
+    // CPU stage could be off when info is shown before the next CPU cycle is started
+    // Sometimes info of next stage need to be shown before CPU does sometging
+    // E.g. The user is told inside the execute stage that something is written to memory,
+    // in the next step the cpu executes that command
+    return this.simulationComponent.stage === CPU_STATES.EXECUTE;
+  }
+
+  isFetchStage() {
+    return this.simulationComponent.stage === CPU_STATES.FETCH;
   }
 }

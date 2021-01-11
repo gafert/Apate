@@ -25,6 +25,7 @@
     border-bottom: $border;
     border-top: $border;
     background-color: $grey2;
+    line-height: 1.5em;
   }
 
   td {
@@ -72,5 +73,47 @@
       width: 35%;
     }
   }
-
 }
+
+.active {
+  background-color: #572f9d;
+}
+
+.info-top {
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.5em;
+  width: 100%;
+  border-bottom: $border;
+  background-color: $grey2;
+}
+
+.info-memory-unused {
+  text-align: center;
+  line-height: 70px; // Height of other container
+  border-bottom: $border;
+}
+
+.info-table {
+  border-spacing: 0;
+  padding: 0.5em;
+  width: 100%;
+  border-bottom: $border;
+
+  td {
+    width: (100 - 20) / 2 * 1%;
+  }
+
+  .desc {
+    font-weight: bold;
+  }
+
+  .data {
+    font-family: "Roboto Mono", monospace;
+  }
+  .middle {
+    text-align: center;
+    width: 20%;
+  }
+}
+
