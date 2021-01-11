@@ -1,5 +1,7 @@
-import {Box3, Group, Mesh, ShapePath, Vector3} from "three";
-import * as d3 from "d3";
+import { Box3, Group, Mesh, ShapePath, Vector3 } from 'three';
+import * as d3 from 'd3';
+import { MeshText2D } from 'three-text2d';
+import { BehaviorSubject } from 'rxjs';
 
 // Interfaces
 
@@ -44,6 +46,12 @@ export interface IdFlatInterface {
   [key: string]: { meshes: Mesh[]; group: Group; rootRef: IdRootInterface };
 }
 
+export interface Signal {
+  textElement: MeshText2D;
+  meshes: Mesh[];
+  binding: BehaviorSubject<any>;
+}
+
 export type Areas = 'overview' | 'decoder' | 'alu' | 'memory' | 'registers';
 
 // Functions
@@ -71,13 +79,13 @@ export function getCenterOfMeshes(meshes: Mesh[]): { center: Vector3; size: Vect
     const center = new Vector3();
     const size = new Vector3();
     const box = new Box3(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
-    box.getCenter(center)
+    box.getCenter(center);
     box.getSize(size);
-    return {center, size, box}
+    return { center, size, box };
   } catch (e) {
     const v1 = new Vector3(100, 100, 100);
     const b = new Box3(v1, v1);
-    return {center: v1, size: v1, box: b}
+    return { center: v1, size: v1, box: b };
   }
 }
 
@@ -102,13 +110,13 @@ export function flattenRootToIndexIdArray(idRoot: IdRootInterface, idFlat?: IdFl
   let ids: IdFlatInterface = idFlat;
 
   // Create object if the old object should not be used
-  if (!ids) ids = {}
+  if (!ids) ids = {};
 
   const traverseChildren = (child) => {
     const meshes = [];
     if (child.meshes) meshes.push(...child.meshes);
     if (child.children) for (const deeperChild of child.children) meshes.push(...traverseChildren(deeperChild));
-    if (child.id) ids[child.id] = {meshes: meshes, group: child.group, rootRef: child};
+    if (child.id) ids[child.id] = { meshes: meshes, group: child.group, rootRef: child };
     return meshes;
   };
 

@@ -1,26 +1,28 @@
-import {SVGLoader} from "./SVGLoader";
+import { SVGLoader } from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./risc_test.svg';
 import {
   BufferGeometry,
   Color,
   DoubleSide,
-  ExtrudeGeometry,
   Group,
   Mesh,
-  MeshLambertMaterial, ShapeGeometry,
+  MeshLambertMaterial,
+  ShapeGeometry,
   Vector2,
   Vector3
-} from "three";
-import {checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface} from "./helpers";
-import {computeUVsOfPlane} from "./helper3D";
-import {getSName} from "./helperNameMatch";
-import {MeshText2D, textAlign} from "three-text2d";
-import * as d3 from "d3";
+} from 'three';
+import { checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface, Signal } from './helpers';
+import { computeUVsOfPlane } from './helper3D';
+import { getSName } from './helperNameMatch';
+import { MeshText2D, textAlign } from 'three-text2d';
+import * as d3 from 'd3';
 import * as tinycolor from 'tinycolor2';
-import {Bindings, CPU_STATES} from "../bindingSubjects";
-import {hideNonVisibleElements, setColor, setOpacity} from "./helperVisibility";
-import * as _ from "lodash";
-import {readStyleProperty} from "../../../../utils/helper";
+import { Bindings, CPU_STATES } from '../bindingSubjects';
+import { hideNonVisibleElements, setColor, setOpacity } from './helperVisibility';
+import * as _ from 'lodash';
+import { readStyleProperty } from '../../../../utils/helper';
+import { BehaviorSubject } from 'rxjs';
+import { sign } from 'crypto';
 
 /**
  * Loads the SVG and generates meshes. Does not add anything to the scene.
@@ -117,11 +119,11 @@ export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat:
             align: new Vector2(1, 1.7), // Point is a bit further down
             font: (style.fontWeight ? style.fontWeight : '') + ' ' + style.fontSize * 4 + 'px ' + style.fontFamily,
             fillStyle: style.fill,
-            antialias: true,
+            antialias: true
           });
 
           text.scale.set(0.25, -0.25, 0.25);
-          text.position.copy(child.text.userData.position)
+          text.position.copy(child.text.userData.position);
 
           // Render that text
           childGroup.add(text);
@@ -159,14 +161,14 @@ export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat:
       if (key.startsWith('bg_')) {
         idFlat[key].meshes.forEach(mesh => {
           mesh.position.multiply(new Vector3(0, 0, 2));
-        })
+        });
       }
     }
-  }
+  };
 
   setBackBackgroundElements(idFlat);
 
-  return {idFlat, idRoot, renderGroup}
+  return { idFlat, idRoot, renderGroup };
 }
 
 export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterface, animateTransition: boolean) {
@@ -199,7 +201,7 @@ export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterf
         const regex = new RegExp(`(\b|_)${element.toLowerCase()}(\b|_|$|-)`);
         const keySmall = key.toLowerCase();
         if (keySmall.startsWith('mux_') && regex.test(keySmall)) {
-          meshesToActivate.push(...idFlat[key].meshes)
+          meshesToActivate.push(...idFlat[key].meshes);
         }
       }
       return meshesToActivate;
@@ -226,8 +228,12 @@ export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterf
  * @param cpuBindings CPU Bindings to subscribe to
  * @param idFlat idFlat to lookup signals. Attention: This object will be refilled after the signal texts were added.
  * @param idRoot idRoot to regenerate idFlat after mesh was added.
+ * @param updateTexts Pass object with update property. Object so it can be references.
+ * @return Returns a list of all signals with test, meshes and binding
  */
-export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInterface, idRoot: IdRootInterface) {
+export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInterface, idRoot: IdRootInterface, updateTexts: { updateSignalTexts: boolean }): Signal[] {
+  const signals: Signal[] = [];
+
   for (const key of Object.keys(idFlat)) {
 
     if (!idFlat[key]?.meshes[0]) {
@@ -266,7 +272,8 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
       const binding = cpuBindings.allValues[signalName];
       if (binding) {
         binding.subscribe((value) => {
-          text.text = (value === null || value === undefined) ? 'NaN' : value.toString();
+          if (updateTexts.updateSignalTexts)
+            text.text = (value === null || value === undefined) ? 'NaN' : value.toString();
         });
       }
 
@@ -274,14 +281,32 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
       renderGroup.add(text);
       // Get position at root ref
       idFlat[key].rootRef.meshes.push(text.mesh);
+      // Return list of texts for later reference
+      signals.push({ textElement: text, meshes: (idFlat[key].rootRef.meshes), binding: binding });
     }
   }
 
   // Replace all elements in idFlat but dont destroy its reference
-  Object.keys(idFlat).forEach(function (key) {
+  Object.keys(idFlat).forEach(function(key) {
     delete idFlat[key];
   });
   flattenRootToIndexIdArray(idRoot, idFlat);
+
+  return signals;
+}
+
+/**
+ * Update all signal texts manually.
+ * Used if automatic updating was disabled previously
+ * @param signals List of all signals
+ */
+export function updateSignalTexts(signals: Signal[]) {
+  for (const signal of signals) {
+    if (signal.binding) {
+      const value = signal.binding.value;
+      signal.textElement.text = (value === null || value === undefined) ? 'NaN' : value.toString();
+    }
+  }
 }
 
 export function highlightStage(idFlat: IdFlatInterface, cpuStage: CPU_STATES | boolean, animateTransition: boolean) {

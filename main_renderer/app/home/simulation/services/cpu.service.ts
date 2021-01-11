@@ -3,6 +3,7 @@ import { Bindings, CPU_STATES } from './bindingSubjects';
 import { readFileSync } from 'fs';
 import { Instruction, INSTRUCTIONS, OPCODES, parseInstruction } from '../../../utils/instructionParser';
 import { parseElf, parseElfRISCVInstructions } from '../../../utils/elfParser';
+import { setZeroTimeout } from '../../../utils/helper';
 
 
 @Injectable({
@@ -33,7 +34,7 @@ export class CPUService {
   }
 
   public advanceSimulationClock() {
-    const opcode = this.bindings.instruction.value?.opcode;
+    let opcode = this.bindings.instruction.value?.opcode;
 
     switch (this.bindings.nextCpuState.value) {
       case CPU_STATES.BREAK:
@@ -61,6 +62,8 @@ export class CPUService {
 
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
 
+        opcode = this.bindings.instruction.value?.opcode;
+        // Decide how to proceed
         if (opcode === OPCODES.SYSTEM) {
           this.bindings.nextCpuState.next(CPU_STATES.BREAK);
         } else {
@@ -108,6 +111,9 @@ export class CPUService {
 
     // COMBINATORIAL LOGIC
 
+    // Re-get current opcode and save locally
+    opcode = this.bindings.instruction.value?.opcode;
+
     //
     // ALU
     //
@@ -133,7 +139,6 @@ export class CPUService {
       this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, this.bindings.instruction.value));
       this.bindings.pcAluout.next(this.bindings.aluout.value + this.bindings.pc.value);
       this.bindings.muxAluout.next(opcode === OPCODES.AUIPC ? this.bindings.pcAluout.value : this.bindings.aluout.value);
-
 
       //
       // LOAD STORE
@@ -231,11 +236,11 @@ export class CPUService {
     return new Promise(resolve => {
       const advance = () => {
         if (timeout > 0 && this.bindings.cpuState.value != CPU_STATES.BREAK && pc !== this.bindings.pc.value) {
-          setTimeout(() => {
+          setZeroTimeout(() => {
             this.advanceSimulationClock();
             timeout--;
             advance();
-          }, 1);
+          });
         } else {
           resolve();
         }

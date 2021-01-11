@@ -1,4 +1,4 @@
-import {Injectable, NgZone} from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import {
   AmbientLight,
   Clock,
@@ -16,70 +16,71 @@ import {
   WebGLRenderer
 } from 'three';
 import panzoom from '../../../utils/drag.js';
-import {CPUService} from './cpu.service';
+import { CPUService } from './cpu.service';
 import BACKGROUND_IMAGE from 'assets/background.png';
-import {animate, linear} from 'popmotion';
-import tippy, {Instance, Props} from 'tippy.js';
+import { animate, linear } from 'popmotion';
+import tippy, { Instance, Props } from 'tippy.js';
 import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
 import TABS from '../../../yamls/tabs.yml';
-import {Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface,} from "./graphHelpers/helpers";
-import {focusCameraOnElement} from "./graphHelpers/helperFocus";
-import {hideElement, showElement} from "./graphHelpers/helperVisibility";
-import {getModuleName, getPortName, getSName, getWName} from "./graphHelpers/helperNameMatch";
+import { Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal } from './graphHelpers/helpers';
+import { focusCameraOnElement } from './graphHelpers/helperFocus';
+import { hideElement, showElement } from './graphHelpers/helperVisibility';
+import { getModuleName, getPortName, getSName, getWName } from './graphHelpers/helperNameMatch';
 import initiateSVGObjects, {
   addSignalTextsAndUpdate,
   highlightStage,
-  updateActiveElements
-} from "./graphHelpers/helperSVGObject";
-import {CPU_STATES} from "./bindingSubjects";
+  updateActiveElements, updateSignalTexts
+} from './graphHelpers/helperSVGObject';
+import { CPU_STATES } from './bindingSubjects';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class GraphService {
   public initiated = false;
 
   // Target where the canvas will be put
+  public currentArea: Areas;
+
+  public update = {
+    animations: false,
+    highlightStageOnCPUChange: false,
+    updateVisibilities: true,
+    updateSignalTexts: true
+  };
+
   // Canvas will fill this dom
   private renderDom;
-
   private camera: PerspectiveCamera;
   private renderer: WebGLRenderer;
   private scene: Scene;
-
   // Set by requestAnimationFrame to render next frame
   private frameId: number;
-
   private time = 0;
   private clock = new Clock();
-  public currentArea: Areas;
-
-  private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
-
-  private renderGroup; // Holds the meshes in js groups named according to svg names
-  private globalUniforms = {
-    u_time: {value: 0},
-    u_resolution: {value: new Vector2(0, 0)}
-  };
 
   // Intersection related
   // centeredMouse is update once the mouse is moved, so set start to value which never could be to prevent
+  private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
+  private renderGroup; // Holds the meshes in js groups named according to svg names
+  private globalUniforms = {
+    u_time: { value: 0 },
+    u_resolution: { value: new Vector2(0, 0) }
+  };
   // intersection on 0,0 before mouse is moved
   private centeredMouse = new Vector2(-10000, -10000);
   private mouse = new Vector2(-10000, -10000);
-  private intersectedElement;
-  private raycaster: Raycaster;
-  private hoverTooltipInstance: Instance<Props>;
 
   // These arrays are linked by their elements
   // They only hold the data in different ways
   // If a mesh is added it first needs to be added to the idRoot
+  private intersectedElement;
+  private raycaster: Raycaster;
+  private hoverTooltipInstance: Instance<Props>;
   // Than the idFlat needs to be regenerated to allow the element to be accessed by e.g. mux identifiers
   private idFlat: IdFlatInterface; // Takes the parsed svg with meshes and flattens all names to be a 1D array
   private idRoot: IdRootInterface; // Holds the parsed svg and adds meshes to each element
-
-  public globalAnimationDisabled = false;
-  public animateStateChangesAutomaticallyOnCPUChange = false;
+  private signals: Signal[];
 
   constructor(private ngZone: NgZone, private cpu: CPUService) {
   }
@@ -100,7 +101,7 @@ export class GraphService {
       } else {
         // Setup renderer
         this.scene = new Scene();
-        this.renderer = new WebGLRenderer({alpha: true, antialias: true});
+        this.renderer = new WebGLRenderer({ alpha: true, antialias: true });
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.domElement.style.outline = 'none';
         this.renderDom.appendChild(this.renderer.domElement);
@@ -122,15 +123,17 @@ export class GraphService {
         this.scene.add(this.renderGroup);
 
         // Update signals texts if they change
-        addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot);
+        addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot, this.update);
 
         // Add signal change if cpuCycle is complete
         this.cpu.bindings.cycleComplete.subscribe(() => {
-          updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled);
-          if (this.animateStateChangesAutomaticallyOnCPUChange) {
-            highlightStage(this.idFlat, this.cpu.bindings.cpuState.value, !this.globalAnimationDisabled);
+          if (this.update.updateVisibilities) {
+            updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations);
+            if (this.update.highlightStageOnCPUChange) {
+              highlightStage(this.idFlat, this.cpu.bindings.cpuState.value, this.update.animations);
+            }
           }
-        })
+        });
 
         // For intersection
         this.raycaster = new Raycaster();
@@ -176,6 +179,15 @@ export class GraphService {
   }
 
   /**
+   * Updates all visibilities of elements
+   */
+  public updateGraph(animate) {
+    updateActiveElements(this.cpu.bindings, this.idFlat, animate);
+    highlightStage(this.idFlat, this.cpu.bindings.cpuState.value, animate);
+    updateSignalTexts(this.signals);
+  }
+
+  /**
    * Go to a new focusArea.
    * @param newArea Will be appended with "area_" by function. Camera will focusElement all elements inside.
    * @param animateTransition If this transition should be animated
@@ -184,7 +196,7 @@ export class GraphService {
     // Block if change comes too early
     if (!this.idFlat || newArea === this.currentArea) return;
 
-    animateTransition = animateTransition && !this.globalAnimationDisabled;
+    animateTransition = animateTransition && this.update.animations;
 
     // If one goes back to the overview the reverse animation will be shown
     const reverse = newArea == 'overview';
@@ -198,7 +210,7 @@ export class GraphService {
 
     if (animationElement && !reverse) {
       await Promise.all([new Promise((resolve) => {
-        const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
+        const { center } = getCenterOfMeshes(this.idFlat[animationElement].meshes);
         animate({
           from: 0,
           to: 1,
@@ -214,26 +226,26 @@ export class GraphService {
 
       // This can be async as the camera can move now
       // Show meshes at new location
-      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled))
+      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
 
     } else if (animationElement && reverse) {
       await hideElement(this.idFlat, 'area_' + this.currentArea, true);
       focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
 
       // Show meshes at new location async
-      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled))
+      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
 
       // Lerp camera from center of animationElement to full view
-      const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
+      const { center } = getCenterOfMeshes(this.idFlat[animationElement].meshes);
       this.camera.position.copy(center);
       await focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, true);
     } else {
-      if (this.globalAnimationDisabled)
+      if (!this.update.animations)
         hideElement(this.idFlat, 'area_' + this.currentArea, false);
       else
         await hideElement(this.idFlat, 'area_' + this.currentArea, true);
       focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
-      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, !this.globalAnimationDisabled))
+      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
     }
 
     this.currentArea = newArea;
@@ -296,7 +308,7 @@ export class GraphService {
     light.target.position.set(0, 0, 0);
     const ambientLight = new AmbientLight(0xcccccc, 0.2);
 
-    return [light, ambientLight]
+    return [light, ambientLight];
   }
 
   /**
@@ -311,7 +323,7 @@ export class GraphService {
     const backgroundGeometry = new PlaneGeometry(5000, 5000, 1, 1);
     const backgroundMaterial = new MeshBasicMaterial({
       map: backgroundTexture
-    })
+    });
 
     const backgroundMesh = new Mesh(backgroundGeometry, backgroundMaterial);
     const backgroundPosition = getCenterOfMeshes(idFlat['risc_test'].meshes).center;
@@ -338,16 +350,16 @@ export class GraphService {
       // console.log(intersects);
 
       const getName = (i) => {
-        if (i?.parent?.parent?.name?.startsWith('p_')) return {name: i.parent.parent.name, type: 'p'};
-        if (i?.parent?.parent?.name?.startsWith('m_')) return {name: i.parent.parent.name, type: 'm'};
-        if (i?.parent?.parent?.name?.startsWith('w_')) return {name: i.parent.parent.name, type: 'w'};
-        if (i?.parent?.name?.startsWith('p_')) return {name: i.parent.name, type: 'p'};
-        if (i?.parent?.name?.startsWith('m_')) return {name: i.parent.name, type: 'm'};
-        if (i?.parent?.name?.startsWith('w_')) return {name: i.parent.name, type: 'w'};
-        if (i?.name?.startsWith('s_')) return {name: i.name, type: 's'};
-        if (i?.name?.startsWith('w_')) return {name: i.name, type: 'w'};
-        if (i?.name?.startsWith('m_')) return {name: i.name, type: 'm'};
-      }
+        if (i?.parent?.parent?.name?.startsWith('p_')) return { name: i.parent.parent.name, type: 'p' };
+        if (i?.parent?.parent?.name?.startsWith('m_')) return { name: i.parent.parent.name, type: 'm' };
+        if (i?.parent?.parent?.name?.startsWith('w_')) return { name: i.parent.parent.name, type: 'w' };
+        if (i?.parent?.name?.startsWith('p_')) return { name: i.parent.name, type: 'p' };
+        if (i?.parent?.name?.startsWith('m_')) return { name: i.parent.name, type: 'm' };
+        if (i?.parent?.name?.startsWith('w_')) return { name: i.parent.name, type: 'w' };
+        if (i?.name?.startsWith('s_')) return { name: i.name, type: 's' };
+        if (i?.name?.startsWith('w_')) return { name: i.name, type: 'w' };
+        if (i?.name?.startsWith('m_')) return { name: i.name, type: 'm' };
+      };
 
       let object;
       for (const intersection of intersects) {
