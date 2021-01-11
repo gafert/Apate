@@ -1,22 +1,8 @@
-import {Injectable} from '@angular/core';
-import {Bindings, CPU_STATES} from './bindingSubjects';
-import {readFileSync} from 'fs';
-import {
-  Instruction,
-  INSTRUCTIONS,
-  isAUIPC,
-  isBRANCH,
-  isIMM,
-  isJAL,
-  isJALR,
-  isLOAD,
-  isLUI,
-  isOP,
-  isSTORE,
-  isSystem,
-  parseInstruction
-} from '../../../utils/instructionParser';
-import {parseElf, parseElfRISCVInstructions} from '../../../utils/elfParser';
+import { Injectable } from '@angular/core';
+import { Bindings, CPU_STATES } from './bindingSubjects';
+import { readFileSync } from 'fs';
+import { Instruction, INSTRUCTIONS, OPCODES, parseInstruction } from '../../../utils/instructionParser';
+import { parseElf, parseElfRISCVInstructions } from '../../../utils/elfParser';
 
 
 @Injectable({
@@ -47,6 +33,8 @@ export class CPUService {
   }
 
   public advanceSimulationClock() {
+    const opcode = this.bindings.instruction.value?.opcode;
+
     switch (this.bindings.nextCpuState.value) {
       case CPU_STATES.BREAK:
         this.bindings.cpuState.next(CPU_STATES.BREAK);
@@ -73,7 +61,7 @@ export class CPUService {
 
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
 
-        if (isSystem(this.bindings.instruction.value.instructionName)) {
+        if (opcode === OPCODES.SYSTEM) {
           this.bindings.nextCpuState.next(CPU_STATES.BREAK);
         } else {
           this.bindings.nextCpuState.next(CPU_STATES.EXECUTE);
@@ -84,9 +72,9 @@ export class CPUService {
         // LOAD STORE
         //
 
-        if (isLOAD(this.bindings.instruction.value.instructionName)) {
+        if (opcode === OPCODES.LOAD) {
           this.bindings.memread.next(this.callMEMORYread(this.bindings.instruction.value, this.bindings.rs1Imm.value));
-        } else if (isSTORE(this.bindings.instruction.value.instructionName)) {
+        } else if (opcode === OPCODES.STORE) {
           this.callMEMORYwrite(this.bindings.instruction.value, this.bindings.rs1Imm.value, this.bindings.rs2.value);
         }
 
@@ -94,13 +82,13 @@ export class CPUService {
         this.bindings.nextCpuState.next(CPU_STATES.WRITE_BACK);
         break;
       case CPU_STATES.WRITE_BACK:
-        if (isIMM(this.bindings.instruction.value.instructionName) ||
-          isOP(this.bindings.instruction.value.instructionName) ||
-          isJAL(this.bindings.instruction.value.instructionName) ||
-          isJALR(this.bindings.instruction.value.instructionName) ||
-          isLUI(this.bindings.instruction.value.instructionName) ||
-          isAUIPC(this.bindings.instruction.value.instructionName) ||
-          isLOAD(this.bindings.instruction.value.instructionName)) {
+        if (opcode === OPCODES.IMM ||
+          opcode === OPCODES.OP ||
+          opcode === OPCODES.JAL ||
+          opcode === OPCODES.JALR ||
+          opcode === OPCODES.LUI ||
+          opcode === OPCODES.AUIPC ||
+          opcode === OPCODES.LOAD) {
           if (this.bindings.rd.value) {
             const cpuregs = this.bindings.cpuregs.value;
             cpuregs[this.bindings.rd.value] = this.bindings.regwrite.value;
@@ -125,26 +113,26 @@ export class CPUService {
     //
 
     try {
-      if (isIMM(this.bindings.instruction.value?.instructionName)) {
+      if (opcode === OPCODES.IMM) {
         this.bindings.immRs2.next(this.bindings.imm.value);
-      } else if (isOP(this.bindings.instruction.value?.instructionName)) {
+      } else if (opcode === OPCODES.OP) {
         this.bindings.immRs2.next(this.bindings.rs2.value);
       }
 
-      if (isOP(this.bindings.instruction.value?.instructionName) || isIMM(this.bindings.instruction.value?.instructionName)) {
+      if (opcode === OPCODES.OP || opcode === OPCODES.IMM) {
         this.bindings.op1.next(this.bindings.immRs2.value);
         this.bindings.op2.next(this.bindings.rs1.value);
-      } else if (isJALR(this.bindings.instruction.value?.instructionName) || isJAL(this.bindings.instruction.value?.instructionName)) {
+      } else if (opcode === OPCODES.JALR || opcode === OPCODES.JAL) {
         this.bindings.op1.next(this.bindings.pc.value);
         this.bindings.op2.next(4);
-      } else if (isLUI(this.bindings.instruction.value?.instructionName) || isAUIPC(this.bindings.instruction.value?.instructionName)) {
+      } else if (opcode === OPCODES.LUI || opcode === OPCODES.AUIPC) {
         this.bindings.op1.next(this.bindings.imm.value);
         this.bindings.op2.next(12);
       }
 
       this.bindings.aluout.next(this.callALU(this.bindings.op1.value, this.bindings.op2.value, this.bindings.instruction.value));
       this.bindings.pcAluout.next(this.bindings.aluout.value + this.bindings.pc.value);
-      this.bindings.muxAluout.next(isAUIPC(this.bindings.instruction.value?.instructionName) ? this.bindings.pcAluout.value : this.bindings.aluout.value);
+      this.bindings.muxAluout.next(opcode === OPCODES.AUIPC ? this.bindings.pcAluout.value : this.bindings.aluout.value);
 
 
       //
@@ -153,14 +141,14 @@ export class CPUService {
 
       this.bindings.rs1Imm.next(this.bindings.rs1.value + this.bindings.imm.value);
 
-      if (isLOAD(this.bindings.instruction.value?.instructionName)) {
+      if (opcode === OPCODES.LOAD) {
         this.bindings.regwrite.next(this.bindings.memread.value);
-      } else if (isIMM(this.bindings.instruction.value?.instructionName) ||
-        isOP(this.bindings.instruction.value?.instructionName) ||
-        isJAL(this.bindings.instruction.value?.instructionName) ||
-        isJALR(this.bindings.instruction.value?.instructionName) ||
-        isLUI(this.bindings.instruction.value?.instructionName) ||
-        isAUIPC(this.bindings.instruction.value?.instructionName)) {
+      } else if (opcode === OPCODES.IMM ||
+        opcode === OPCODES.OP ||
+        opcode === OPCODES.JAL ||
+        opcode === OPCODES.JALR ||
+        opcode === OPCODES.LUI ||
+        opcode === OPCODES.AUIPC) {
         this.bindings.regwrite.next(this.bindings.muxAluout.value);
       }
 
@@ -196,21 +184,20 @@ export class CPUService {
         this.bindings.branchAddResult.next(4);
       }
 
-      if (isJAL(this.bindings.instruction.value?.instructionName)) {
+      if (opcode === OPCODES.JAL) {
         this.bindings.pcAdd.next(this.bindings.imm.value);
-      } else if (isBRANCH(this.bindings.instruction.value?.instructionName)) {
+      } else if (opcode === OPCODES.BRANCH) {
         this.bindings.pcAdd.next(this.bindings.branchAddResult.value);
-      } else if (this.bindings.instruction.value?.instructionName) {
+      } else {
         this.bindings.pcAdd.next(4);
       }
-
 
       this.bindings.pcAdvOther.next(this.bindings.pc.value + this.bindings.pcAdd.value);
       this.bindings.pcAdvJALR.next(this.bindings.rs1.value + this.bindings.imm.value);
 
-      if (isJALR(this.bindings.instruction.value?.instructionName)) {
+      if (opcode === OPCODES.JALR) {
         this.bindings.pcAdv.next(this.bindings.pcAdvJALR.value);
-      } else if (this.bindings.instruction.value?.instructionName) {
+      } else {
         this.bindings.pcAdv.next(this.bindings.pcAdvOther.value);
       }
     } catch (e) {

@@ -4,7 +4,7 @@ import { CPUService } from '../../services/cpu.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
-import { INSTRUCTIONS_DESCRIPTIONS, isLOAD, isSTORE } from '../../../../utils/instructionParser';
+import { INSTRUCTIONS_DESCRIPTIONS, OPCODES } from '../../../../utils/instructionParser';
 import { CPU_STATES } from '../../services/bindingSubjects';
 import { SimulationComponent } from '../../simulation.component';
 
@@ -141,11 +141,11 @@ export class MemoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isLoad() {
-    return isLOAD(this.cpu.bindings.instruction.value?.instructionName);
+    return this.cpu.bindings.instruction.value?.opcode == OPCODES.LOAD;
   }
 
   isStore() {
-    return isSTORE(this.cpu.bindings.instruction.value?.instructionName);
+    return this.cpu.bindings.instruction.value?.opcode == OPCODES.STORE;
   }
 
   isExecStage() {

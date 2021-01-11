@@ -705,18 +705,17 @@ export function isSystem(name: string): boolean {
   return name === INSTRUCTIONS.ECALL || name === INSTRUCTIONS.EBREAK;
 }
 
-export function getNameOfGroup(name): 'imm' | 'op' | 'lui' | 'auipc' | 'jal' | 'jalr' | 'load' | 'store' | 'branch' | 'system' {
-  // TODO: Group is just the opcode --> Replace group with opcode and make this easier
-  if (isIMM(name)) return 'imm';
-  if (isOP(name)) return 'op';
-  if (isLUI(name)) return 'lui';
-  if (isAUIPC(name)) return 'auipc';
-  if (isJAL(name)) return 'jal';
-  if (isJALR(name)) return 'jalr';
-  if (isLOAD(name)) return 'load';
-  if (isSTORE(name)) return 'store';
-  if (isBRANCH(name)) return 'branch';
-  if (isSystem(name)) return 'system';
+export function getNameOfGroup(opcode): 'imm' | 'op' | 'lui' | 'auipc' | 'jal' | 'jalr' | 'load' | 'store' | 'branch' | 'system' {
+  if (opcode === OPCODES.IMM) return 'imm';
+  if (opcode === OPCODES.OP) return 'op';
+  if (opcode === OPCODES.LUI) return 'lui';
+  if (opcode === OPCODES.AUIPC) return 'auipc';
+  if (opcode === OPCODES.JAL) return 'jal';
+  if (opcode === OPCODES.JALR) return 'jalr';
+  if (opcode === OPCODES.LOAD) return 'load';
+  if (opcode === OPCODES.STORE) return 'store';
+  if (opcode === OPCODES.BRANCH) return 'branch';
+  if (opcode === OPCODES.SYSTEM) return 'system';
 }
 
 /**
@@ -812,7 +811,7 @@ export function parseInstruction(instruction): Instruction {
     unparsedInstruction: instruction,
     instructionTypeFormat: type,
     opcode: opcode,
-    opcodeName: getNameOfGroup(name),
+    opcodeName: getNameOfGroup(opcode),
     func3: func3,
     func7: func7,
     imm: imm,
