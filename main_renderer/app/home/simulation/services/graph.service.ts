@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import {
   AmbientLight,
   Clock,
@@ -16,22 +16,22 @@ import {
   WebGLRenderer
 } from 'three';
 import panzoom from '../../../utils/drag.js';
-import { CPUService } from './cpu.service';
+import {CPUService} from './cpu.service';
 import BACKGROUND_IMAGE from 'assets/background.png';
-import { animate, linear } from 'popmotion';
-import tippy, { Instance, Props } from 'tippy.js';
+import {animate, linear} from 'popmotion';
+import tippy, {Instance, Props} from 'tippy.js';
 import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
 import TABS from '../../../yamls/tabs.yml';
-import { Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal } from './graphHelpers/helpers';
-import { focusCameraOnElement } from './graphHelpers/helperFocus';
-import { hideElement, showElement } from './graphHelpers/helperVisibility';
-import { getModuleName, getPortName, getSName, getWName } from './graphHelpers/helperNameMatch';
+import {Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal} from './graphHelpers/helpers';
+import {centerCameraOnElement, focusCameraOnElement, forceStopFocus} from './graphHelpers/helperFocus';
+import {hideElement, showElement} from './graphHelpers/helperVisibility';
+import {getModuleName, getPortName, getSName, getWName} from './graphHelpers/helperNameMatch';
 import initiateSVGObjects, {
   addSignalTextsAndUpdate,
   highlightStage,
   updateActiveElements, updateSignalTexts
 } from './graphHelpers/helperSVGObject';
-import { CPU_STATES } from './bindingSubjects';
+import {CPU_STATES} from './bindingSubjects';
 
 @Injectable({
   providedIn: 'root'
@@ -43,7 +43,7 @@ export class GraphService {
   public currentArea: Areas;
 
   public update = {
-    animations: false,
+    animations: true,
     highlightStageOnCPUChange: false,
     updateVisibilities: true,
     updateSignalTexts: true
@@ -64,8 +64,8 @@ export class GraphService {
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
   private renderGroup; // Holds the meshes in js groups named according to svg names
   private globalUniforms = {
-    u_time: { value: 0 },
-    u_resolution: { value: new Vector2(0, 0) }
+    u_time: {value: 0},
+    u_resolution: {value: new Vector2(0, 0)}
   };
   // intersection on 0,0 before mouse is moved
   private centeredMouse = new Vector2(-10000, -10000);
@@ -75,6 +75,8 @@ export class GraphService {
   // They only hold the data in different ways
   // If a mesh is added it first needs to be added to the idRoot
   private intersectedElement;
+  private mouseDownElement;
+  private mouseFocusIsAnimating;
   private raycaster: Raycaster;
   private hoverTooltipInstance: Instance<Props>;
   // Than the idFlat needs to be regenerated to allow the element to be accessed by e.g. mux identifiers
@@ -101,7 +103,7 @@ export class GraphService {
       } else {
         // Setup renderer
         this.scene = new Scene();
-        this.renderer = new WebGLRenderer({ alpha: true, antialias: true });
+        this.renderer = new WebGLRenderer({alpha: true, antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.domElement.style.outline = 'none';
         this.renderDom.appendChild(this.renderer.domElement);
@@ -137,7 +139,8 @@ export class GraphService {
 
         // For intersection
         this.raycaster = new Raycaster();
-        document.addEventListener('mousemove', this.onDocumentMouseMove.bind(this), false);
+        this.renderDom.addEventListener('mousemove', this.setLocalMouseVariables.bind(this), false);
+        this.renderDom.addEventListener('mouseleave', this.setLocalMouseVariables.bind(this,true), false);
 
         // Enable resizing
         window.addEventListener('resize', this.resize.bind(this));
@@ -161,7 +164,11 @@ export class GraphService {
         if (document.readyState !== 'loading') this.render();
         else window.addEventListener('DOMContentLoaded', this.render.bind(this));
 
-        window.addEventListener('mousedown', this.checkClickOnElement.bind(this))
+        // Handle clicking to focus on element
+        this.renderDom.addEventListener('mousedown', this.clickToZoom.bind(this, 'mousedown'))
+        this.renderDom.addEventListener('mouseup', this.clickToZoom.bind(this, 'mouseup'))
+        this.renderDom.addEventListener('mousemove', this.clickToZoom.bind(this, 'mousemove'))
+        this.renderDom.addEventListener('wheel', this.clickToZoom.bind(this, 'scroll'))
 
         // Split areas in world and focusElement on the first
         // This needs to be away from initiateObjects
@@ -212,7 +219,7 @@ export class GraphService {
 
     if (animationElement && !reverse) {
       await Promise.all([new Promise((resolve) => {
-        const { center } = getCenterOfMeshes(this.idFlat[animationElement].meshes);
+        const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
         animate({
           from: 0,
           to: 1,
@@ -238,7 +245,7 @@ export class GraphService {
       showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
 
       // Lerp camera from center of animationElement to full view
-      const { center } = getCenterOfMeshes(this.idFlat[animationElement].meshes);
+      const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
       this.camera.position.copy(center);
       await focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, true);
     } else {
@@ -354,15 +361,15 @@ export class GraphService {
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0) {
       const getName = (i) => {
-        if (i?.parent?.parent?.name?.startsWith('p_')) return { name: i.parent.parent.name, type: 'p' };
-        if (i?.parent?.parent?.name?.startsWith('m_')) return { name: i.parent.parent.name, type: 'm' };
-        if (i?.parent?.parent?.name?.startsWith('w_')) return { name: i.parent.parent.name, type: 'w' };
-        if (i?.parent?.name?.startsWith('p_')) return { name: i.parent.name, type: 'p' };
-        if (i?.parent?.name?.startsWith('m_')) return { name: i.parent.name, type: 'm' };
-        if (i?.parent?.name?.startsWith('w_')) return { name: i.parent.name, type: 'w' };
-        if (i?.name?.startsWith('s_')) return { name: i.name, type: 's' };
-        if (i?.name?.startsWith('w_')) return { name: i.name, type: 'w' };
-        if (i?.name?.startsWith('m_')) return { name: i.name, type: 'm' };
+        if (i?.parent?.parent?.name?.startsWith('p_')) return {name: i.parent.parent.name, type: 'p'};
+        if (i?.parent?.parent?.name?.startsWith('m_')) return {name: i.parent.parent.name, type: 'm'};
+        if (i?.parent?.parent?.name?.startsWith('w_')) return {name: i.parent.parent.name, type: 'w'};
+        if (i?.parent?.name?.startsWith('p_')) return {name: i.parent.name, type: 'p'};
+        if (i?.parent?.name?.startsWith('m_')) return {name: i.parent.name, type: 'm'};
+        if (i?.parent?.name?.startsWith('w_')) return {name: i.parent.name, type: 'w'};
+        if (i?.name?.startsWith('s_')) return {name: i.name, type: 's'};
+        if (i?.name?.startsWith('w_')) return {name: i.name, type: 'w'};
+        if (i?.name?.startsWith('m_')) return {name: i.name, type: 'm'};
       };
 
       let object;
@@ -444,13 +451,37 @@ export class GraphService {
     }
   }
 
-  private checkClickOnElement() {
-    if(this.intersectedElement) {
-      console.log('clicked', this.intersectedElement);
+  private clickToZoom(event: string) {
+    if (this.mouseFocusIsAnimating && event === 'mousedown') {
+      forceStopFocus();
+    }
+
+    if(event === 'mousemove' || event === 'scroll') {
+      this.mouseDownElement = null;
+    }
+
+    if (this.intersectedElement) {
+      if (event === 'mousedown') {
+        this.mouseDownElement = this.intersectedElement;
+      } else if (event === 'mouseup' && this.intersectedElement === this.mouseDownElement) {
+        this.mouseDownElement = null;
+        this.mouseFocusIsAnimating = true;
+        centerCameraOnElement(this.camera, this.idFlat, this.intersectedElement.name, 200, true).then(() => {
+          this.mouseFocusIsAnimating = false;
+        })
+      }
     }
   }
 
-  private onDocumentMouseMove(event) {
+  private setLocalMouseVariables(event, mouseLeftCanvas = false) {
+    if(mouseLeftCanvas) {
+      this.mouse.x = 10000;
+      this.mouse.y = 10000;
+      this.centeredMouse.x = 10000;
+      this.centeredMouse.y = 10000;
+      return;
+    }
+
     event.preventDefault();
     this.mouse.x = event.clientX;
     this.mouse.y = event.clientY;

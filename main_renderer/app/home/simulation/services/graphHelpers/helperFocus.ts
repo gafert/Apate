@@ -47,10 +47,54 @@ export function focusCameraOnElement(camera, idFlat, idOrMesh, enableAnimation =
         onUpdate: (v) => {
           camera.position.lerp(newCameraPos, v);
         },
-        onComplete: () => resolve()
+        onComplete: () => resolve(),
+        onStop:() => resolve()
       });
     });
   } else {
     camera.position.copy(newCameraPos);
   }
+}
+
+export function centerCameraOnElement<B extends boolean>(camera: Camera, idFlat: IdFlatInterface, meshes: Mesh[], distance: number, enableAnimation: B): B extends true ? Promise<unknown> : void;
+export function centerCameraOnElement<B extends boolean>(camera: Camera, idFlat: IdFlatInterface, id: string, distance: number,enableAnimation: B): B extends true ? Promise<unknown> : void;
+export function centerCameraOnElement(camera, idFlat, idOrMesh, distance, enableAnimation = false): Promise<unknown> | void {
+  let meshes: Mesh[];
+  if (typeof idOrMesh == "string") {
+    meshes = idFlat[idOrMesh]?.meshes
+  } else if (typeof idOrMesh == "object") {
+    meshes = idOrMesh;
+  }
+
+  if (!meshes) return;
+
+  const {center, size, box} = getCenterOfMeshes(meshes);
+
+  const newCameraPos = center.clone();
+  newCameraPos.z = newCameraPos.z + distance;
+
+  focusAnimation?.stop();
+  // Lerp to new position if animate is true, otherwise move instantly
+  if (enableAnimation) {
+    return new Promise(resolve => {
+      focusAnimation = animate({
+        from: 0,
+        to: 1,
+        ease: easeIn,
+        duration: 1000,
+        onUpdate: (v) => {
+          camera.position.lerp(newCameraPos, v);
+        },
+        onComplete: () => resolve(),
+        onStop: () => resolve()
+      });
+    });
+  } else {
+    camera.position.copy(newCameraPos);
+  }
+}
+
+
+export function forceStopFocus() {
+  focusAnimation?.stop();
 }
