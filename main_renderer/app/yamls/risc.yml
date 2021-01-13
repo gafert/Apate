@@ -8,7 +8,26 @@ string3: &imm Immediate
 string4: &pc Program Counter
 string5: &rd Return Register
 
+#
+#
+# Modules starting with 'm_'
+# These have more descriptions.
+# addr, read, write is not used
+#
+#
 modules:
+  # multiple usage modules
+  eq:
+    name: Equal
+    desc: Checks the equality of two values
+  and:
+    name: AND
+    desc: Bitwise logical conjunction
+  or:
+    name: OR
+    desc: Bitwise logical conjunction. Is true when one of the inputs is true.
+
+  # unique modules
   memoryfetchinstr:
     name: Memory
     desc: Read memory at the given location from the Program Counter and save it in the READ signal.
@@ -20,7 +39,7 @@ modules:
     addr: rs1imm
     read: memread
     write: rs2
-  controlunit:
+  cu:
     name: Control Unit
     desc: Decodes the instruction data to signals which control the CPU. Control signals are blue and activate/deactivate parts of the CPU via MUXes. Additonal values which can be decoded will be passed to the data path.
   reg1:
@@ -38,18 +57,6 @@ modules:
     desc: Writes value of WRITE to the register location ADDR (Return Register)
     addr: rd
     value: regwrite
-  eq:
-    name: Equal
-    desc: Combinationally checks the equality of two values (Register Source 1, Register Source 2)
-  ne:
-    name: Not Equal
-    desc: Combinationally checks the inequality of two values (Register Source 1, Register Source 2)
-  lt:
-    name: Less Than
-    desc: Combinationally checks if Register Source 1 is less than Register Source 2
-  ge:
-    name: Greater Equal
-    desc: Combinationally checks if Register Source 1 is greater than or equal to Register Source 2
   addpcalu:
     name: Adder
     desc: Add Program Counter and ALU Output
@@ -59,15 +66,15 @@ modules:
   addpc:
     name: Adder
     desc: Add to Program Counter
-  xorimmop:
+  or_imm_op:
+    name: OR
+    desc: OR 'Immediate' Instruction and 'OP' Instruction. Is true if one of the inputs is true.
+  or_jal_jalr:
+    name: OR
+    desc: OR 'Jump And Link' Instruction and 'Jump And Link Register' Instruction. Is true if one of the inputs is true.
+  or_lui_auipc:
     name: XOR
-    desc: XOR 'Immediate' Instruction and 'OP' Instruction
-  xorjaljalr:
-    name: XOR
-    desc: XOR 'Jump And Link' Instruction and 'Jump And Link Register' Instruction
-  xorluiauipc:
-    name: XOR
-    desc: XOR 'Load Upper Immediate' Instruction and 'Add Upper Immediate To Program Counter' Instruction
+    desc: OR 'Load Upper Immediate' Instruction and 'Add Upper Immediate To Program Counter' Instruction. Is true if one of the inputs is true.
   alu:
     name: Arithetic Logic Unit (ALU)
     desc: >
@@ -101,9 +108,6 @@ modules:
         <tr><td>JAL or JALR</td><td><i class="fas fa-arrow-right"></i></td> <td>4</td></tr>
         <tr><td>LUI or AUIPC</td><td><i class="fas fa-arrow-right"></i></td> <td>12</td></tr>
       </table>
-  mux_branches:
-    name: Multiplexer (MUX)
-    desc: Multiplexes between branch results for equal (BEQ), not equal (BNE), less than (BLT) and greater equal (BGE)
   mux_4imm:
     name: Multiplexer (MUX)
     desc: >
@@ -120,7 +124,8 @@ modules:
       <hr>
       <table>
         <tr><td>AUIPC</td><td><i class="fas fa-arrow-right"></i></td> <td>ALU Output + Program Counter</td></tr>
-        <tr><td>not AUIPC</td><td><i class="fas fa-arrow-right"></i></td> <td>ALU Output</td></tr>
+        <tr><td>LUI | OP |<br>JAL | JALR | IMM</td><td><i class="fas fa-arrow-right"></i></td> <td>ALU Output</td></tr>
+        <tr><td>LOAD</td><td><i class="fas fa-arrow-right"></i></td> <td>Memory Read Value</td></tr>
       </table>
   mux_aluout:
     name: Multiplexer (MUX)
@@ -163,64 +168,112 @@ modules:
     name: Control Path
     desc: Contains all decoded instruction control signal which are used inside the CPU. These include FUNC3, FUNC7 and the signals for each instruction type. Depending on the instruction one of the instruction type signals is turned on and controls the CPU.
 
-ports:
-  rd:
-    name: *rd
-  pc:
-    name: *pc
-  imm:
-    name: *imm
-  rs1:
-    name: *rs1
-  rs2:
-    name: *rs2
+  # from ALU
+  mux_aluoutsignal:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects different inputs depending on the control signals
+      <hr>
+      <table>
+        <tr><td>ADD | ADDI | JAL | JALR</td><td><i class="fas fa-arrow-right"></i></td><td>ADD result</td></tr>
+        <tr><td>SUB</td><td><i class="fas fa-arrow-right"></i></td><td>SUB result</td></tr>
+        <tr><td>OR | ORI</td><td><i class="fas fa-arrow-right"></i></td><td>OR result</td></tr>
+        <tr><td>XOR | XORI</td><td><i class="fas fa-arrow-right"></i></td><td>XOR result</td></tr>
+        <tr><td>AND | ANDI</td><td><i class="fas fa-arrow-right"></i></td><td>AND result</td></tr>
+        <tr><td>SLL | SLLI | LUI | AUIPC</td><td><i class="fas fa-arrow-right"></i></td><td>Shift Left result</td></tr>
+        <tr><td>SRL | SRA | SRLI | SRAI</td><td><i class="fas fa-arrow-right"></i></td><td>Shift Right result</td></tr>
+        <tr><td>SLT | SLTU | SLTI | SLTIU</td><td><i class="fas fa-arrow-right"></i></td><td>Set Less Than result</td></tr>
+      </table>
+  or_alu_add:
+    name: OR
+    desc: Signal is true if one of ADD, ADDI, JAL or JALR is the current instruction.
+  or_alu_or:
+    name: OR
+    desc: Signal is true if OR or ORI is the current instruction.
+  or_alu_xor:
+    name: OR
+    desc: Signal is true if XOR or XORI is the current instruction.
+  or_alu_and:
+    name: OR
+    desc: Signal is true if AND or ANDI is the current instruction.
+  or_alu_sl:
+    name: OR
+    desc: Signal is true if one of SLL, SLLI, LUI or AUIPC is the current instruction.
+  or_alu_sr:
+    name: OR
+    desc: Signal is true if one of SRL, SRA, SRLI or SRAI is the current instruction.
+  or_alu_slt:
+    name: OR
+    desc: Signal is true if one of SLT, SLTU, SLTI or SLTIU is the current instruction.
+  add_op1_op2:
+    name: Adder
+    desc: Add OP1 and OP2
+  sub_op1_op2:
+    name: Subtractor
+    desc: Subtract OP2 from OP1 (OP1 - OP2)
+  or_op1_op2:
+    name: Bitwise OR
+    desc: OR OP1 and OP2
+  xor_op1_op2:
+    name: Bitwise exclusive OR (XOR)
+    desc: XOR OP1 and OP2
+  and_op1_op2:
+    name: Bitwise AND
+    desc: AND OP1 and OP2
+  sl_op1_op2:
+    name: Shift Left
+    desc: Shift OP1 by the amount of OP2 to the left (OP1 << OP2)
+  sr_op1_op2:
+    name: Shift Right
+    desc: Shift OP1 by the amount of OP2 to the right (OP1 >> OP2)
+  slt_op1_op2:
+    name: Set Less Than
+    desc: "Set the output to 1 if OP1 is smaller than OP2 (OP1 < OP2 ? 1 : 0)"
+
+  # from branch evaluator
+  be:
+    name: Branch Evaluator
+    desc: Uses instructions BEQ, BNE, BLT, BLTU, BGE or BGEU and compares the values of RS1 and RS2. Result will be 1 or 0.<br><br>The result will be used to either pass 4 or the Immediate Value to the next Program Counter.
+  mux_branches:
+    name: Multiplexer (MUX)
+    desc: Multiplexes between branch results for equal (BEQ), not equal (BNE), less than (BLT) and greater equal (BGE)
+  be_eq:
+    name: Equal
+    desc: Combinationally checks the equality of two values (Register Source 1, Register Source 2)
+  be_ne:
+    name: Not Equal
+    desc: Combinationally checks the inequality of two values (Register Source 1, Register Source 2)
+  be_lt:
+    name: Less Than
+    desc: Combinationally checks if Register Source 1 is less than Register Source 2
+  be_ge:
+    name: Greater Equal
+    desc: Combinationally checks if Register Source 1 is greater than or equal to Register Source 2
+
+#
+#
+# Ports and signals starting with 'p_', 's_' or 'w_'
+#
+#
+signalsNPorts:
+  # constant values
   4:
     name: Fixed to 4
   12:
     name: Fixed to 12
 
-signals:
-  4:
-    name: Fixed to 4
-  12:
-    name: Fixed to 12
+  # cpu registers
   pc:
     name: *pc
     bits: 32
-  instrmemread:
-    signal: true
-    name: Instruction Data
-    bits: 32
+
+  # from instruction
   func3:
     bits: 3
     name: Function 3
   func7:
     name: Function 7
     bits: 7
-  op:
-    bits: 1
-    name: Op Instruction
-  imminstr:
-    bits: 1
-    name: Immediate Instruction
-  load:
-    bits: 1
-    name: Load Instruction
-  store:
-    bits: 1
-    name: Store Instruction
-  jal:
-    bits: 1
-    name: Jump And Link
-  jalr:
-    bits: 1
-    name: Jump And Link Register
-  lui:
-    bits: 1
-    name: Load Upper Immediate
-  auipc:
-    bits: 1
-    name: Add Upper Immediate To Program Counter
   rd:
     bits: 5
     name: *rd
@@ -239,14 +292,82 @@ signals:
   rs2:
     bits: 32
     name: *rs2
+  instr:
+    name: Name of the current instruction
+
+  # opcode
+  op:
+    bits: 1
+    name: Op Instruction
+  imminstr:
+    bits: 1
+    name: Immediate Instruction
+  load:
+    bits: 1
+    name: Load Instruction
+  store:
+    bits: 1
+    name: Store Instruction
+  jal:
+    bits: 1
+    name: Jump And Link Instruction
+  jalr:
+    bits: 1
+    name: Jump And Link Register Instruction
+  lui:
+    bits: 1
+    name: Load Upper Immediate Instruction
+  branch:
+    bits: 1
+    name: Branch Instruction
+  auipc:
+    bits: 1
+    name: Add Upper Immediate To Program Counter Instruction
+  system:
+    bits: 1
+    name: System Instruction
+
+  # control signal combinations
+  nauipc:
+    name: Load Upper Immediate | Op | Jump And Link | Jump And Link Register | Immediate
+  njalbranch:
+    name: Op | Immediate | Load Upper Immediate | Add Upper Immediate To Program Counter | Load | Store
+  njalr:
+    name: Immediate | Op | Jump And Link | Add Upper Immediate To Program Counter | Load | Store | LUI | Branch
+  addaddi:
+    name: Add | Add Immediate
+  jaljalr:
+    name: Jump And Link | Jump And Link Register
+  sub:
+    name: Substract
+  or:
+    name: Or
+  ori:
+    name: Or Immediate
+  xor:
+    name: Exclusive Or
+  xori:
+    name: Exclusive Or Immediate
+  and:
+    name: And
+  andi:
+    name: And Immediate
+  sllslli:
+    name: Shift Left Logical | Shift Left Logical Immediate
+  luiauipc:
+    name: Load Upper Immediate | Add Upper Immediate To Program Counter
+  srlsra:
+    name: Shift Right Logical | Shift Right Arithemtic
+  srlisrai:
+    name: Shift Right Logical Immediate | Shift Right Arithmetic Immediate
+  sltsltu:
+    name: Shift Less Than | Set Less Than (unsigned)
+  sltisltiu:
+    name: Set Less Than Immediate | Set Less Than Immediate (unsigned)
+
+  # other combinations of signals
   immrs2:
     name: Immediate or Register Source 2
-  op1:
-    name: Operator 1
-  op2:
-    name: Operator 2
-  aluout:
-    name: Arithemtic Logic Unit Output
   pcaluout:
     name: Program Counter + ALU Output
   muxaluout:
@@ -263,6 +384,37 @@ signals:
     name: Next Program Counter if JALR
   pcadv:
     name: Next Program Counter
+  branchadd:
+    name: Branch Value
+  instrmemread:
+    signal: true
+    name: Raw instruction data from the memory
+
+  # from ALU
+  op1:
+    name: Operator 1
+  op2:
+    name: Operator 2
+  aluout:
+    name: Arithemtic Logic Unit Output
+  alu_add_result:
+    name: Result of the addition
+  alu_sub_result:
+    name: Result of the substraction
+  alu_or_result:
+    name: Result of the OR
+  alu_xor_result:
+    name: Result of the XOR
+  alu_and_result:
+    name: Result of the AND
+  alu_sl_result:
+    name: Result of the left shifting
+  alu_sr_result:
+    name: Result of the right shifting
+  alu_slt_result:
+    name: Result of the 'Set Less Than'. 1 or 0.
+
+  # from branch evaluator
   beq:
     name: Branch Equal Result
   bne:
@@ -271,7 +423,19 @@ signals:
     name: Branch Less Than Result
   bge:
     name: Branch Greater Equal Result
-  branch:
-    name: Branch Result
-  branchadd:
-    name: Branch Value
+  branchresult:
+    name: Result of the comparison
+
+  # control unit
+  immi:
+    name: Immediate Value if instruction typs is I
+  imms:
+    name: Immediate Value if instruction typs is S
+  immb:
+    name: Immediate Value if instruction typs is B
+  immu:
+    name: Immediate Value if instruction typs is U
+  immj:
+    name: Immediate Value if instruction typs is J
+
+

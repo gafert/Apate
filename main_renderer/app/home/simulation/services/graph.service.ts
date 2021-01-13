@@ -168,7 +168,10 @@ export class GraphService {
         this.renderDom.addEventListener('mousedown', this.clickToZoom.bind(this, 'mousedown'))
         this.renderDom.addEventListener('mouseup', this.clickToZoom.bind(this, 'mouseup'))
         this.renderDom.addEventListener('mousemove', this.clickToZoom.bind(this, 'mousemove'))
-        this.renderDom.addEventListener('wheel', this.clickToZoom.bind(this, 'scroll'))
+        // this.renderDom.addEventListener('scroll', this.clickToZoom.bind(this, 'scroll')) // not working
+
+        // Handle clicking to go into element / show info
+        this.renderDom.addEventListener('dblclick', this.clickToShowInfo.bind(this, 'dblclick'))
 
         // Split areas in world and focusElement on the first
         // This needs to be away from initiateObjects
@@ -406,9 +409,9 @@ export class GraphService {
             case 's':
               id = getSName(object.name) || getWName(object.name);
               prevalue = this.cpu.bindings.allValues[id]?.value === undefined ? id : this.cpu.bindings.allValues[id]?.value;
-              name = RISCV_DEFINITIONS.signals[id]?.name;
+              name = RISCV_DEFINITIONS.signalsNPorts[id]?.name;
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
-              desc = RISCV_DEFINITIONS.signals[id]?.desc;
+              desc = RISCV_DEFINITIONS.signalsNPorts[id]?.desc;
               this.hoverTooltipInstance.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
               console.log(object.name, id, name, prevalue, value);
               break;
@@ -422,9 +425,9 @@ export class GraphService {
             case 'p':
               id = getPortName(object.name);
               prevalue = this.cpu.bindings.allValues[id]?.value === undefined ? id : this.cpu.bindings.allValues[id]?.value;
-              name = RISCV_DEFINITIONS.ports[id]?.name;
+              name = RISCV_DEFINITIONS.signalsNPorts[id]?.name;
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
-              desc = RISCV_DEFINITIONS.ports[id]?.desc;
+              desc = RISCV_DEFINITIONS.signalsNPorts[id]?.desc;
               this.hoverTooltipInstance.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
               console.log(object.name, id, name, prevalue, value);
               break;
@@ -448,6 +451,25 @@ export class GraphService {
       }
     } else {
       removeTooltip();
+    }
+  }
+
+  private clickToShowInfo(event) {
+    forceStopFocus();
+
+    if (this.intersectedElement) {
+      if(this.intersectedElement.type === 'm') {
+        const name = getModuleName(this.intersectedElement.name);
+        if(name === 'alu' || name === 'cu' || name === 'be') {
+          this.goToArea(name, true);
+          // TODO: Change Tab in simulation
+        } else if (name === 'registers') {
+          // Open and mark registers
+        } else if (name === 'memory') {
+          // Open and mark memory
+        }
+      }
+      console.log(this.intersectedElement);
     }
   }
 

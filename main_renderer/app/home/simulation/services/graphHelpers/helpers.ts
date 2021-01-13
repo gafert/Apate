@@ -52,7 +52,7 @@ export interface Signal {
   binding: BehaviorSubject<any>;
 }
 
-export type Areas = 'overview' | 'decoder' | 'alu' | 'memory' | 'registers';
+export type Areas = 'overview' | 'cu' | 'alu' | 'be';
 
 // Functions
 
@@ -90,7 +90,7 @@ export function getCenterOfMeshes(meshes: Mesh[]): { center: Vector3; size: Vect
 }
 
 export function separateAreas(idFlat: IdFlatInterface) {
-  const areas: Areas[] = ['overview', 'decoder', 'alu', 'memory', 'registers'];
+  const areas: Areas[] = ['overview', 'cu', 'alu', 'be'];
 
   let y = 0;
   for (const area of areas) {

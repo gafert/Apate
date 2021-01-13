@@ -41,6 +41,12 @@ export class Bindings {
   public pc = new BehaviorSubject<number>(0);
   public rd = new BehaviorSubject<number>(null);
   public imm = new BehaviorSubject<number>(null);
+  public immi = new BehaviorSubject<number>(null);
+  public imms = new BehaviorSubject<number>(null);
+  public immb = new BehaviorSubject<number>(null);
+  public immu = new BehaviorSubject<number>(null);
+  public immj = new BehaviorSubject<number>(null);
+
   public rs1addr = new BehaviorSubject<number>(null);
   public rs2addr = new BehaviorSubject<number>(null);
   public rs1 = new BehaviorSubject<number>(null);
@@ -59,15 +65,13 @@ export class Bindings {
   public rs1Imm = new BehaviorSubject<number>(null);
   public memread = new BehaviorSubject<number>(null);
   // Branch
-  public branchRs1Rs2BEQ = new BehaviorSubject<number>(null);
-  public branchRs1Rs2BLT = new BehaviorSubject<number>(null);
-  public branchRs2Rs1BGR = new BehaviorSubject<number>(null);
-  public branchFunc3_0 = new BehaviorSubject<number>(null);
-  public branchFunc3_12 = new BehaviorSubject<number>(null);
-  public branchMuxResult = new BehaviorSubject<number>(null);
+  public branchEqual = new BehaviorSubject<number>(null);
+  public branchNotEqual = new BehaviorSubject<number>(null);
+  public branchLessThan = new BehaviorSubject<number>(null);
+  public branchGreaterEqual = new BehaviorSubject<number>(null);
   public branchResult = new BehaviorSubject<number>(null);
-  // PC
   public branchAddResult = new BehaviorSubject<number>(null);
+  // PC
   public pcAdd = new BehaviorSubject<number>(null);
   public pcAdvOther = new BehaviorSubject<number>(null);
   public pcAdvJALR = new BehaviorSubject<number>(null);
@@ -84,6 +88,11 @@ export class Bindings {
     'pc': this.pc,
     'rd': this.rd,
     'imm': this.imm,
+    'immi': this.immi,
+    'imms': this.imms,
+    'immb': this.immb,
+    'immu': this.immu,
+    'immj': this.immj,
     'rs1addr': this.rs1addr,
     'rs2addr': this.rs2addr,
     'rs1': this.rs1,
@@ -99,8 +108,10 @@ export class Bindings {
     'memread': this.memread,
     'func3': this.func3,
     'func7': this.func7,
-    'func3-0': this.branchFunc3_0,
-    'func3-12': this.branchFunc3_12,
+    'beq': this.branchEqual,
+    'bne': this.branchNotEqual,
+    'blt': this.branchLessThan,
+    'bge': this.branchGreaterEqual,
     'branchresult': this.branchResult,
     'branchadd': this.branchAddResult,
     'pcadd': this.pcAdd,
@@ -113,6 +124,11 @@ export class Bindings {
   public volatileValues = {
     'rd': this.rd,
     'imm': this.imm,
+    'immi': this.immi,
+    'imms': this.imms,
+    'immb': this.immb,
+    'immu': this.immu,
+    'immj': this.immj,
     'rs1addr': this.rs1addr,
     'rs2addr': this.rs2addr,
     'rs1': this.rs1,
@@ -127,8 +143,10 @@ export class Bindings {
     'memread': this.memread,
     'func3': this.func3,
     'func7': this.func7,
-    'func3-0': this.branchFunc3_0,
-    'func3-12': this.branchFunc3_12,
+    'beq': this.branchEqual,
+    'bne': this.branchNotEqual,
+    'blt': this.branchLessThan,
+    'bge': this.branchGreaterEqual,
     'branch': this.branchResult,
     'branchadd': this.branchAddResult,
     'instrmemread': this.instrMemRead,

@@ -54,11 +54,14 @@ export class CPUService {
         this.bindings.rs2.next(this.bindings.instruction.value.rs2 !== null ? this.bindings.cpuregs.value[this.bindings.instruction.value.rs2] : null);
         this.bindings.rd.next(this.bindings.instruction.value.rd);
         this.bindings.imm.next(this.bindings.instruction.value.imm);
+        this.bindings.immi.next(this.bindings.instruction.value.immI);
+        this.bindings.imms.next(this.bindings.instruction.value.immS);
+        this.bindings.immb.next(this.bindings.instruction.value.immB);
+        this.bindings.immu.next(this.bindings.instruction.value.immU);
+        this.bindings.immj.next(this.bindings.instruction.value.immJ);
+
         this.bindings.func3.next(this.bindings.instruction.value.func3);
         this.bindings.func7.next(this.bindings.instruction.value.func7);
-
-        this.bindings.branchFunc3_0.next(this.bindings.func3.value !== null ? this.bindings.func3.value & 0b001 : null);
-        this.bindings.branchFunc3_12.next(this.bindings.func3.value !== null ? this.bindings.func3.value & 0b110 : null);
 
         this.bindings.cpuState.next(CPU_STATES.DECODE_INSTRUCTION);
 
@@ -161,33 +164,30 @@ export class CPUService {
       // BRANCH
       //
 
-      this.bindings.branchRs1Rs2BEQ.next(this.bindings.rs1.value == this.bindings.rs2.value ? 1 : 0);
-      this.bindings.branchRs1Rs2BLT.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchEqual.next(this.bindings.rs1.value == this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchNotEqual.next(this.bindings.rs1.value !== this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchLessThan.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
+      this.bindings.branchGreaterEqual.next(this.bindings.rs1.value >= this.bindings.rs2.value ? 1 : 0);
 
-      if (this.bindings.branchFunc3_12.value === 0) {
-        // BEQ, BNE
-        this.bindings.branchMuxResult.next(this.bindings.branchRs1Rs2BEQ.value);
-      } else if (this.bindings.branchFunc3_12.value >= 1) {
-        // BLT, BLTU, BGE, BGEU
-        this.bindings.branchMuxResult.next(this.bindings.branchRs1Rs2BEQ.value);
+      if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BEQ) {
+        this.bindings.branchResult.next(this.bindings.branchEqual.value);
+      } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BNE) {
+        this.bindings.branchResult.next(this.bindings.branchNotEqual.value);
+      } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BLT || this.bindings.instruction.value.instructionName === INSTRUCTIONS.BLTU) {
+        this.bindings.branchResult.next(this.bindings.branchLessThan.value);
+      } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BGE || this.bindings.instruction.value.instructionName === INSTRUCTIONS.BGEU) {
+        this.bindings.branchResult.next(this.bindings.branchGreaterEqual.value);
       }
-
-      // Invert if 0 bit is 1 -> this bit means its a BGE or BGEU function
-      if (this.bindings.branchFunc3_0.value === 0) {
-        this.bindings.branchResult.next(this.bindings.branchMuxResult.value);
-      } else {
-        this.bindings.branchResult.next(Number(!this.bindings.branchMuxResult.value));
-      }
-
-      //
-      // PC
-      //
 
       if (this.bindings.branchResult.value === 1) {
         this.bindings.branchAddResult.next(this.bindings.imm.value);
       } else if (this.bindings.branchResult.value === 0) {
         this.bindings.branchAddResult.next(4);
       }
+
+      //
+      // PC
+      //
 
       if (opcode === OPCODES.JAL) {
         this.bindings.pcAdd.next(this.bindings.imm.value);

@@ -15,10 +15,3 @@ This makes the resulting elf much larger and not easy to follow.
 It is better to use riscv.ls, start.s and the -nostdlib flag of gcc to have a simpler elf.
 
 
-## TODO
-
-Rename all break -> system
-
-Improve opcodeName check
-
-
