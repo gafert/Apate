@@ -50,9 +50,11 @@ Thumbs.db
 
 # App specific
 /downloads
-/simulation_library/CMakeFiles
-/simulation_library/cmake_install.cmake
-/simulation_library/CMakeCache.txt
-/simulation_library/Makefile
-/simulation_library/SimulationLibrary.cbp
-/simulation_library/.idea
+/risc_test_executable/CMakeFiles
+/risc_test_executable/cmake_install.cmake
+/risc_test_executable/CMakeCache.txt
+/risc_test_executable/Makefile
+/risc_test_executable/SimulationLibrary.cbp
+/risc_test_executable/.idea
+/risc_test_executable/riscv-exe.cbp
+
