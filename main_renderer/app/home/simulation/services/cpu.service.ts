@@ -169,20 +169,23 @@ export class CPUService {
       this.bindings.branchLessThan.next(this.bindings.rs1.value < this.bindings.rs2.value ? 1 : 0);
       this.bindings.branchGreaterEqual.next(this.bindings.rs1.value >= this.bindings.rs2.value ? 1 : 0);
 
-      if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BEQ) {
-        this.bindings.branchResult.next(this.bindings.branchEqual.value);
-      } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BNE) {
-        this.bindings.branchResult.next(this.bindings.branchNotEqual.value);
-      } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BLT || this.bindings.instruction.value.instructionName === INSTRUCTIONS.BLTU) {
-        this.bindings.branchResult.next(this.bindings.branchLessThan.value);
-      } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BGE || this.bindings.instruction.value.instructionName === INSTRUCTIONS.BGEU) {
-        this.bindings.branchResult.next(this.bindings.branchGreaterEqual.value);
-      }
+      if(this.bindings.instruction.value) {
+        // There is a instruction so check if we so something
+        if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BEQ) {
+          this.bindings.branchResult.next(this.bindings.branchEqual.value);
+        } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BNE) {
+          this.bindings.branchResult.next(this.bindings.branchNotEqual.value);
+        } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BLT || this.bindings.instruction.value.instructionName === INSTRUCTIONS.BLTU) {
+          this.bindings.branchResult.next(this.bindings.branchLessThan.value);
+        } else if (this.bindings.instruction.value.instructionName === INSTRUCTIONS.BGE || this.bindings.instruction.value.instructionName === INSTRUCTIONS.BGEU) {
+          this.bindings.branchResult.next(this.bindings.branchGreaterEqual.value);
+        }
 
-      if (this.bindings.branchResult.value === 1) {
-        this.bindings.branchAddResult.next(this.bindings.imm.value);
-      } else if (this.bindings.branchResult.value === 0) {
-        this.bindings.branchAddResult.next(4);
+        if (this.bindings.branchResult.value === 1) {
+          this.bindings.branchAddResult.next(this.bindings.imm.value);
+        } else if (this.bindings.branchResult.value === 0) {
+          this.bindings.branchAddResult.next(4);
+        }
       }
 
       //

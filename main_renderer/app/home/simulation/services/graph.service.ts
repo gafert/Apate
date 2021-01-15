@@ -24,7 +24,7 @@ import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
 import TABS from '../../../yamls/tabs.yml';
 import {Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal} from './graphHelpers/helpers';
 import {centerCameraOnElement, focusCameraOnElement, forceStopFocus} from './graphHelpers/helperFocus';
-import {hideElement, showElement} from './graphHelpers/helperVisibility';
+import { hideElement, highLightElement, showElement, removeAllHighlights } from './graphHelpers/helperVisibility';
 import {getModuleName, getPortName, getSName, getWName} from './graphHelpers/helperNameMatch';
 import initiateSVGObjects, {
   addSignalTextsAndUpdate,
@@ -64,8 +64,8 @@ export class GraphService {
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
   private renderGroup; // Holds the meshes in js groups named according to svg names
   private globalUniforms = {
-    u_time: {value: 0},
-    u_resolution: {value: new Vector2(0, 0)}
+    time: {value: 0},
+    resolution: {value: new Vector2(0, 0)}
   };
   // intersection on 0,0 before mouse is moved
   private centeredMouse = new Vector2(-10000, -10000);
@@ -119,7 +119,7 @@ export class GraphService {
           idRoot: this.idRoot,
           idFlat: this.idFlat,
           renderGroup: this.renderGroup
-        } = initiateSVGObjects());
+        } = initiateSVGObjects(this.globalUniforms));
 
         // Add render group to scene
         this.scene.add(this.renderGroup);
@@ -170,7 +170,7 @@ export class GraphService {
         this.renderDom.addEventListener('mousemove', this.clickToZoom.bind(this, 'mousemove'))
         // this.renderDom.addEventListener('scroll', this.clickToZoom.bind(this, 'scroll')) // not working
 
-        // Handle clicking to go into element / show info
+        // Handle clicking to go into element / show infoText
         this.renderDom.addEventListener('dblclick', this.clickToShowInfo.bind(this, 'dblclick'))
 
         // Split areas in world and focusElement on the first
@@ -279,6 +279,14 @@ export class GraphService {
    */
   public highlightStage(cpuStage: CPU_STATES, animateTransition) {
     highlightStage(this.idFlat, cpuStage, animateTransition);
+  }
+
+  public highlightElement(id: string) {
+    highLightElement(this.idFlat, id, true);
+  }
+
+  public removeAllHighlights() {
+    removeAllHighlights(this.idFlat, true);
   }
 
   /**
@@ -527,7 +535,7 @@ export class GraphService {
       }
 
       // Set uniforms for shaders
-      this.globalUniforms.u_time.value = this.time;
+      this.globalUniforms.time.value = this.time;
 
       // Handle interactability via intersections
       this.handleIntersection();
@@ -544,7 +552,7 @@ export class GraphService {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
 
-    this.globalUniforms.u_resolution.value = new Vector2(width, height);
+    this.globalUniforms.resolution.value = new Vector2(width, height);
   }
 
 }

@@ -11,8 +11,13 @@ import {
   Vector2,
   Vector3
 } from 'three';
-import { checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface, Signal } from './helpers';
-import { computeUVsOfPlane } from './helper3D';
+import {
+  checkNoneColor,
+  flattenRootToIndexIdArray,
+  IdFlatInterface,
+  IdRootInterface,
+  Signal
+} from './helpers';
 import { getSName } from './helperNameMatch';
 import { MeshText2D, textAlign } from 'three-text2d';
 import * as d3 from 'd3';
@@ -21,13 +26,12 @@ import { Bindings, CPU_STATES } from '../bindingSubjects';
 import { hideNonVisibleElements, setColor, setOpacity } from './helperVisibility';
 import * as _ from 'lodash';
 import { readStyleProperty } from '../../../../utils/helper';
-import { BehaviorSubject } from 'rxjs';
-import { sign } from 'crypto';
-
+import { IUniform } from 'three/src/renderers/shaders/UniformsLib';
+import { MarkerMaterial } from './markerMaterial';
 /**
  * Loads the SVG and generates meshes. Does not add anything to the scene.
  */
-export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat: IdFlatInterface; renderGroup: Group } {
+export default function initiateSVGObjects(globalUniforms: { [uniform: string]: IUniform }): { idRoot: IdRootInterface; idFlat: IdFlatInterface; renderGroup: Group } {
   const loader = new SVGLoader();
   const idRoot: IdRootInterface = loader.parse(RISC_SVG).root;
   const renderGroup = new Group();
@@ -54,32 +58,19 @@ export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat:
 
             const shapes = path.toShapes(true);
             for (let j = 0; j < shapes.length; j++) {
-              const material = new MeshLambertMaterial({
-                color: new Color().setStyle(fillColor.toHexString()),
-                opacity: (path.userData.style.fillOpacity !== undefined ? path.userData.style.fillOpacity : 1) * (path.userData.style.opacity !== undefined ? path.userData.style.opacity : 1) * fillColor.getAlpha(),
-                transparent: true
-              });
-
               const shape = shapes[j];
               const geometry = new ShapeGeometry(shape);
               // const geometry = new ExtrudeGeometry(shape, {depth: 50, bevelEnabled: false});
 
-              // Compute uvs
-              computeUVsOfPlane(geometry);
+              // Compute uvscomputeUVsOfPlane(geometry);
 
-              // const shaderMaterial = new ShaderMaterial({
-              //   vertexShader: V_SHADER,
-              //   fragmentShader: F_SHADER,
-              //   uniforms: {
-              //     u_backgroundColor: {value: new Color().setStyle(fillColor.toHexString())},
-              //     u_borderColor: {value: new Color(1, 1, 1)},
-              //     u_width: {value: range.x}, // Set size
-              //     u_height: {value: range.y},
-              //     ...this.globalUniforms
-              //   }
-              // });
+              const shaderMaterial = new MarkerMaterial({
+                color: new Color().setStyle(fillColor.toHexString()),
+                globalUniforms: globalUniforms,
+                opacity: (path.userData.style.fillOpacity !== undefined ? path.userData.style.fillOpacity : 1) * (path.userData.style.opacity !== undefined ? path.userData.style.opacity : 1) * fillColor.getAlpha(),
+              });
 
-              const mesh = new Mesh(geometry, material);
+              const mesh = new Mesh(geometry, shaderMaterial);
               // mesh.translateZ(-51); // Compensate depth of extruded element and behind strokes
 
               mesh.name = child.id;
@@ -89,19 +80,18 @@ export default function initiateSVGObjects(): { idRoot: IdRootInterface; idFlat:
           }
           if (path.userData.style.stroke && path.userData.style.stroke !== 'none') {
             const strokeColor = tinycolor(checkNoneColor(path.userData.style.stroke));
-            const material1 = new MeshLambertMaterial({
+
+            const shaderMaterial = new MarkerMaterial({
               color: new Color().setStyle(strokeColor.toHexString()),
+              globalUniforms: globalUniforms,
               opacity: path.userData.style.strokeOpacity * (path.userData.style.opacity ? path.userData.style.opacity : 1) * strokeColor.getAlpha(),
-              transparent: true,
-              side: DoubleSide,
-              depthWrite: false
             });
 
             for (let j = 0, jl = path.subPaths.length; j < jl; j++) {
               const subPath = path.subPaths[j];
               const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path.userData.style);
               if (geometry) {
-                const mesh = new Mesh(geometry, material1);
+                const mesh = new Mesh(geometry, shaderMaterial);
                 childGroup.add(mesh);
                 mesh.name = child.id;
                 meshes.push(mesh);

@@ -150,8 +150,8 @@ export class MemoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   isExecStage() {
     // Use stage of simulation and not of CPU
-    // CPU stage could be off when info is shown before the next CPU cycle is started
-    // Sometimes info of next stage need to be shown before CPU does sometging
+    // CPU stage could be off when infoText is shown before the next CPU cycle is started
+    // Sometimes infoText of next stage need to be shown before CPU does sometging
     // E.g. The user is told inside the execute stage that something is written to memory,
     // in the next step the cpu executes that command
     return this.simulationComponent.stage === CPU_STATES.EXECUTE;

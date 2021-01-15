@@ -44,7 +44,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public stageSubject = new BehaviorSubject<CPU_STATES>(null);
 
   // Infotext
-  public info;
+  public infoText;
   private ngUnsubscribe = new Subject();
   // Set by elaborate steps, will reset selectedTab to this
   private currentArea = this.selectedTab;
@@ -69,7 +69,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
     // Hide infos if not elaborate
     if (!this.elaborateSteps) {
-      this.info = null;
+      this.infoText = null;
     } else {
       this.setNextInfoByStage(this.stage);
     }
@@ -100,7 +100,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
     // Reset all cpu values
     this.cpu.bindings.clearAllValues();
 
-    // For info getting
+    // For infoText getting
     this.instrCounter = 0;
     this.infoCounter = -1;
 
@@ -135,7 +135,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.stepDisabled = true;
 
     const info = this.getNextInfo(this.cpu.bindings);
-    this.info = info.text;
+    this.infoText = info.text;
 
     if (info.exec) {
       console.log('%cCPU STATE: ' + this.cpu.advanceSimulationClock(), 'color: #7F2FeF');
@@ -145,6 +145,13 @@ export class SimulationComponent implements OnInit, OnDestroy {
       this.stage = info.startOfStage;
       this.stageName = CPU_STATE_NAMES[this.stage];
       this.graphService.highlightStage(this.stage, true);
+    }
+
+    if(info.highlight) {
+      this.graphService.removeAllHighlights();
+      for (const id of info.highlight) {
+        this.graphService.highlightElement(id);
+      }
     }
 
     // New area --> focus area
@@ -219,7 +226,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get the next info text which fits current instruction and other {@link Bindings | Binding values} which can be checked by the 'if' property.
+   * Get the next infoText text which fits current instruction and other {@link Bindings | Binding values} which can be checked by the 'if' property.
    *
    * Depends on {@link RISCV_STAGES | RISCV_STAGES}, this.infoCounter, this.instrCounter.
    *
@@ -246,7 +253,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
     let startOfStage = null;
 
     if (this.infoCounter + 1 >= RISCV_STAGES[this.instrCounter].infos.length) {
-      // There is no info left in this instruction, go to first info of new instruction
+      // There is no infoText left in this instruction, go to first infoText of new instruction
       this.infoCounter = 0;
 
       // eslint-disable-next-line no-constant-condition

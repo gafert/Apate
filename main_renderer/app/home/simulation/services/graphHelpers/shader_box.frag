@@ -15,7 +15,7 @@ uniform vec3 u_borderColor;
 uniform float u_time;
 uniform vec2 u_resolution;
 
-// gl_FragCoord.xy/u_resolution coordinates in screen
+// gl_FragCoord.xy/resolution coordinates in screen
 
 
 void main(){

@@ -1,16 +1,16 @@
 # Descriptions per stages
 
 # FETCH
-- instr: [] # If this info is on depending on the instruction, empty is all
+- instr: [] # If this infoText is on depending on the instruction, empty is all
   start: fetch # Defines where the stage starts, see CPU_STATE_IDS
   infos:
     - text: Load new instruction at location of program counter # The text displayed
-      highlight: [] # The elements that should be highlighted
+      highlight: [p_pc-3, s_pc-2, m_memoryfetchinstr] # The elements that should be highlighted
       focusArea: overview # focusArea to go to, will be appended with areaborder_
       focusElement: fetch # focusElement to go to after focusArea has been selected, will be appended with focus_
       exec: fetch # If the cpu should execute
     - text: Pass values into decoder
-      highlight: [ ]
+      highlight: [s_instrmemread, m_cu, m_memoryfetchinstr]
       focusElement: fetchpass
 # DECODE
 - instr: []

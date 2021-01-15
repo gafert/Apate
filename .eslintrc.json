@@ -5,9 +5,14 @@
     "es6": true,
     "es2020": true
   },
+  "parserOptions": {
+    "sourceType": "module"
+  },
   "overrides": [
     {
-      "files": ["*.ts"],
+      "files": [
+        "*.ts"
+      ],
       "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
@@ -32,7 +37,9 @@
       ],
       "rules": {
         "@typescript-eslint/indent": [
-          "error", 2, {
+          "error",
+          2,
+          {
             "SwitchCase": 1
           }
         ],
@@ -55,9 +62,13 @@
       }
     },
     {
-      "files": ["*.component.html"],
+      "files": [
+        "*.component.html"
+      ],
       "parser": "@angular-eslint/template-parser",
-      "plugins": ["@angular-eslint/template"],
+      "plugins": [
+        "@angular-eslint/template"
+      ],
       "rules": {
         "@angular-eslint/template/banana-in-a-box": "error",
         "@angular-eslint/template/no-negated-async": "error"
