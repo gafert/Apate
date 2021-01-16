@@ -1,0 +1,36 @@
+{
+  "id": "eab7ca6b",
+  "name": "Element IDs",
+  "host": [
+    {
+      "app": "XD",
+      "minVersion": "22.0.0"
+    }
+  ],
+  "version": "1.0.0",
+  "icons": [
+    {
+      "width": 24,
+      "height": 24,
+      "path": "images/icon@1x.png"
+    },
+    {
+      "width": 48,
+      "height": 48,
+      "path": "images/icon@2x.png"
+    }
+  ],
+  "uiEntryPoints": [
+    {
+      "label" : "Rename elements to IDs",
+      "type" : "menu",
+      "commandId" : "selectAllElements",
+      "shortcut": { "mac": "Ctrl+Shift+A", "win": "Ctrl+Shift+A" }
+    },
+    {
+      "label" : "Reset all IDs",
+      "type" : "menu",
+      "commandId" : "clear"
+    }
+  ]
+}
