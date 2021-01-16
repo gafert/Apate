@@ -1,4 +1,4 @@
-import { Box3, Group, Mesh, ShapePath, Vector3 } from 'three';
+import { Box3, Group, Mesh, Object3D, ShapePath, Vector3 } from 'three';
 import * as d3 from 'd3';
 import { MeshText2D } from 'three-text2d';
 import { BehaviorSubject } from 'rxjs';
@@ -27,7 +27,7 @@ export interface IdRootInterface {
   parent: IdRootInterface; // Filled by initiateSVGObjects
   children: IdRootInterface[]; // Filled by initiateSVGObjects
   meshes: Mesh[]; // Filled by initiateSVGObjects
-  group: Group; // Filled by initiateSVGObjects
+  group: Object3D; // Filled by initiateSVGObjects
   isGroup: boolean; // Filled by initiateSVGObjects
 }
 
@@ -43,7 +43,7 @@ export interface IdRootInterface {
  * If the idRoot is changed this needs to be regenerated.
  */
 export interface IdFlatInterface {
-  [key: string]: { meshes: Mesh[]; group: Group; rootRef: IdRootInterface };
+  [key: string]: { meshes: Mesh[]; group: Object3D; rootRef: IdRootInterface };
 }
 
 export interface Signal {

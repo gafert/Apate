@@ -7,6 +7,8 @@ varying vec3 vPosition;
 uniform vec3 color;
 uniform float opacity;
 uniform float highlight;
+uniform vec3 greyColor;
+uniform vec3 whiteColor;
 
 // Global uniforms
 uniform float time;

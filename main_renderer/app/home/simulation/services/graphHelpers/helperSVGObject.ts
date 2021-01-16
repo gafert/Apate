@@ -4,9 +4,8 @@ import {
   BufferGeometry,
   Color,
   DoubleSide,
-  Group,
   Mesh,
-  MeshLambertMaterial,
+  MeshLambertMaterial, Object3D,
   ShapeGeometry,
   Vector2,
   Vector3
@@ -31,10 +30,10 @@ import { MarkerMaterial } from './markerMaterial';
 /**
  * Loads the SVG and generates meshes. Does not add anything to the scene.
  */
-export default function initiateSVGObjects(globalUniforms: { [uniform: string]: IUniform }): { idRoot: IdRootInterface; idFlat: IdFlatInterface; renderGroup: Group } {
+export default function initiateSVGObjects(globalUniforms: { [uniform: string]: IUniform }): { idRoot: IdRootInterface; idFlat: IdFlatInterface; renderGroup: Object3D } {
   const loader = new SVGLoader();
   const idRoot: IdRootInterface = loader.parse(RISC_SVG).root;
-  const renderGroup = new Group();
+  const renderGroup = new Object3D();
 
   // SVG transforms -> boundingBox may not be accurate use centerOfMeshes instead
   renderGroup.scale.multiplyScalar(0.25);
@@ -99,7 +98,7 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
             }
           }
           child.meshes = meshes;
-          child.isGroup = false;
+          // child.isGroup = false;
           child.group = childGroup;
           child.parent = parent;
         }
@@ -121,15 +120,15 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
           // Store it for us to
           child.meshes = [];
           child.meshes.push(text.mesh);
-          child.isGroup = false;
+          // child.isGroup = false;
           child.group = childGroup;
           child.parent = parent;
         }
       } else {
-        const newChildGroup = new Group();
+        const newChildGroup = new Object3D();
         newChildGroup.name = child.id;
         child.group = newChildGroup;
-        child.isGroup = true;
+        // child.isGroup = true;
         generateChildren(child, newChildGroup);
         childGroup.add(newChildGroup);
       }
@@ -151,6 +150,7 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
       if (key.startsWith('bg_')) {
         idFlat[key].meshes.forEach(mesh => {
           mesh.position.multiply(new Vector3(0, 0, 2));
+          mesh.renderOrder = 2;
         });
       }
     }

@@ -1,14 +1,24 @@
-import { Color, Material, Mesh } from 'three';
+import { Color, Geometry, Material, Mesh } from 'three';
 import { animate } from 'popmotion';
 import { IdFlatInterface } from './helpers';
 
 const nonVisibleMeshes: Mesh[] = [];
+
+/**
+ * Set the render to the opacity
+ * @param mesh
+ * @param newOpacity
+ */
+function setZIndexOnOpacityChange(mesh: Mesh<Geometry, Material>, newOpacity) {
+  mesh.renderOrder = newOpacity;
+}
 
 export function setOpacity<B extends boolean>(meshes: Mesh[], opacity, animateTransition: B): B extends true ? Promise<unknown> : void;
 export function setOpacity(meshes, opacity, animateTransition = true): Promise<unknown> | void {
   if (animateTransition) {
     return new Promise((resolve) => {
       for (const mesh of meshes) {
+        setZIndexOnOpacityChange(mesh, opacity);
         animate({
           from: mesh.material.opacity,
           to: opacity,
@@ -23,6 +33,7 @@ export function setOpacity(meshes, opacity, animateTransition = true): Promise<u
     });
   } else {
     for (const mesh of meshes) {
+      setZIndexOnOpacityChange(mesh, opacity);
       mesh.material.opacity = opacity;
     }
   }
@@ -118,7 +129,7 @@ export function highLightElement(idFlat, idOrMesh, animate = false): void {
 export function removeAllHighlights(idFlat: IdFlatInterface, animate = false): void {
   for (const key of Object.keys(idFlat)) {
     for (const mesh of idFlat[key].meshes) {
-      if ((mesh.material as any).isMarkerMaterial) {
+      if ((mesh.material as any).isMarkerMaterial && (mesh.material as any).highlight > 0) {
         (mesh.material as any).highlight = 0;
       }
     }

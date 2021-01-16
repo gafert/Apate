@@ -1,6 +1,7 @@
 import { Color, ShaderMaterial, ShaderMaterialParameters } from 'three';
 import SHADER_MARKER_VERT from './shader_marker.vert';
 import SHADER_MARKER_FRAG from './shader_marker.frag';
+import { readStyleProperty } from '../../../../utils/helper';
 
 interface MarkerMaterialParameters extends ShaderMaterialParameters {
   // opacity: number; --> already in super
@@ -20,11 +21,13 @@ function MarkerMaterial(parameters: MarkerMaterialParameters) {
       ...parameters.globalUniforms,
       color: { value: new Color(1, 0.7, 0.7) },
       opacity: { value: 1 },
-      highlight: { value: 0 }
+      highlight: { value: 0 },
+      greyColor: {value: new Color(readStyleProperty('grey2'))},
+      whiteColor: {value: new Color(readStyleProperty('accent'))}
     },
     vertexShader: SHADER_MARKER_VERT,
     fragmentShader: SHADER_MARKER_FRAG,
-    transparent: true
+    transparent: false
   });
 
   Object.defineProperties(this, {
