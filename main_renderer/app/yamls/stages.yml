@@ -5,12 +5,12 @@
   start: fetch # Defines where the stage starts, see CPU_STATE_IDS
   infos:
     - text: Load new instruction at location of program counter # The text displayed
-      highlight: [p_pc-3, s_pc-2, m_memoryfetchinstr] # The elements that should be highlighted
+      highlight: [p_pc-0001, s_pc-0002] # The elements that should be highlighted
       focusArea: overview # focusArea to go to, will be appended with areaborder_
       focusElement: fetch # focusElement to go to after focusArea has been selected, will be appended with focus_
       exec: fetch # If the cpu should execute
     - text: Pass values into decoder
-      highlight: [s_instrmemread, m_cu, m_memoryfetchinstr]
+      highlight: [s_instrmemread-0000]
       focusElement: fetchpass
 # DECODE
 - instr: []
@@ -38,48 +38,48 @@
     - text: Get values stored in the Registers from the given addresses
       focusArea: overview
       focusElement: decoderregisters
-      highlight: []
+      highlight: [m_reg2-0080, m_reg1-0077]
 - instr: []
   infos:
     - text: Pass values to the Data- and Control Path to activate the correct paths
       focusElement: decoderpass
       focusArea: overview
-      highlight: []
+      highlight: [s_instr-0064, m_controlpath-0074, w_op-0066, w_imminstr-0065, w_load-0067, w_branch-0069, w_jal-0070, w_jalr-0071, w_lui-0072, w_auipc-0073, s_rd-0082, s_imm-0081, m_datapath-0083]
 # EXECUTE
 - instr: [imm]
   start: execute
   infos:
     - text: Pass Immediate into Operator 1
-      highlight: []
+      highlight: [p_imm-0009, s_imm-0008, m_mux_immrs2-0004, s_immrs2-0005, m_mux_immrs2pcimm-0019, s_op1-0014]
       focusElement: alu
     - text: Pass Register Source 1 into Operator 2
-      highlight: []
+      highlight: [p_rs1-0033, s_rs1-0032, m_mux_rs1412-0020, s_op2-00163]
 - instr: [op]
   infos:
     - text: Pass Register Source 2 into Operator 1 of ALU
       focusElement: alu
-      highlight: []
+      highlight: [p_rs2-0006, s_rs2-0007, m_mux_immrs2-0004, s_immrs2-0005, m_mux_immrs2pcimm-0019, s_op1-0014]
     - text: Pass Register Source 1 into Operator 2 of ALU
-      highlight: []
+      highlight: [p_rs1-0033, s_rs1-0032, m_mux_rs1412-0020, s_op2-0016]
 - instr: [jal, jalr]
   infos:
     - text: Pass Program Counter into Operator 1
       focusElement: alu
-      highlight: []
+      highlight: [p_pc-0026, s_pc-0027, m_mux_immrs2pcimm-0019, s_op1-0014]
     - text: Pass 4 into Operator 2
       highlight: []
 - instr: [lui, auipc]
   infos:
     - text: Pass Immediate into Operator 1
       focusElement: alu
-      highlight: []
+      highlight: [p_imm-0024, s_imm-0025, m_mux_immrs2pcimm-0019, s_op1-0014]
     - text: Pass 12 into Operator 2
-      highlight: []
+      highlight: [p_12-0028, s_12-0029, m_mux_rs1412-0020, s_op2-0016]
 - instr: [imm, op, jal, jalr, lui, auipc]
   infos:
     - text: Arithemtic Logic Unit (ALU)
       focusArea: alu
-      highlight: []
+      highlight: [ ]
     - text: Calculate
       exec: execute
       highlight: [ ]
@@ -91,12 +91,12 @@
   infos:
     - text: Add output of ALU to Program Counter and pass it to the next stage
       focusElement: alu
-      highlight: []
+      highlight: [p_pc-0011, s_pc-0012, m_addpcalu-0010, s_pcaluout-0013, m_mux_pcaluout-0017]
 - instr: [imm, op, jal, jalr, lui]
   infos:
     - text: Pass ALU Output to the next stage
       focusElement: alu
-      highlight: []
+      highlight: [s_aluout-0018, m_mux_pcaluout-0017, s_regwrite]
 - instr: [auipc]
   infos:
     - text: Add output of ALU to Program Counter and pass it to the next stage

@@ -13,10 +13,10 @@ uniform vec3 whiteColor;
 // Global uniforms
 uniform float time;
 
-#define AMPLITUDE 0.5
+#define AMPLITUDE 1.0
 #define FREQ 50.0
 #define SPEED 400.0
-#define ONLYLIGHTEN 0.8
+#define ONLYLIGHTEN 0.5
 
 void main(){
   float s = sin((vPosition.x - vPosition.y - time * SPEED) / FREQ);

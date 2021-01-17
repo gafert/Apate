@@ -1,4 +1,4 @@
-import {Injectable, NgZone} from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import {
   AmbientLight,
   Clock,
@@ -16,22 +16,23 @@ import {
   WebGLRenderer
 } from 'three';
 import panzoom from '../../../utils/drag.js';
-import {CPUService} from './cpu.service';
+import { CPUService } from './cpu.service';
 import BACKGROUND_IMAGE from 'assets/background.png';
-import {animate, linear} from 'popmotion';
-import tippy, {Instance, Props} from 'tippy.js';
+import { animate, linear } from 'popmotion';
+import tippy, { Instance, Props } from 'tippy.js';
 import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
 import TABS from '../../../yamls/tabs.yml';
-import {Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal} from './graphHelpers/helpers';
-import {centerCameraOnElement, focusCameraOnElement, forceStopFocus} from './graphHelpers/helperFocus';
-import { hideElement, highLightElement, showElement, removeAllHighlights } from './graphHelpers/helperVisibility';
-import {getModuleName, getPortName, getSName, getWName} from './graphHelpers/helperNameMatch';
+import { Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal } from './graphHelpers/helpers';
+import { centerCameraOnElement, focusCameraOnElement, forceStopFocus } from './graphHelpers/helperFocus';
+import { hideElement, highLightElement, removeAllHighlights, showElement } from './graphHelpers/helperVisibility';
+import { getModuleName, getPortName, getSName, getWName } from './graphHelpers/helperNameMatch';
 import initiateSVGObjects, {
   addSignalTextsAndUpdate,
   highlightStage,
-  updateActiveElements, updateSignalTexts
+  updateActiveElements,
+  updateSignalTexts
 } from './graphHelpers/helperSVGObject';
-import {CPU_STATES} from './bindingSubjects';
+import { CPU_STATES } from './bindingSubjects';
 
 @Injectable({
   providedIn: 'root'
@@ -481,6 +482,7 @@ export class GraphService {
     }
   }
 
+  private clickedElements = [];
   private clickToZoom(event: string) {
     if (this.mouseFocusIsAnimating && event === 'mousedown') {
       forceStopFocus();
@@ -499,6 +501,19 @@ export class GraphService {
         centerCameraOnElement(this.camera, this.idFlat, this.intersectedElement.name, 200, true).then(() => {
           this.mouseFocusIsAnimating = false;
         })
+
+        this.clickedElements.push(this.intersectedElement.name)
+
+        let s = "";
+        for (let i = 0; i < this.clickedElements.length; i++) {
+          s += this.clickedElements[i] + (i < this.clickedElements.length - 1 ? ", " : "");
+        }
+
+        console.log(s);
+        navigator.clipboard.writeText(s).then((v) => {
+          console.log(v);
+        })
+
       }
     }
   }
