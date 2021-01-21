@@ -219,7 +219,7 @@ export class GraphService {
     const animationElement = animateTransition ? SVG_IDS[reverse ? this.currentArea : newArea] : null;
 
     // Hide elements of current focusArea only if there is one selected, else skip this and only show
-    hideElement(this.idFlat, 'area_' + newArea, false);
+    hideElement(this.idFlat, SVG_IDS.areaID + newArea, false);
 
     if (animationElement && !reverse) {
       await Promise.all([new Promise((resolve) => {
@@ -232,33 +232,33 @@ export class GraphService {
           onUpdate: (v) => this.camera.position.lerp(center, v),
           onComplete: () => resolve()
         });
-      }), hideElement(this.idFlat, 'area_' + this.currentArea, true)]);
+      }), hideElement(this.idFlat, SVG_IDS.areaID + this.currentArea, true)]);
 
       // Focus on new focusArea
-      focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
+      focusCameraOnElement(this.camera, this.idFlat, SVG_IDS.areaBorderID + newArea, false);
 
       // This can be async as the camera can move now
       // Show meshes at new location
-      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
+      showElement(this.idFlat, SVG_IDS.areaID + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
 
     } else if (animationElement && reverse) {
-      await hideElement(this.idFlat, 'area_' + this.currentArea, true);
-      focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
+      await hideElement(this.idFlat, SVG_IDS.areaID + this.currentArea, true);
+      focusCameraOnElement(this.camera, this.idFlat, SVG_IDS.areaBorderID + newArea, false);
 
       // Show meshes at new location async
-      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
+      showElement(this.idFlat, SVG_IDS.areaID + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
 
       // Lerp camera from center of animationElement to full view
       const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
       this.camera.position.copy(center);
-      await focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, true);
+      await focusCameraOnElement(this.camera, this.idFlat, SVG_IDS.areaBorderID + newArea, true);
     } else {
       if (!this.update.animations)
-        hideElement(this.idFlat, 'area_' + this.currentArea, false);
+        hideElement(this.idFlat, SVG_IDS.areaID + this.currentArea, false);
       else
-        await hideElement(this.idFlat, 'area_' + this.currentArea, true);
-      focusCameraOnElement(this.camera, this.idFlat, 'areaborder_' + newArea, false);
-      showElement(this.idFlat, 'area_' + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
+        await hideElement(this.idFlat, SVG_IDS.areaID + this.currentArea, true);
+      focusCameraOnElement(this.camera, this.idFlat, SVG_IDS.areaBorderID + newArea, false);
+      showElement(this.idFlat, SVG_IDS.areaID + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
     }
 
     this.currentArea = newArea;
@@ -269,7 +269,7 @@ export class GraphService {
    * @param id The id of the element. Will be appended with "focus_" by function.
    */
   public async goToFocus(id: string) {
-    await focusCameraOnElement(this.camera, this.idFlat, 'focus_' + id, true);
+    await focusCameraOnElement(this.camera, this.idFlat, SVG_IDS.focusID + id, true);
   }
 
   /**
@@ -374,15 +374,18 @@ export class GraphService {
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0) {
       const getName = (i) => {
-        if (i?.parent?.parent?.name?.startsWith('p_')) return {name: i.parent.parent.name, type: 'p'};
-        if (i?.parent?.parent?.name?.startsWith('m_')) return {name: i.parent.parent.name, type: 'm'};
-        if (i?.parent?.parent?.name?.startsWith('w_')) return {name: i.parent.parent.name, type: 'w'};
-        if (i?.parent?.name?.startsWith('p_')) return {name: i.parent.name, type: 'p'};
-        if (i?.parent?.name?.startsWith('m_')) return {name: i.parent.name, type: 'm'};
-        if (i?.parent?.name?.startsWith('w_')) return {name: i.parent.name, type: 'w'};
-        if (i?.name?.startsWith('s_')) return {name: i.name, type: 's'};
-        if (i?.name?.startsWith('w_')) return {name: i.name, type: 'w'};
-        if (i?.name?.startsWith('m_')) return {name: i.name, type: 'm'};
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.signalID)) return {name: i.parent.parent.name, type: 's'};
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.portID)) return {name: i.parent.parent.name, type: 'p'};
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.moduleID)) return {name: i.parent.parent.name, type: 'm'};
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.wireID)) return {name: i.parent.parent.name, type: 'w'};
+        if (i?.parent?.name?.startsWith(SVG_IDS.signalID)) return {name: i.parent.name, type: 's'};
+        if (i?.parent?.name?.startsWith(SVG_IDS.portID)) return {name: i.parent.name, type: 'p'};
+        if (i?.parent?.name?.startsWith(SVG_IDS.moduleID)) return {name: i.parent.name, type: 'm'};
+        if (i?.parent?.name?.startsWith(SVG_IDS.wireID)) return {name: i.parent.name, type: 'w'};
+        if (i?.name?.startsWith(SVG_IDS.signalID)) return {name: i.name, type: 's'};
+        if (i?.name?.startsWith(SVG_IDS.portID)) return {name: i.name, type: 'p'};
+        if (i?.name?.startsWith(SVG_IDS.moduleID)) return {name: i.name, type: 'm'};
+        if (i?.name?.startsWith(SVG_IDS.wireID)) return {name: i.name, type: 'w'};
       };
 
       let object;
@@ -532,7 +535,7 @@ export class GraphService {
     this.mouse.x = event.clientX;
     this.mouse.y = event.clientY;
 
-    // TODO: Depends on where the dom is in relation to the other elements
+    // Depends on where the dom is in relation to the other elements
     // Offset left because the dom does not start on the left border
     this.centeredMouse.x = ((event.clientX + this.renderDom.offsetLeft - (window.innerWidth - this.renderDom.clientWidth)) / this.renderDom.clientWidth) * 2 - 1;
     // Offset top because the dom does not start on the edge, additional - offset top because there is a header over all simulation elements

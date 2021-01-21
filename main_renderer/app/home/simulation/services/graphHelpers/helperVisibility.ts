@@ -1,6 +1,7 @@
-import { Color, Geometry, Material, Mesh } from 'three';
+import { Color, Geometry, Material, Mesh, MeshBasicMaterial } from 'three';
 import { animate } from 'popmotion';
 import { IdFlatInterface } from './helpers';
+import SVG_IDS from '../../../../yamls/ids.yml';
 
 const nonVisibleMeshes: Mesh[] = [];
 
@@ -137,14 +138,20 @@ export function removeAllHighlights(idFlat: IdFlatInterface, animate = false): v
 }
 
 export function hideNonVisibleElements(idFlat: IdFlatInterface) {
+  const ignore = (id) => SVG_IDS.ignore.find((start) => id?.startsWith(start))
+
   // Hide none visible elements
   for (const key of Object.keys(idFlat)) {
-    if (key.startsWith('focus_') || key.startsWith('areaborder_')) {
+    if (ignore(key)) {
       nonVisibleMeshes.push(...idFlat[key].meshes);
     }
   }
 
   for (const nonVisibleMesh of nonVisibleMeshes) {
-    (nonVisibleMesh.material as Material).opacity = 0;
+    (nonVisibleMesh.material as Material) = new MeshBasicMaterial({
+      transparent: true,
+      opacity: 0
+    });
+    (nonVisibleMesh.geometry as Geometry).uvsNeedUpdate = true;
   }
 }

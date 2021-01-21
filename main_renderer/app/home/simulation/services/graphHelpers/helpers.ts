@@ -1,7 +1,8 @@
-import { Box3, Group, Mesh, Object3D, ShapePath, Vector3 } from 'three';
+import { Box3, Mesh, Object3D, ShapePath, Vector3 } from 'three';
 import * as d3 from 'd3';
 import { MeshText2D } from 'three-text2d';
 import { BehaviorSubject } from 'rxjs';
+import SVG_IDS from '../../../../yamls/ids.yml';
 
 // Interfaces
 
@@ -94,8 +95,8 @@ export function separateAreas(idFlat: IdFlatInterface) {
 
   let y = 0;
   for (const area of areas) {
-    if (!idFlat['area_' + area]) continue;
-    const group = idFlat['area_' + area].group;
+    if (!idFlat[SVG_IDS.areaID + area]) continue;
+    const group = idFlat[SVG_IDS.areaID + area].group;
     group.position.set(0, y, 0);
     y += 1000;
   }

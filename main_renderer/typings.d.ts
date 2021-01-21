@@ -34,6 +34,29 @@ declare module "*.yml" {
   export default value;
 }
 
+/**
+ * Definition for svg ids yaml to be used in typescript
+ */
+declare module "ids.yml" {
+  const value: {
+    alu: string;
+    cu: string;
+    be: string;
+    ignore: string[];
+    areaID: string;
+    areaBorderID: string;
+    focusID: string;
+    stageBoxID: string;
+    backgroundID: string;
+    signalID: string;
+    wireID: string;
+    moduleID: string;
+    portID: string;
+    muxGroupID: string;
+  };
+  export default value;
+}
+
 declare module "*.svg" {
   const value: string;
   export default value;

@@ -1,3 +1,10 @@
+import SVG_IDS from '../../../../yamls/ids.yml';
+
+const portRegex = new RegExp('^(?:' + SVG_IDS.portID + ')(.*?)(?:-|$)', 'g');
+const signalRegex = new RegExp('^(?:' + SVG_IDS.signalID + ')(.*?)(?:-|$)', 'g');
+const wireRegex = new RegExp('^(?:' + SVG_IDS.wireID + ')(.*?)(?:-|$)', 'g');
+const moduleRegex = new RegExp('^(?:' + SVG_IDS.moduleID + ')(.*?)(?:-|$)', 'g');
+
 /**
  * Get the first matched group of a regex
  * @param regexp The regex element to match
@@ -12,21 +19,17 @@ export function getFirstGroup(regexp: RegExp, str) {
  * @param id String to match
  */
 export function getPortName(id: string): string | boolean {
-  const regex = /^(?:p_)(.*?)(?:-|$)/g;
-  return id ? getFirstGroup(regex, id) : false;
+  return id ? getFirstGroup(portRegex, id) : false;
 }
 
 export function getSName(id: string): string | boolean {
-  const regex = /^(?:s_)(.*?)(?:-|$)/g;
-  return id ? getFirstGroup(regex, id) : false;
+  return id ? getFirstGroup(signalRegex, id) : false;
 }
 
 export function getWName(id: string): string | boolean {
-  const regex = /^(?:w_)(.*?)(?:-|$)/g;
-  return id ? getFirstGroup(regex, id) : false;
+  return id ? getFirstGroup(wireRegex, id) : false;
 }
 
 export function getModuleName(id: string): string | boolean {
-  const regex = /^(?:m_)(.*?)(?:-|$)/g;
-  return id ? getFirstGroup(regex, id) : false;
+  return id ? getFirstGroup(moduleRegex, id) : false;
 }

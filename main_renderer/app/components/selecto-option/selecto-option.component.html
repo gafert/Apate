@@ -1,6 +1,0 @@
-<div style="margin-left: 1em">
-  <div (click)="setSelected(item.key)" *ngFor=" let item of options | keyvalue"
-       [style.color]="item.value.selected ? 'white' : 'grey'" style="cursor: pointer">
-    <i class="fas fa-arrow-right" style="margin-right: 0.5em"></i>{{item.value.name}}
-  </div>
-</div>

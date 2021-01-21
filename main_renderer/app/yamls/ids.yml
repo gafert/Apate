@@ -1,3 +1,32 @@
+# What tab corresponds to what svg id
 alu: m_alu-0023
 cu: m_cu-0063
 be: m_be-0124
+
+# What should not be rendered, will be rendered with opacity 0
+ignore: [focus_, areaborder_]
+
+# Defines areas / tabs
+areaID: area_
+
+# Defines the border of area to fit on screen
+areaBorderID: areaborder_
+
+# Defines areas which can be focus on, will fit screen to the size of this element
+focusID: focus_
+
+# Gray box on top of elements, turns blue on correct stag
+stageBoxID: stagebox_
+
+# Hover Identifiers
+backgroundID: bg_
+signalID: s_ # Has value text
+wireID: w_   # Displays value on hover
+moduleID: m_ # Has more information on hover, can be clicked
+portID: p_   # Displays value on hover
+
+# Group which shall be hidden or shown, all children in this group with this id can be hiddem
+muxGroupID: mux_
+
+
+

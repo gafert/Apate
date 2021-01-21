@@ -1,24 +1,9 @@
 import { SVGLoader } from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./riscv.svg';
-import {
-  BufferGeometry,
-  Color,
-  DoubleSide,
-  Mesh,
-  MeshLambertMaterial, Object3D,
-  ShapeGeometry,
-  Vector2,
-  Vector3
-} from 'three';
-import {
-  checkNoneColor,
-  flattenRootToIndexIdArray,
-  IdFlatInterface,
-  IdRootInterface,
-  Signal
-} from './helpers';
+import { BufferGeometry, Color, Mesh, Object3D, ShapeGeometry, Vector2 } from 'three';
+import { checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface, Signal } from './helpers';
 import { getSName } from './helperNameMatch';
-import { MeshText2D, textAlign } from 'three-text2d';
+import { textAlign } from 'three-text2d';
 import * as d3 from 'd3';
 import * as tinycolor from 'tinycolor2';
 import { Bindings, CPU_STATES } from '../bindingSubjects';
@@ -27,6 +12,9 @@ import * as _ from 'lodash';
 import { readStyleProperty } from '../../../../utils/helper';
 import { IUniform } from 'three/src/renderers/shaders/UniformsLib';
 import { MarkerMaterial } from './markerMaterial';
+import SVG_IDS from '../../../../yamls/ids.yml';
+import { MeshText2D } from './MeshText2D';
+
 /**
  * Loads the SVG and generates meshes. Does not add anything to the scene.
  */
@@ -60,8 +48,7 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
               const shape = shapes[j];
               const geometry = new ShapeGeometry(shape);
               // const geometry = new ExtrudeGeometry(shape, {depth: 50, bevelEnabled: false});
-
-              // Compute uvscomputeUVsOfPlane(geometry);
+              // computeUVsOfPlane(geometry);
 
               const shaderMaterial = new MarkerMaterial({
                 color: new Color().setStyle(fillColor.toHexString()),
@@ -128,7 +115,6 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
         const newChildGroup = new Object3D();
         newChildGroup.name = child.id;
         child.group = newChildGroup;
-        // child.isGroup = true;
         generateChildren(child, newChildGroup);
         childGroup.add(newChildGroup);
       }
@@ -147,10 +133,10 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
    */
   const setBackBackgroundElements = (idFlat: IdFlatInterface) => {
     for (const key of Object.keys(idFlat)) {
-      if (key.startsWith('bg_')) {
+      if (key.startsWith(SVG_IDS.backgroundID)) {
         idFlat[key].meshes.forEach(mesh => {
-          mesh.position.multiply(new Vector3(0, 0, 2));
-          mesh.renderOrder = 2;
+          mesh.translateZ(-2);
+          mesh.renderOrder = 3; // After all other things
         });
       }
     }
@@ -169,7 +155,7 @@ export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterf
   if (nextCpuState === CPU_STATES.FETCH) {
     for (const key of Object.keys(idFlat)) {
       // Hide all elements when the next decoding stage is incoming
-      if (key.startsWith('mux_')) {
+      if (key.startsWith(SVG_IDS.muxGroupID)) {
         setOpacity(idFlat[key].meshes, 1, animateTransition);
       }
     }
@@ -190,7 +176,7 @@ export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterf
         // Only match exact word -> 'add' -> match 'add' and not 'addi'
         const regex = new RegExp(`(\b|_)${element.toLowerCase()}(\b|_|$|-)`);
         const keySmall = key.toLowerCase();
-        if (keySmall.startsWith('mux_') && regex.test(keySmall)) {
+        if (keySmall.startsWith(SVG_IDS.muxGroupID) && regex.test(keySmall)) {
           meshesToActivate.push(...idFlat[key].meshes);
         }
       }
@@ -205,7 +191,7 @@ export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterf
     const allMeshes = [];
     for (const key of Object.keys(idFlat)) {
       const keySmall = key.toLowerCase();
-      if (keySmall.startsWith('mux_')) {
+      if (keySmall.startsWith(SVG_IDS.muxGroupID)) {
         allMeshes.push(...idFlat[key].meshes);
       }
     }
@@ -272,6 +258,7 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
       // Get position at root ref
       idFlat[key].rootRef.meshes.push(text.mesh);
       // Return list of texts for later reference
+      // @ts-ignore
       signals.push({ textElement: text, meshes: (idFlat[key].rootRef.meshes), binding: binding });
     }
   }
@@ -304,9 +291,9 @@ export function highlightStage(idFlat: IdFlatInterface, cpuStage: CPU_STATES | b
   const colorGrey = readStyleProperty('grey1');
 
   for (const key of Object.keys(idFlat)) {
-    if (key.startsWith('stagebox_') && !key.startsWith('stagebox_' + cpuStage)) {
+    if (key.startsWith(SVG_IDS.stageBoxID) && !key.startsWith(SVG_IDS.stageBoxID + cpuStage)) {
       setColor(idFlat[key].meshes, colorGrey, animateTransition);
-    } else if (key.startsWith('stagebox_' + cpuStage)) {
+    } else if (key.startsWith(SVG_IDS.stageBoxID + cpuStage)) {
       setColor(idFlat[key].meshes, colorAccent, animateTransition);
     }
   }
