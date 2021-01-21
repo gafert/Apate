@@ -4,9 +4,9 @@
   <div class="tabs simulation-tabs">
     <!-- The paths need to overwrite the last path element e.g. /home/simulation/overview -> /home/simulation/decoder -->
     <button *ngVar="'overview' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Overview</button>
-    <button *ngVar="'cu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Control Unit</button>
-    <button *ngVar="'alu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Arithmetic Logic Unit</button>
-    <button *ngVar="'be' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Branch Evaluator</button>
+    <button *ngVar="'cu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Control Unit<i class="fas fa-circle {{s}}"></i></button>
+    <button *ngVar="'alu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Arithmetic Logic Unit<i class="fas fa-circle {{s}}"></i></button>
+    <button *ngVar="'be' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Branch Evaluator<i class="fas fa-circle {{s}}"></i></button>
   </div>
 
   <div class="simulation-item-content control">
@@ -17,12 +17,8 @@
       </mat-checkbox>
     </div>
     <div id="actions">
-      <app-action-button style="margin-left: 1em" (buttonClick)="initiateSimulation()"
-                         text="Initiate"></app-action-button>
-
-      <app-action-button style="margin-left: 1em" (buttonClick)="stepSimulation()"
-                         [disabled]="!cpu.elfIsLoaded || stepDisabled"
-                         text="Step" iconClass="fas fa-play"></app-action-button>
+      <button mat-flat-button color="accent" (click)="initiateSimulation()" style="margin-right: 0.5em;">Initiate</button>
+      <button mat-flat-button color="accent" (click)="stepSimulation()" [disabled]="!cpu.elfIsLoaded || stepDisabled">Step<i class="fas fa-play" style="margin-left: 0.5em; vertical-align: unset"></i></button>
     </div>
   </div>
 

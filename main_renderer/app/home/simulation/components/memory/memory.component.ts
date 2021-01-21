@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
-import { byteToHex, range } from '../../../../globals';
+import { byteToHex, range } from '../../../../utils/helper';
 import { CPUService } from '../../services/cpu.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';

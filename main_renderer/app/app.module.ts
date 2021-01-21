@@ -5,15 +5,12 @@ import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {NgModule} from '@angular/core';
 import {HttpClientModule} from '@angular/common/http';
-import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
-import {SettingsComponent} from './settings/settings.component';
-import {SettingComponent} from "./components/setting/setting.component";
-import {ActionButtonModule} from "./components/action-button/action-button.module";
 import {CommonModule} from "@angular/common";
 import {popperVariation, TippyModule, withContextMenuVariation} from "@ngneat/helipopper";
 import {Props} from "tippy.js";
 import {FormsModule} from "@angular/forms";
+import {RouterModule, Routes} from "@angular/router";
 
 const tooltipVariation1: Partial<Props> = {
   theme: 'light',
@@ -23,16 +20,27 @@ const tooltipVariation1: Partial<Props> = {
   offset: [0, 5]
 };
 
+const routes: Routes = [
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full',
+  },
+  {path: 'home', loadChildren: () => import('./home/home.module').then((m) => m.HomeModule)},
+  {path: 'settings', loadChildren: () => import('./settings/settings.module').then((m) => m.SettingsModule)},
+];
+
 @NgModule({
   declarations: [AppComponent],
-  imports: [CommonModule, BrowserModule, BrowserAnimationsModule, FormsModule, HttpClientModule, AppRoutingModule, TippyModule.forRoot({
-    defaultVariation: 'tooltip',
-    variations: {
-      tooltip: tooltipVariation1,
-      popper: popperVariation,
-      contextMenu: withContextMenuVariation(popperVariation),
-    }
-  })],
+  imports: [RouterModule.forRoot(routes, {useHash: true, /* enableTracing: true */}),
+    CommonModule, BrowserModule, BrowserAnimationsModule, FormsModule, HttpClientModule, TippyModule.forRoot({
+      defaultVariation: 'tooltip',
+      variations: {
+        tooltip: tooltipVariation1,
+        popper: popperVariation,
+        contextMenu: withContextMenuVariation(popperVariation),
+      }
+    })],
   providers: [],
   bootstrap: [AppComponent],
   exports: []

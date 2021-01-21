@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
-import { byteToHex } from '../globals';
+import { byteToHex } from '../utils/helper';
 import * as electron from 'electron';
-import { Router } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import * as url from 'url';
 import * as isDev from 'electron-is-dev';
 import { Subject } from 'rxjs';
@@ -19,7 +19,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private ngUnsubscribe = new Subject();
 
-  constructor(private dataService: DataService, private router: Router) {
+  constructor(private dataService: DataService, private router: Router, private route: ActivatedRoute) {
     dataService.data[DataKeys.FOLDER_PATH].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.folderPath = value;
     });
@@ -39,6 +39,15 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           this.dataService.data[DataKeys.FOLDER_PATH].next(result.filePaths[0]);
         }
       });
+  }
+
+  switchTab() {
+    if (this.isSelectedButton('compile')) {
+      this.router.navigate(['./simulation'], {relativeTo: this.route});
+    } else if (this.isSelectedButton('simulation')) {
+      this.router.navigate(['./compile'], {relativeTo: this.route});
+    }
+    console.log(this.router.url);
   }
 
   openSettingsDialog() {

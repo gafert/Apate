@@ -21,7 +21,7 @@ import BACKGROUND_IMAGE from 'assets/background.png';
 import { animate, linear } from 'popmotion';
 import tippy, { Instance, Props } from 'tippy.js';
 import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
-import TABS from '../../../yamls/tabs.yml';
+import SVG_IDS from '../../../yamls/ids.yml';
 import { Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal } from './graphHelpers/helpers';
 import { centerCameraOnElement, focusCameraOnElement, forceStopFocus } from './graphHelpers/helperFocus';
 import { hideElement, highLightElement, removeAllHighlights, showElement } from './graphHelpers/helperVisibility';
@@ -216,7 +216,7 @@ export class GraphService {
     // If the transition is from sub to another sub disable animation
     if (!reverse && this.currentArea !== 'overview') animateTransition = false;
     // Get the animation element if animateTransitions is on
-    const animationElement = animateTransition ? TABS[reverse ? this.currentArea : newArea] : null;
+    const animationElement = animateTransition ? SVG_IDS[reverse ? this.currentArea : newArea] : null;
 
     // Hide elements of current focusArea only if there is one selected, else skip this and only show
     hideElement(this.idFlat, 'area_' + newArea, false);
@@ -347,7 +347,8 @@ export class GraphService {
     });
 
     const backgroundMesh = new Mesh(backgroundGeometry, backgroundMaterial);
-    const backgroundPosition = getCenterOfMeshes(idFlat['risc_test'].meshes).center;
+    // Center in root of riscv.svg
+    const backgroundPosition = getCenterOfMeshes(idFlat['riscv'].meshes).center;
     backgroundPosition.z = -50;
     backgroundMesh.position.copy(backgroundPosition);
     return backgroundMesh;

@@ -2,6 +2,7 @@ import {NgModule} from '@angular/core';
 import {HomeComponent} from './home.component';
 import {CommonModule} from "@angular/common";
 import {RouterModule, Routes} from "@angular/router";
+import {MatButtonModule} from "@angular/material/button";
 
 const routes: Routes = [
   {
@@ -15,7 +16,7 @@ const routes: Routes = [
         loadChildren: () => import('./compile/compile.module').then((m) => m.CompileModule) },
       {
         path: '**',
-        redirectTo: 'compile',
+        redirectTo: 'simulation',
       },
     ],
   },
@@ -23,7 +24,7 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [HomeComponent],
-  imports: [RouterModule.forChild(routes), CommonModule],
+  imports: [RouterModule.forChild(routes), CommonModule, MatButtonModule],
 })
 export class HomeModule {
 }

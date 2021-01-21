@@ -6,7 +6,6 @@ import {InstructionsComponent} from './components/instructions/instructions.comp
 import {RegistersComponent} from './components/registers/registers.component';
 import {TerminalComponent} from './components/terminal/terminal.component';
 import {SimulationComponent} from './simulation.component';
-import {SimulationRoutingModule} from './simulation-routing.module';
 import {ChangingValueComponent} from './components/changing-value/changing-value.component';
 import {GraphComponent} from './components/graph/graph.component';
 import {SignalsComponent} from './components/signals/signals.component';
@@ -16,9 +15,19 @@ import {TippyModule} from "@ngneat/helipopper";
 import {VerticalTabsComponent} from "../../components/vertical-tabs/vertical-tabs.component";
 import {VerticalTabsItemComponent} from "../../components/vertical-tabs-item/vertical-tabs-item.component";
 import {VarDirective} from "../../components/ngVar.directive";
-import {ActionButtonModule} from "../../components/action-button/action-button.module";
 import {FormsModule} from "@angular/forms";
 import { VirtualScrollerModule } from 'ngx-virtual-scroller';
+import {RouterModule, Routes} from "@angular/router";
+import {MatButtonModule} from "@angular/material/button";
+import {MatRippleModule} from "@angular/material/core";
+
+const routes: Routes = [
+  {
+    path: '**',
+    component: SimulationComponent,
+  },
+];
+
 
 @NgModule({
   declarations: [
@@ -32,8 +41,8 @@ import { VirtualScrollerModule } from 'ngx-virtual-scroller';
     GraphComponent,
     SignalsComponent, VerticalTabsComponent, VerticalTabsItemComponent, VarDirective
   ],
-  imports: [CommonModule, SimulationRoutingModule, MatCheckboxModule, TippyModule,
-    ActionButtonModule, FormsModule, VirtualScrollerModule],
+  imports: [RouterModule.forChild(routes), CommonModule, MatCheckboxModule, TippyModule,
+    FormsModule, VirtualScrollerModule, MatButtonModule, MatRippleModule],
   providers: [],
 })
 export class SimulationModule {

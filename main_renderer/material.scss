@@ -4,9 +4,9 @@
 @include mat-core();
 
 $mat-primary-scheme: (
-  100: $accent,
-  500: $accent,
-  700: $accent,
+  100: $grey2,
+  500: $grey1,
+  700: $grey3,
   contrast: (
     100: rgba(255, 255, 255, 0.87),
     500: #fbfbfb,
@@ -16,7 +16,7 @@ $mat-primary-scheme: (
 $mat-accent-scheme: (
   100: $accent,
   500: $accent,
-  700: $accent,
+  700: $accentDark,
   contrast: (
     100: rgba(255, 255, 255, 0.87),
     500: rgba(255, 255, 255, 0.87),

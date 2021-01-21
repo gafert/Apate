@@ -20,18 +20,28 @@ $controlHeight: 3em;
 
   border-bottom: $border;
 
-  // Overwrite default tab height to make padding
-  height: $tabsHeight; // More padding because of borders
-
   // Overwrite default color
   background-color: $grey3;
 
   // Invert colors
   button {
-    background-color: $grey3;
+    // background-color: $grey3;
 
     &[selected=true] {
-      background-color: $grey2;
+      // background-color: $grey2;
+    }
+  }
+
+  .fas {
+    margin-left: 0.5em;
+    &.alu {
+      color: $colorALU;
+    }
+    &.cu {
+      color: $colorControlUnit;
+    }
+    &.be {
+      color: $colorBranchEval;
     }
   }
 }

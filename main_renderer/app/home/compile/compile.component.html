@@ -1,6 +1,5 @@
 <div class="compile-tab-header">
-  <app-action-button style="margin-left: 1em" (buttonClick)="compile()" [disabled]="compiling" iconClass="fas fa-play"
-                     text="Compile"></app-action-button>
+  <button mat-flat-button color="accent" [disabled]="compiling" (click)="compile()" style="margin-left: 0.5em;">Compile<i class="fas fa-play" style="margin-left: 0.5em; vertical-align: unset"></i></button>
 </div>
 
 <div class="compile-container">

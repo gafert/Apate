@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {byteToHex} from '../../../../globals';
+import {byteToHex} from '../../../../utils/helper';
 import {CPUService} from '../../services/cpu.service';
 
 @Component({

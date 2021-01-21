@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import {byteToHex, range} from '../../globals';
+import {byteToHex, range, readStyleProperty} from '../../utils/helper';
 import {CPUService} from './services/cpu.service';
 import {InstructionsComponent} from './components/instructions/instructions.component';
 import {takeUntil} from 'rxjs/operators';
@@ -21,7 +21,7 @@ import {Areas} from './services/graphHelpers/helpers';
 export class SimulationComponent implements OnInit, OnDestroy {
   @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
   public byteToHex = byteToHex;
-  public DataKeys = DataKeys;
+  public readStyleProperty = readStyleProperty;
   public range = range;
   // If step by step should be enabled
   public elaborateSteps = true;
@@ -56,7 +56,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
   constructor(
     public cpu: CPUService,
     private dataService: DataService,
-    private router: Router,
     private graphService: GraphService
   ) {
     this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;

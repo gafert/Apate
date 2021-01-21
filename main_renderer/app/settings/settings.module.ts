@@ -1,10 +1,10 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {SettingsComponent} from "./settings.component";
 import {SettingComponent} from "../components/setting/setting.component";
 import {RouterModule, Routes} from "@angular/router";
-import {ActionButtonModule} from "../components/action-button/action-button.module";
 import {FormsModule} from "@angular/forms";
+import {MatButtonModule} from "@angular/material/button";
 
 const routes: Routes = [
   {
@@ -17,7 +17,8 @@ const routes: Routes = [
 @NgModule({
   declarations: [SettingsComponent, SettingComponent],
   imports: [
-    RouterModule.forChild(routes), CommonModule, FormsModule, ActionButtonModule
+    RouterModule.forChild(routes), CommonModule, FormsModule, MatButtonModule
   ]
 })
-export class SettingsModule { }
+export class SettingsModule {
+}

@@ -68,9 +68,8 @@
   </div>
 
   <div class="setting-box">
-    <app-action-button text="Reset" (buttonClick)="clearSettingsAndRestart()"></app-action-button>
-    <app-action-button text="Save"
-                       (buttonClick)="saveSettings([reafelfflags, objdumpflags, gccflags, sources, prefix, elf, toolchain])"></app-action-button>
+    <button mat-flat-button color="primary" (click)="clearSettingsAndRestart()">Reset</button>
+    <button mat-flat-button color="accent" style="margin-left: 0.5em" (click)="saveSettings([reafelfflags, objdumpflags, gccflags, sources, prefix, elf, toolchain])">Save</button>
   </div>
 
 </div>

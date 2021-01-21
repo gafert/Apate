@@ -1,11 +1,7 @@
 <div class="header">
-  <button (click)="openFolderPathDialog()">Open Folder</button>
-  <button (click)="openSettingsDialog()">Settings</button>
-</div>
-
-<div class="tabs">
-  <button [routerLink]="['./compile']" [attr.selected]="isSelectedButton('compile')" id="button-tab-compile">Compile</button>
-  <button [routerLink]="['./simulation']" [attr.selected]="isSelectedButton('simulation')" id="button-tab-simulate">Simulation</button>
+  <button mat-flat-button color="primary" (click)="switchTab()">{{isSelectedButton('compile') ? 'Go to Simulation' : 'Go to Compile'}}</button>
+  <button mat-flat-button color="primary" (click)="openFolderPathDialog()">Open Folder</button>
+  <button mat-flat-button color="primary" (click)="openSettingsDialog()">Settings</button>
 </div>
 
 <div class="container">

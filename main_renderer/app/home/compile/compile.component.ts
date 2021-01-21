@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { spawn } from 'child_process';
-import { byteToHex } from '../../globals';
+import { byteToHex } from '../../utils/helper';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { Subject } from 'rxjs';

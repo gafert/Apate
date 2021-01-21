@@ -6,22 +6,14 @@
 }
 
 .header {
-  display: flex;
-  height: $headerHeight;
+  height: calc(#{$headerHeight} - 1px);
   width: 100%;
   background-color: $grey2;
+  align-items: center;
+  padding-left: 0.5em;
+  display: flex;
 
   button {
-    background-color: transparent;
-    border: none;
-    color: white;
-
-    &:focus {
-      outline: 0;
-    }
-
-    &:hover {
-      background-color: #292929;
-    }
+    margin-right: 0.5em;
   }
 }

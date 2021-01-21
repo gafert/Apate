@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 import {CompileComponent} from './compile.component';
 import {FormsModule} from '@angular/forms';
 import {CodemirrorModule} from '@ctrl/ngx-codemirror';
-import {ActionButtonModule} from "../../components/action-button/action-button.module";
 import {RouterModule, Routes} from "@angular/router";
 
 import 'codemirror/mode/javascript/javascript';
@@ -11,6 +10,7 @@ import 'codemirror/mode/markdown/markdown';
 import 'codemirror/mode/clike/clike';
 import 'codemirror/mode/cmake/cmake';
 import 'codemirror/mode/meta';
+import {MatButtonModule} from "@angular/material/button";
 
 const routes: Routes = [
   {
@@ -23,7 +23,7 @@ const routes: Routes = [
 @NgModule({
   declarations: [CompileComponent],
   imports: [CommonModule, RouterModule.forChild(routes), FormsModule, CodemirrorModule,
-    ActionButtonModule],
+    MatButtonModule],
 })
 export class CompileModule {
 }

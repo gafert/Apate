@@ -1,5 +1,5 @@
 import { SVGLoader } from './SVGLoader';
-import RISC_SVG from '!!raw-loader!./risc_test.svg';
+import RISC_SVG from '!!raw-loader!./riscv.svg';
 import {
   BufferGeometry,
   Color,

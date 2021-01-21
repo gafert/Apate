@@ -1,5 +1,5 @@
 import {Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
-import {byteToHex} from '../../../../globals';
+import {byteToHex} from '../../../../utils/helper';
 import {animate, easeIn, easeInOut, easeOut} from 'popmotion';
 import styler from 'stylefire';
 import {readStyleProperty} from '../../../../utils/helper';

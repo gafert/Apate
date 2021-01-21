@@ -1,8 +1,8 @@
 // COLORS
 
-$grey1: #414141;
-$grey2: #292929;
-$grey3: #1C1C1C;
+$grey1: #3d3f41;
+$grey2: #292a2b;
+$grey3: #1a1b1c;
 
 $greyCount: 3;
 $greys: $grey1 $grey2 $grey3;
@@ -16,6 +16,17 @@ $greys: $grey1 $grey2 $grey3;
 $accent: #1176a5;
 $accentDark: #00394f;
 
+$colorMemory: #d35750;
+$colorMemoryDark: #943530;
+$colorALU: #cd944c;
+$colorALUDark: #A27234;
+$colorRegs: #62613e;
+$colorRegsDark: #4c4b2d;
+$colorBranchEval: #873B9A;
+$colorBranchEvalDark: #5E1A6E;
+$colorControlUnit: #308867;
+
+
 // Make variable accessible in js
 body {
   @for $i from 1 through $greyCount {
@@ -27,17 +38,11 @@ body {
   --accent-dark:#{$accentDark};
 }
 
-// FONTS
-.mono {
-  font-family: "Roboto Mono", monospace;
-}
-
-
 // SIZES
-$headerHeight: 2em;
+$headerHeight: 3.5em;
 $tabsHeight: 2em;
 $tabsMarginLeft: 0.6em;
-$bodyMarginTop: $headerHeight + $tabsHeight;
+$bodyMarginTop: $headerHeight;
 
 $border: 1px solid $grey1;
 

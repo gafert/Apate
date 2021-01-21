@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
-import {byteToHex, byteToBinary} from '../../../../globals';
+import {byteToHex, byteToBinary} from '../../../../utils/helper';
 import {ELF, ElfSymbol, ELFSectionHeader, SHF_CONSTANTS} from '../../../../utils/elfParser';
 import {Instruction, INSTRUCTIONS_DESCRIPTIONS} from '../../../../utils/instructionParser';
 import {CPUService} from "../../services/cpu.service";
