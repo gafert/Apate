@@ -1,32 +1,30 @@
 @import "../../../import";
 
-.compile-tab-header {
-  background-color: $grey3;
-  border: $border;
-  height: 3em;
-  width: 100%;
+:host {
   display: flex;
-  align-items: center;
+  height: 100%;
 }
 
-.compile-container {
-  height: calc(100% - 3em);
+.sidebar {
+  flex: 0 0 $gridWidth * 2;
   display: flex;
-}
-
-.box-container {
-  overflow-y: scroll;
+  flex-direction: column;
 
   .box {
     outline: $border;
     //margin-top: 1px;
     margin-left: 1px;
-    margin-right: 2px;
+    margin-right: 1px;
     margin-bottom: 1px;
     background-color: $grey3;
-    &--header {
+    flex: 1 1 auto;
+
+    .header {
       border-bottom: $border;
       padding: 0.5em;
+      height: 2em;
+      font-size: large;
+      font-weight: bold;
       align-items: center;
       display: flex;
       justify-content: space-between;
@@ -49,25 +47,22 @@
   }
 }
 
-.file-bar {
-  height: 3em;
-  background: $grey2;
+.editor {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  background: $grey3;
+  border-right: $border;
+  border-top: $border;
+  margin-top: -1px;
   position: relative;
 
-  .file-bar-bottomer {
-    position: absolute;
-    bottom: 0;
-    left: 4em;
+  .content {
+    flex: 1 1 auto;
+    display: flex;
+    background: $grey3;
+    border-right: $border;
   }
-}
-
-.file-area-container {
-  height: calc(100% - 3em);
-  background: $grey3;
-  display: flex;
-  border-top: $border;
-  border-right: $border;
-  border-bottom: $border;
 }
 
 .option-menu {

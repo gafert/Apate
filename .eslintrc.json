@@ -24,7 +24,7 @@
         "project": [
           "./main_renderer/tsconfig.app.json",
           "./main_renderer/tsconfig.spec.json",
-          "tsconfig-serve.json"
+          "tsconfig.electron.json"
         ],
         "sourceType": "module",
         "ecmaFeatures": {

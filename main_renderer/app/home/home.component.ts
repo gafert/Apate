@@ -1,12 +1,13 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { byteToHex } from '../utils/helper';
 import * as electron from 'electron';
-import {ActivatedRoute, Router} from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as url from 'url';
 import * as isDev from 'electron-is-dev';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DataKeys, DataService } from '../services/data.service';
+import { ProjectService } from '../services/project.service';
 
 @Component({
   selector: 'app-home',
@@ -19,8 +20,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private ngUnsubscribe = new Subject();
 
-  constructor(private dataService: DataService, private router: Router, private route: ActivatedRoute) {
-    dataService.data[DataKeys.FOLDER_PATH].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+  constructor(private dataService: DataService, private router: Router, private route: ActivatedRoute, private projectService: ProjectService) {
+    dataService.data[DataKeys.PROJECT_PATH].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
       this.folderPath = value;
     });
   }
@@ -29,25 +30,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     return this.router.url.includes(pathName);
   }
 
-  openFolderPathDialog() {
-    electron.remote.dialog
-      .showOpenDialog({
-        properties: ['openDirectory'],
-      })
-      .then((result) => {
-        if (!result.canceled) {
-          this.dataService.data[DataKeys.FOLDER_PATH].next(result.filePaths[0]);
-        }
-      });
+  openProjectDialog() {
+    this.projectService.openExistingProject().then((folderPath) => {
+
+    });
   }
 
-  switchTab() {
-    if (this.isSelectedButton('compile')) {
-      this.router.navigate(['./simulation'], {relativeTo: this.route});
-    } else if (this.isSelectedButton('simulation')) {
-      this.router.navigate(['./compile'], {relativeTo: this.route});
-    }
-    console.log(this.router.url);
+  newProjectDialog() {
+    this.projectService.initiateNewProject().then((folderPath) => {
+
+    });
+  }
+
+  closeProject() {
+    this.projectService.closeProject();
   }
 
   openSettingsDialog() {

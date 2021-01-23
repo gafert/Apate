@@ -1,6 +1,9 @@
 <div class="header">
-  <button mat-flat-button color="primary" (click)="switchTab()">{{isSelectedButton('compile') ? 'Go to Simulation' : 'Go to Compile'}}</button>
-  <button mat-flat-button color="primary" (click)="openFolderPathDialog()">Open Folder</button>
+  <button [routerLink]="['./simulation']" *ngIf="isSelectedButton('compile')" mat-flat-button color="primary">To Simulation</button>
+  <button [routerLink]="['./compile']" *ngIf="isSelectedButton('simulation')" mat-flat-button color="primary">To Compile</button>
+  <button mat-flat-button color="primary" (click)="openProjectDialog()">Open Project</button>
+  <button mat-flat-button color="primary" (click)="closeProject()">Close Project</button>
+  <button mat-flat-button color="primary" (click)="newProjectDialog()">New Project</button>
   <button mat-flat-button color="primary" (click)="openSettingsDialog()">Settings</button>
 </div>
 

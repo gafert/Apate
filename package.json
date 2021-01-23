@@ -79,6 +79,7 @@
     "@ctrl/ngx-codemirror": "4.1.0",
     "@fortawesome/fontawesome-free": "5.15.2",
     "@ngneat/helipopper": "2.0.0",
+    "@ngneat/until-destroy": "8.0.3",
     "@types/lodash": "4.14.166",
     "amator": "1.1.0",
     "codemirror": "5.59.0",

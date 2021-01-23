@@ -16,10 +16,16 @@
   </div>
   <div class="grid-container--content">
     <div *ngIf="!parsedElf" style="text-align: left; width: 90%; margin: auto; margin-top: 1em">
-      Currently no ELF loaded. Please initiate first.
-      <br><br>
-      If no ELF file was found in the currently opened folder you can set the path manually in the settings.
-      <br>
+      <ng-container *ngVar="dataService.getSetting(DataKeys.ELF_PATH) as elf">
+        <ng-container *ngIf="elf">
+          Using: {{elf}}
+          <br><br>
+          Please initiate load the ELF into the CPU.
+        </ng-container>
+        <ng-container *ngIf="!elf">
+          No ELF found. :(
+        </ng-container>
+      </ng-container>
       <i class="fas fa-exclamation-triangle warning-symbol"></i>
     </div>
     <virtual-scroller #scroll [items]="optimizedInstructionList" *ngIf="parsedElf" style="width: 100%; height: 100%"

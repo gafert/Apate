@@ -1,11 +1,12 @@
-import {AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
-import {byteToHex, byteToBinary} from '../../../../utils/helper';
-import {ELF, ElfSymbol, ELFSectionHeader, SHF_CONSTANTS} from '../../../../utils/elfParser';
-import {Instruction, INSTRUCTIONS_DESCRIPTIONS} from '../../../../utils/instructionParser';
-import {CPUService} from "../../services/cpu.service";
-import {GraphService} from "../../services/graph.service";
-import {VirtualScrollerComponent} from "ngx-virtual-scroller";
-import {style, transition, trigger, animate} from "@angular/animations";
+import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { byteToBinary, byteToHex } from '../../../../utils/helper';
+import { ELF, ELFSectionHeader, ElfSymbol, SHF_CONSTANTS } from '../../../../utils/elfParser';
+import { Instruction, INSTRUCTIONS_DESCRIPTIONS } from '../../../../utils/instructionParser';
+import { CPUService } from '../../services/cpu.service';
+import { GraphService } from '../../services/graph.service';
+import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
+import { animate, style, transition, trigger } from '@angular/animations';
+import { DataKeys, DataService } from '../../../../services/data.service';
 
 interface OptimizedList {
   instruction?: Instruction;
@@ -44,6 +45,7 @@ interface OptimizedList {
 export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   public readonly byteToHex = byteToHex;
   public readonly byteToBinary = byteToBinary;
+  public readonly DataKeys = DataKeys;
 
   @ViewChild(VirtualScrollerComponent) private virtualScroller: VirtualScrollerComponent;
 
@@ -52,7 +54,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
 
   public optimizedInstructionList: OptimizedList[] = [];
 
-  constructor(public cpu: CPUService, public graphService: GraphService) {
+  constructor(public cpu: CPUService, public graphService: GraphService, public dataService: DataService) {
     console.log(this);
   }
 

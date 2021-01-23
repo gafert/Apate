@@ -1,0 +1,86 @@
+@import "../../import";
+
+:host {
+  border: $border;
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+.wizard-header {
+  flex: 0 0 auto;
+  background: $grey2;
+  padding: 1em;
+  .title {
+    font-size: 2em;
+    font-weight: bold;
+  }
+  .subtitle {
+
+  }
+}
+
+.wizard-content {
+  flex: 1 1 auto;
+  background: $grey3;
+  display: flex;
+  border-collapse: collapse;
+  .column {
+    flex-grow: 1;
+    flex-basis: 0;
+    border: $border;
+    margin-top: -1px;
+    margin-left: -1px;
+    .header {
+      padding: 1em;
+      border-bottom: $border;
+      .title {
+        font-size: large;
+        font-weight: bold;
+      }
+    }
+    .content {
+      padding: 1em;
+      .description {
+
+      }
+      .info {
+        border: $border;
+        border-radius: 0.5em;
+        padding: 1em;
+        margin-top: 1em;
+        .text {
+          margin-bottom: 0.5em;
+        }
+        button {
+          width: 100%;
+        }
+        button:nth-of-type(n+1)  {
+          margin-top: 0.5em;
+        }
+        button:nth-of-type(1)  {
+          margin-top: 0;
+        }
+      }
+      & > button {
+        width: 100%;
+        margin-top: 0.5em;
+      }
+      & > button:nth-of-type(n+1)  {
+        margin-top: 0.5em;
+      }
+      & > button:nth-of-type(1)  {
+        margin-top: 1em;
+      }
+    }
+  }
+}
+
+#loading {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: $grey3;
+  display: none;
+  z-index: 10;
+}

@@ -65,8 +65,8 @@ export class GraphService {
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
   private renderGroup; // Holds the meshes in js groups named according to svg names
   private globalUniforms = {
-    time: {value: 0},
-    resolution: {value: new Vector2(0, 0)}
+    time: { value: 0 },
+    resolution: { value: new Vector2(0, 0) }
   };
   // intersection on 0,0 before mouse is moved
   private centeredMouse = new Vector2(-10000, -10000);
@@ -84,6 +84,7 @@ export class GraphService {
   private idFlat: IdFlatInterface; // Takes the parsed svg with meshes and flattens all names to be a 1D array
   private idRoot: IdRootInterface; // Holds the parsed svg and adds meshes to each element
   private signals: Signal[];
+  private clickedElements = [];
 
   constructor(private ngZone: NgZone, private cpu: CPUService) {
   }
@@ -92,102 +93,108 @@ export class GraphService {
    * Setup scene inside domElement and start rendering
    * @param domElement Target of render. This function will add a canvas matching the size of the domElement.
    */
-  public init(domElement: HTMLElement) {
-    this.ngZone.runOutsideAngular(() => {
-      this.renderDom = domElement;
-      if (this.initiated) {
-        // Service already loaded scene, only set dom element again and start rendering
-        this.renderDom.appendChild(this.renderer.domElement);
-        this.resize();
-        this.render();
-        panzoom(this.camera, this.renderDom);
-      } else {
-        // Setup renderer
-        this.scene = new Scene();
-        this.renderer = new WebGLRenderer({alpha: true, antialias: true});
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.domElement.style.outline = 'none';
-        this.renderDom.appendChild(this.renderer.domElement);
+  public init(domElement: HTMLElement): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      console.log('Initiating Graph...');
+      this.ngZone.runOutsideAngular(() => {
+        this.renderDom = domElement;
+        if (this.initiated) {
+          // Service already loaded scene, only set dom element again and start rendering
+          this.renderDom.appendChild(this.renderer.domElement);
+          this.resize();
+          this.render();
+          panzoom(this.camera, this.renderDom);
+          resolve();
+        } else {
+          // Set initiated to true to not reload settings if init was called again by component using the service
+          this.initiated = true;
 
-        // Setup camera
-        this.camera = this.setupCamera(this.renderDom.clientWidth, this.renderDom.clientHeight);
+          // Setup renderer
+          this.scene = new Scene();
+          this.renderer = new WebGLRenderer({ alpha: true, antialias: true });
+          this.renderer.setPixelRatio(window.devicePixelRatio);
+          this.renderer.domElement.style.outline = 'none';
+          this.renderDom.appendChild(this.renderer.domElement);
 
-        // Setup scene with light
-        this.scene.add(...this.setupLights());
+          // Setup camera
+          this.camera = this.setupCamera(this.renderDom.clientWidth, this.renderDom.clientHeight);
 
-        // Initiate objects from svg
-        ({
-          idRoot: this.idRoot,
-          idFlat: this.idFlat,
-          renderGroup: this.renderGroup
-        } = initiateSVGObjects(this.globalUniforms));
+          // Setup scene with light
+          this.scene.add(...this.setupLights());
 
-        // Add render group to scene
-        this.scene.add(this.renderGroup);
+          // Initiate objects from svg
+          ({
+            idRoot: this.idRoot,
+            idFlat: this.idFlat,
+            renderGroup: this.renderGroup
+          } = initiateSVGObjects(this.globalUniforms));
 
-        // Update signals texts if they change
-        addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot, this.update);
+          // Add render group to scene
+          this.scene.add(this.renderGroup);
 
-        // Add signal change if cpuCycle is complete
-        this.cpu.bindings.cycleComplete.subscribe(() => {
-          if (this.update.updateVisibilities) {
-            updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations);
-            if (this.update.highlightStageOnCPUChange) {
-              highlightStage(this.idFlat, this.cpu.bindings.cpuState.value, this.update.animations);
+          // Update signals texts if they change
+          addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot, this.update);
+
+          // Add signal change if cpuCycle is complete
+          this.cpu.bindings.cycleComplete.subscribe(() => {
+            if (this.update.updateVisibilities) {
+              updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations);
+              if (this.update.highlightStageOnCPUChange) {
+                highlightStage(this.idFlat, this.cpu.bindings.cpuState.value, this.update.animations);
+              }
             }
-          }
-        });
+          });
 
-        // For intersection
-        this.raycaster = new Raycaster();
-        this.renderDom.addEventListener('mousemove', this.setLocalMouseVariables.bind(this), false);
-        this.renderDom.addEventListener('mouseleave', this.setLocalMouseVariables.bind(this,true), false);
+          // For intersection
+          this.raycaster = new Raycaster();
+          this.renderDom.addEventListener('mousemove', this.setLocalMouseVariables.bind(this), false);
+          this.renderDom.addEventListener('mouseleave', this.setLocalMouseVariables.bind(this, true), false);
 
-        // Enable resizing
-        window.addEventListener('resize', this.resize.bind(this));
-        this.resize();
+          // Enable resizing
+          window.addEventListener('resize', this.resize.bind(this));
+          this.resize();
 
-        // Enable zooming
-        panzoom(this.camera, domElement);
+          // Enable zooming
+          panzoom(this.camera, domElement);
 
-        // Add tooltips
-        this.hoverTooltipInstance = tippy(this.renderer.domElement, {
-          content: 'Context menu',
-          trigger: 'manual',
-          theme: 'light',
-          interactive: true,
-          arrow: true,
-          allowHTML: true,
-          offset: [0, 10]
-        });
+          // Add tooltips
+          this.hoverTooltipInstance = tippy(this.renderer.domElement, {
+            content: 'Context menu',
+            trigger: 'manual',
+            theme: 'light',
+            interactive: true,
+            arrow: true,
+            allowHTML: true,
+            offset: [0, 10]
+          });
 
-        // Start rendering
-        if (document.readyState !== 'loading') this.render();
-        else window.addEventListener('DOMContentLoaded', this.render.bind(this));
+          // Start rendering
+          if (document.readyState !== 'loading') this.render();
+          else window.addEventListener('DOMContentLoaded', this.render.bind(this));
 
-        // Handle clicking to focus on element
-        this.renderDom.addEventListener('mousedown', this.clickToZoom.bind(this, 'mousedown'))
-        this.renderDom.addEventListener('mouseup', this.clickToZoom.bind(this, 'mouseup'))
-        this.renderDom.addEventListener('mousemove', this.clickToZoom.bind(this, 'mousemove'))
-        // this.renderDom.addEventListener('scroll', this.clickToZoom.bind(this, 'scroll')) // not working
+          // Handle clicking to focus on element
+          this.renderDom.addEventListener('mousedown', this.clickToZoom.bind(this, 'mousedown'));
+          this.renderDom.addEventListener('mouseup', this.clickToZoom.bind(this, 'mouseup'));
+          this.renderDom.addEventListener('mousemove', this.clickToZoom.bind(this, 'mousemove'));
+          // this.renderDom.addEventListener('scroll', this.clickToZoom.bind(this, 'scroll')) // not working
 
-        // Handle clicking to go into element / show infoText
-        this.renderDom.addEventListener('dblclick', this.clickToShowInfo.bind(this, 'dblclick'))
+          // Handle clicking to go into element / show infoText
+          this.renderDom.addEventListener('dblclick', this.clickToShowInfo.bind(this, 'dblclick'));
 
-        // Split areas in world and focusElement on the first
-        // This needs to be away from initiateObjects
-        // this.separateAreas();
+          // Split areas in world and focusElement on the first
+          // This needs to be away from initiateObjects
+          // this.separateAreas();
 
-        this.goToArea('overview');
+          this.goToArea('overview');
 
-        this.scene.add(this.setupBackground(this.idFlat));
+          this.scene.add(this.setupBackground(this.idFlat));
 
-        // Default no stage on
-        highlightStage(this.idFlat, false, false);
+          // Default no stage on
+          highlightStage(this.idFlat, false, false);
 
-        // Set initiated to true to not reload settings if init was called again by component using the service
-        this.initiated = true;
-      }
+          resolve();
+        }
+      });
     });
   }
 
@@ -223,7 +230,7 @@ export class GraphService {
 
     if (animationElement && !reverse) {
       await Promise.all([new Promise((resolve) => {
-        const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
+        const { center } = getCenterOfMeshes(this.idFlat[animationElement].meshes);
         animate({
           from: 0,
           to: 1,
@@ -249,7 +256,7 @@ export class GraphService {
       showElement(this.idFlat, SVG_IDS.areaID + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
 
       // Lerp camera from center of animationElement to full view
-      const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
+      const { center } = getCenterOfMeshes(this.idFlat[animationElement].meshes);
       this.camera.position.copy(center);
       await focusCameraOnElement(this.camera, this.idFlat, SVG_IDS.areaBorderID + newArea, true);
     } else {
@@ -374,18 +381,18 @@ export class GraphService {
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0) {
       const getName = (i) => {
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.signalID)) return {name: i.parent.parent.name, type: 's'};
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.portID)) return {name: i.parent.parent.name, type: 'p'};
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.moduleID)) return {name: i.parent.parent.name, type: 'm'};
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.wireID)) return {name: i.parent.parent.name, type: 'w'};
-        if (i?.parent?.name?.startsWith(SVG_IDS.signalID)) return {name: i.parent.name, type: 's'};
-        if (i?.parent?.name?.startsWith(SVG_IDS.portID)) return {name: i.parent.name, type: 'p'};
-        if (i?.parent?.name?.startsWith(SVG_IDS.moduleID)) return {name: i.parent.name, type: 'm'};
-        if (i?.parent?.name?.startsWith(SVG_IDS.wireID)) return {name: i.parent.name, type: 'w'};
-        if (i?.name?.startsWith(SVG_IDS.signalID)) return {name: i.name, type: 's'};
-        if (i?.name?.startsWith(SVG_IDS.portID)) return {name: i.name, type: 'p'};
-        if (i?.name?.startsWith(SVG_IDS.moduleID)) return {name: i.name, type: 'm'};
-        if (i?.name?.startsWith(SVG_IDS.wireID)) return {name: i.name, type: 'w'};
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.signalID)) return { name: i.parent.parent.name, type: 's' };
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.portID)) return { name: i.parent.parent.name, type: 'p' };
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.parent.parent.name, type: 'm' };
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.wireID)) return { name: i.parent.parent.name, type: 'w' };
+        if (i?.parent?.name?.startsWith(SVG_IDS.signalID)) return { name: i.parent.name, type: 's' };
+        if (i?.parent?.name?.startsWith(SVG_IDS.portID)) return { name: i.parent.name, type: 'p' };
+        if (i?.parent?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.parent.name, type: 'm' };
+        if (i?.parent?.name?.startsWith(SVG_IDS.wireID)) return { name: i.parent.name, type: 'w' };
+        if (i?.name?.startsWith(SVG_IDS.signalID)) return { name: i.name, type: 's' };
+        if (i?.name?.startsWith(SVG_IDS.portID)) return { name: i.name, type: 'p' };
+        if (i?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.name, type: 'm' };
+        if (i?.name?.startsWith(SVG_IDS.wireID)) return { name: i.name, type: 'w' };
       };
 
       let object;
@@ -471,9 +478,9 @@ export class GraphService {
     forceStopFocus();
 
     if (this.intersectedElement) {
-      if(this.intersectedElement.type === 'm') {
+      if (this.intersectedElement.type === 'm') {
         const name = getModuleName(this.intersectedElement.name);
-        if(name === 'alu' || name === 'cu' || name === 'be') {
+        if (name === 'alu' || name === 'cu' || name === 'be') {
           this.goToArea(name, true);
           // TODO: Change Tab in simulation
         } else if (name === 'registers') {
@@ -486,13 +493,12 @@ export class GraphService {
     }
   }
 
-  private clickedElements = [];
   private clickToZoom(event: string) {
     if (this.mouseFocusIsAnimating && event === 'mousedown') {
       forceStopFocus();
     }
 
-    if(event === 'mousemove' || event === 'scroll') {
+    if (event === 'mousemove' || event === 'scroll') {
       this.mouseDownElement = null;
     }
 
@@ -504,26 +510,26 @@ export class GraphService {
         this.mouseFocusIsAnimating = true;
         centerCameraOnElement(this.camera, this.idFlat, this.intersectedElement.name, 200, true).then(() => {
           this.mouseFocusIsAnimating = false;
-        })
+        });
 
-        this.clickedElements.push(this.intersectedElement.name)
+        this.clickedElements.push(this.intersectedElement.name);
 
-        let s = "";
+        let s = '';
         for (let i = 0; i < this.clickedElements.length; i++) {
-          s += this.clickedElements[i] + (i < this.clickedElements.length - 1 ? ", " : "");
+          s += this.clickedElements[i] + (i < this.clickedElements.length - 1 ? ', ' : '');
         }
 
         console.log(s);
         navigator.clipboard.writeText(s).then((v) => {
           console.log(v);
-        })
+        });
 
       }
     }
   }
 
   private setLocalMouseVariables(event, mouseLeftCanvas = false) {
-    if(mouseLeftCanvas) {
+    if (mouseLeftCanvas) {
       this.mouse.x = 10000;
       this.mouse.y = 10000;
       this.centeredMouse.x = 10000;

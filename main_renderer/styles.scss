@@ -213,3 +213,37 @@ button {
   }
 }
 
+/* Used by compile and simulation in the middle */
+.control {
+  flex: 0 0;
+  .title {
+    padding: $tabsMarginLeft;
+    span {
+      font-weight: bold;
+      font-size: large;
+    }
+  }
+
+  .settings {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0.2em;
+
+    mat-checkbox {
+      margin-right: 0.5em;
+    }
+  }
+
+  .tabs {
+    background: $grey3;
+    border-bottom: $border;
+  }
+
+  .actions {
+    position: absolute;
+    right: $tabsMarginLeft;
+    top: $tabsHeight;
+  }
+}
+

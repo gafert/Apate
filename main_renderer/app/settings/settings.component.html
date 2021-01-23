@@ -5,21 +5,6 @@
   </div>
 
   <div class="setting-box">
-    Settings will be saved automatically
-  </div>
-
-  <div class="setting-box">
-    <div class="title">Source files</div>
-    <app-setting [settingKey]="DataKeys.GCC_SOURCES" #sources></app-setting>
-  </div>
-
-  <div class="setting-box">
-    <div class="title">ELF to simulate (will be set to elf in folder)</div>
-    <app-setting [settingDefault]="'Enter Manually when no ELF was detected'"
-                 [settingKey]="DataKeys.ELF_PATH" #elf></app-setting>
-  </div>
-
-  <div class="setting-box">
     <div class="title">RISC-V Toolchain</div>
     <div
       *ngIf="!toolchainPath || toolchainDownloaderState === ToolchainDownEnum.UNZIPPING || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING; else toolchainPathSetting"
@@ -50,12 +35,6 @@
   </div>
 
   <div class="setting-box">
-    <div class="title">GCC flags</div>
-    <app-setting [settingDefault]="gccFlagsDefault"
-                 [settingKey]="DataKeys.GCC_FLAGS" #gccflags></app-setting>
-  </div>
-
-  <div class="setting-box">
     <div class="title">Objdump flags</div>
     <app-setting [settingDefault]="objdumpFlagsDefault"
                  [settingKey]="DataKeys.OBJDUMP_FLAGS" #objdumpflags></app-setting>
@@ -68,7 +47,7 @@
   </div>
 
   <div class="setting-box">
-    <button mat-flat-button color="primary" (click)="clearSettingsAndRestart()">Reset</button>
+    <button mat-flat-button color="primary" (click)="clearSettingsAndRestart()">Reset all settings</button>
     <button mat-flat-button color="accent" style="margin-left: 0.5em" (click)="saveSettings([reafelfflags, objdumpflags, gccflags, sources, prefix, elf, toolchain])">Save</button>
   </div>
 

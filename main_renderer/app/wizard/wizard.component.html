@@ -1,0 +1,65 @@
+<div id="loading"></div>
+
+<div class="wizard-header">
+  <div class="title">
+    CPU Simulator
+  </div>
+  <div class="subtitle">
+    Virtual CPU based on the RISC-V Instruction Set (RV32I)
+  </div>
+</div>
+
+<div class="wizard-content">
+  <div class="column">
+    <div class="header">
+      <div class="title">
+        Compile
+      </div>
+    </div>
+    <div class="content">
+      <div class="description">
+        Compile and simulate your own C files. This requires a RISC-V Toolchain.
+      </div>
+      <div class="info">
+        <div class="text">
+          No installed toolchain found. Please set a toolchain path in the settings or download it.
+        </div>
+        <button mat-flat-button color="primary">Open Settings</button>
+        <button mat-flat-button color="primary">Download Toolchain</button>
+      </div>
+      <button mat-flat-button color="accent" (click)="initiateNewProject()">New Project</button>
+      <button mat-flat-button color="primary" (click)="openExistingProject()">Open Project</button>
+    </div>
+  </div>
+
+  <div class="column">
+    <div class="header">
+      <div class="title">
+        Simulate
+      </div>
+    </div>
+    <div class="content">
+      <div class="description">
+        Simulate your own precompiled RV32I ELF files.
+      </div>
+      <button mat-flat-button color="accent" (click)="openCustomELF()">Select ELF file</button>
+    </div>
+  </div>
+  <div class="column">
+    <div class="header">
+      <div class="title">
+        Demos
+      </div>
+    </div>
+    <div class="content">
+      <div class="description">
+        Use precompiled ELF files and simulate them.
+      </div>
+      <button mat-flat-button color="accent">Simple Adder</button>
+      <button mat-flat-button color="accent">Function Call</button>
+      <button mat-flat-button color="accent">Print to Terminal</button>
+      <button mat-flat-button color="accent">RISC-V Stresstest</button>
+      <button mat-flat-button color="primary">Open Demos Folder</button>
+    </div>
+  </div>
+</div>

@@ -1,8 +1,8 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import * as https from 'https';
-import { DataKeys, DataService } from '../../services/data.service';
-import { authorize } from '../../utils/google-drive-auth';
+import { DataKeys, DataService } from './data.service';
+import { authorize } from '../utils/google-drive-auth';
 import * as fs from 'fs';
 import * as zlib from 'zlib';
 import * as path from 'path';

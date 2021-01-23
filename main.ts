@@ -1,22 +1,35 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 
 let mainWindow: BrowserWindow = null;
-const args = process.argv.slice(1),
-  serve = args.some((val) => val === '--serve');
+const args = process.argv.slice(1);
+const serve = args.some((val) => val === '--serve');
+let wizardSettings;
 
 function createWindow(): BrowserWindow {
   const size = screen.getPrimaryDisplay().workAreaSize;
 
+  wizardSettings = {
+    x: Math.floor(size.width / 2 - 700 / 2),
+    y: Math.floor(size.height / 2 - 500 / 2),
+    width: 700,
+    height: 500,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false
+  }
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    x: 0,
-    y: 0,
-    width: size.width,
-    height: size.height,
-    minWidth: 800,
-    minHeight: 600,
+    x: wizardSettings.x,
+    y: wizardSettings.y,
+    width: wizardSettings.width,
+    height: wizardSettings.height,
+    maximizable: wizardSettings.maximizable,
+    resizable: wizardSettings.resizable,
+    fullscreenable: wizardSettings.fullscreenable,
+    backgroundColor: '#1a1b1c',
     autoHideMenuBar: true,
     webPreferences: {
       enableRemoteModule: true,
@@ -66,6 +79,24 @@ function createWindow(): BrowserWindow {
   return mainWindow;
 }
 
+ipcMain.on('main-window-home', (event, arg) => {
+  const display = screen.getPrimaryDisplay();
+  const maxSize = display.workAreaSize;
+  mainWindow.setPosition(0,0);
+  mainWindow.setSize(maxSize.width, maxSize.height);
+  mainWindow.setResizable(true);
+  mainWindow.setMaximizable(true);
+  mainWindow.setFullScreenable(true);
+})
+
+ipcMain.on('main-window-wizard', (event, arg) => {
+  console.log(wizardSettings);
+  mainWindow.setPosition(wizardSettings.x,wizardSettings.y);
+  mainWindow.setSize(wizardSettings.width, wizardSettings.height);
+  mainWindow.setResizable(wizardSettings.resizable);
+  mainWindow.setMaximizable(wizardSettings.maximizable);
+  mainWindow.setFullScreenable(wizardSettings.fullscreenable);
+})
 
 try {
   // This method will be called when Electron has finished

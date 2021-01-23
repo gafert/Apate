@@ -1,17 +1,13 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import * as fs from 'fs';
-import * as path from 'path';
-import {byteToHex, range, readStyleProperty} from '../../utils/helper';
-import {CPUService} from './services/cpu.service';
-import {InstructionsComponent} from './components/instructions/instructions.component';
-import {takeUntil} from 'rxjs/operators';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { byteToHex, range, readStyleProperty } from '../../utils/helper';
+import { CPUService } from './services/cpu.service';
+import { InstructionsComponent } from './components/instructions/instructions.component';
 import { BehaviorSubject, Subject } from 'rxjs';
-import {DataKeys, DataService} from '../../services/data.service';
-import {Router} from '@angular/router';
-import {GraphService} from './services/graph.service';
+import { DataKeys, DataService } from '../../services/data.service';
+import { GraphService } from './services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
-import {Bindings, CPU_STATE_NAMES, CPU_STATES} from './services/bindingSubjects';
-import {Areas} from './services/graphHelpers/helpers';
+import { Bindings, CPU_STATE_NAMES, CPU_STATES } from './services/bindingSubjects';
+import { Areas } from './services/graphHelpers/helpers';
 
 @Component({
   selector: 'app-simulation',
@@ -30,21 +26,11 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public selectedTab: Areas = 'overview';
   // Displayed on top
   public stageName = 'Initiate the simulation';
-  private _stage: CPU_STATES;
-
-  public set stage(stage: CPU_STATES) {
-    this._stage = stage;
-    this.stageSubject.next(this._stage)
-  }
-
-  public get stage() {
-    return this._stage;
-  }
-
   public stageSubject = new BehaviorSubject<CPU_STATES>(null);
-
   // Infotext
   public infoText;
+  // Elf which was found in path
+  public elfPath;
   private ngUnsubscribe = new Subject();
   // Set by elaborate steps, will reset selectedTab to this
   private currentArea = this.selectedTab;
@@ -59,7 +45,17 @@ export class SimulationComponent implements OnInit, OnDestroy {
     private graphService: GraphService
   ) {
     this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;
-    console.log(graphService);
+  }
+
+  private _stage: CPU_STATES;
+
+  public get stage() {
+    return this._stage;
+  }
+
+  public set stage(stage: CPU_STATES) {
+    this._stage = stage;
+    this.stageSubject.next(this._stage);
   }
 
   onChangeElaborateSteps(newVal) {
@@ -75,19 +71,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.dataService.data[DataKeys.FOLDER_PATH].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
-      if (value) {
-        // Search for .elf in project
-        fs.readdir(value, (err, files) => {
-          for (const file of files) {
-            if (file.split('.').pop().includes('elf')) {
-              this.dataService.setSetting(DataKeys.ELF_PATH, path.join(value, file));
-              break;
-            }
-          }
-        });
-      }
-    });
+
   }
 
   focusArea(area) {
@@ -109,16 +93,11 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.graphService.highlightStage(this.stage, false);
 
     // Load elf into CPU
-    const elfPath = this.dataService.getSetting(DataKeys.ELF_PATH);
-    if (elfPath) {
-      if (elfPath.indexOf('.elf') > 0) {
-        this.cpu.initSimulation(elfPath);
-        // Wait for program counter to be 0 before reloading
-        setTimeout(() => {
-          this.instructionsComponent.reload();
-        }, 100);
-      }
-    }
+    this.cpu.initSimulation(this.elfPath);
+    // Wait for program counter to be 0 before reloading
+    setTimeout(() => {
+      this.instructionsComponent.reload();
+    }, 100);
   }
 
   async stepSimulation() {
@@ -146,7 +125,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
       this.graphService.highlightStage(this.stage, true);
     }
 
-    if(info.highlight) {
+    if (info.highlight) {
       this.graphService.removeAllHighlights();
       for (const id of info.highlight) {
         this.graphService.highlightElement(id);
@@ -176,7 +155,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
       // No new area but new focus
       if (info.focusElement) {
-        await this.graphService.goToFocus(info.focusElement)
+        await this.graphService.goToFocus(info.focusElement);
         this.currentFocus = info.focusElement;
       }
 
@@ -289,6 +268,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
     } else {
       this.infoCounter++;
     }
-    return {...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage};
+    return { ...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage };
   }
 }

@@ -1,22 +1,21 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { spawn } from 'child_process';
 import { byteToHex } from '../../utils/helper';
-import { promises as fs } from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { CodemirrorComponent } from '@ctrl/ngx-codemirror';
 import { DataKeys, DataService } from '../../services/data.service';
+import { EditorConfiguration } from 'codemirror';
+import { ProjectService, ProjectSettings } from '../../services/project.service';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import Timeout = NodeJS.Timeout;
-import {EditorConfiguration} from "codemirror";
-
-declare let CodeMirror: any;
 
 @Component({
   selector: 'app-compile',
   templateUrl: './compile.component.html',
   styleUrls: ['./compile.component.scss']
 })
+@UntilDestroy()
 export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   @ViewChild('fileOptions') fileOptions: ElementRef<HTMLDivElement>;
   @ViewChild('terminalOutputElement') terminalOutputElement: ElementRef<HTMLDivElement>;
@@ -25,10 +24,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
 
   public DataKeys = DataKeys;
 
-  //region Variables
-
   // Compiling
-
   /** True currently compiling */
   public compiling = false;
   /** Text of the terminal */
@@ -71,29 +67,30 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
     txt: 'plaintext',
     ld: 'plaintext',
     js: 'javascript',
-    ts: 'typescript'
+    ts: 'typescript',
+    json: 'json'
   };
-  private ngUnsubscribe = new Subject();
+
   /** Path will be set by the UI */
   private folderPath: string;
   /** Dont save a empty editor file before the real file was loaded in */
   private fileLoadedIntoEditor = false;
+  private fileSaveTimeout: Timeout;
 
-  //endregion
-  private timeout: Timeout;
-
-  constructor(private changeDetection: ChangeDetectorRef, private dataService: DataService) {
-
+  constructor(private changeDetection: ChangeDetectorRef,
+    private dataService: DataService,
+    private projectService: ProjectService) {
   }
 
   ngOnInit() {
-    this.dataService.data[DataKeys.ACTIVE_FILE].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => (this.activeFile = value));
-    this.dataService.data[DataKeys.ACTIVE_FILE_IS_SAVEABLE].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    this.dataService.data[DataKeys.ACTIVE_FILE].pipe(untilDestroyed(this)).subscribe((value) => (this.activeFile = value));
+    this.dataService.data[DataKeys.ACTIVE_FILE_IS_SAVEABLE].pipe(untilDestroyed(this)).subscribe((value) => {
       this.fileIsSavable = value;
       this.editorOptions.readOnly = !value;
     });
-    this.dataService.data[DataKeys.FOLDER_PATH].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    this.dataService.data[DataKeys.PROJECT_PATH].pipe(untilDestroyed(this)).subscribe((value) => {
       this.folderPath = value;
+      console.log(value);
       if (this.folderPath) this.reloadFolderContents();
     });
 
@@ -104,7 +101,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
       }
     });
 
-    this.dataService.data[DataKeys.ACTIVE_FILE_CONTENT].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    this.dataService.data[DataKeys.ACTIVE_FILE_CONTENT].pipe(untilDestroyed(this)).subscribe((value) => {
       if (this.fileContent !== value && value !== null) {
         this.fileContent = value;
         this.fileLoadedIntoEditor = true;
@@ -113,15 +110,11 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   }
 
   ngOnDestroy() {
-    this.ngUnsubscribe.next();
-    this.ngUnsubscribe.complete();
-    clearTimeout(this.timeout);
+    clearTimeout(this.fileSaveTimeout);
   }
 
-  //region Editor
-
   ngAfterViewInit() {
-    this.dataService.data[DataKeys.ACTIVE_FILE].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    this.dataService.data[DataKeys.ACTIVE_FILE].pipe(untilDestroyed(this)).subscribe((value) => {
       if (this.activeFile) {
         const modeObj = this.codemirrorComponent.codeMirrorGlobal.findModeByFileName(value);
         const mode = modeObj ? modeObj.mode : null;
@@ -140,16 +133,12 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
       this.fileContentEdited(this.fileContent);
     };
 
-    clearTimeout(this.timeout);
-    this.timeout = setTimeout(save, 200);
+    clearTimeout(this.fileSaveTimeout);
+    this.fileSaveTimeout = setTimeout(save, 200);
   }
 
-  //endregion
-
-  //region Folder Management
-
   clickFile(event, file: string) {
-    const txtFiles = ['txt', 's', 'c', 'cc', 'cpp', 'h', 'hpp', 'hh', 'js', 'ts', 'ld'];
+    const txtFiles = Object.keys(this.languages);
 
     for (const txtFile of txtFiles) {
       if (file.toLowerCase().split('.').pop() === txtFile) {
@@ -181,41 +170,14 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   }
 
   openFileAsHexDump() {
-    fs.readFile(path.join(this.folderPath, this.selectedFile)).then((data) => {
-      let tempContent = '';
-      const lines = Math.floor(data.length / 16);
-      let i = 0;
-      for (i = 0; i < lines; i++) {
-        for (let j = 0; j < 16; j++) {
-          tempContent += byteToHex((data[j + i * 16]), 2);
-          if ((j + 1) % 4 === 0) {
-            tempContent += ' ';
-          }
-        }
+    const data = fs.readFileSync(path.join(this.folderPath, this.selectedFile));
 
-        tempContent += ' | ';
-
-        for (let j = 0; j < 16; j++) {
-          const charCode = data[j + i * 16];
-          const char = String.fromCharCode(charCode);
-          tempContent += charCode > 32 && charCode < 126 ? char : '.';
-        }
-        tempContent += '\n';
-      }
-
-      let k = 16 * i;
-      while (k < data.length) {
-        tempContent += byteToHex(data[k], 2);
-        if ((k + 1) % 4 === 0) {
-          tempContent += ' ';
-        }
-        k++;
-      }
-
-      const space = 16 * (i + 1) - k;
-
-      for (let j = 0; j < space; j++) {
-        tempContent += '  ';
+    let tempContent = '';
+    const lines = Math.floor(data.length / 16);
+    let i = 0;
+    for (i = 0; i < lines; i++) {
+      for (let j = 0; j < 16; j++) {
+        tempContent += byteToHex((data[j + i * 16]), 2);
         if ((j + 1) % 4 === 0) {
           tempContent += ' ';
         }
@@ -223,19 +185,45 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
 
       tempContent += ' | ';
 
-      k = 16 * i;
-      while (k < data.length) {
-        const charCode = data[k];
+      for (let j = 0; j < 16; j++) {
+        const charCode = data[j + i * 16];
         const char = String.fromCharCode(charCode);
         tempContent += charCode > 32 && charCode < 126 ? char : '.';
-        k++;
       }
+      tempContent += '\n';
+    }
 
-      this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, false);
-      this.dataService.setSetting(DataKeys.ACTIVE_FILE, this.selectedFile);
-      this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, tempContent);
-      this.changeDetection.detectChanges();
-    });
+    let k = 16 * i;
+    while (k < data.length) {
+      tempContent += byteToHex(data[k], 2);
+      if ((k + 1) % 4 === 0) {
+        tempContent += ' ';
+      }
+      k++;
+    }
+
+    const space = 16 * (i + 1) - k;
+
+    for (let j = 0; j < space; j++) {
+      tempContent += '  ';
+      if ((j + 1) % 4 === 0) {
+        tempContent += ' ';
+      }
+    }
+
+    tempContent += ' | ';
+
+    k = 16 * i;
+    while (k < data.length) {
+      const charCode = data[k];
+      const char = String.fromCharCode(charCode);
+      tempContent += charCode > 32 && charCode < 126 ? char : '.';
+      k++;
+    }
+
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, false);
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE, this.selectedFile);
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, tempContent);
   }
 
   openFileAsObjectDump() {
@@ -282,49 +270,44 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   }
 
   openFileAsText() {
-    fs.readFile(path.join(this.folderPath, this.selectedFile), { encoding: 'utf-8' }).then((data: string) => {
-      this.dataService.setSetting(DataKeys.ACTIVE_FILE, this.selectedFile);
-      this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, true);
-      this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, data);
-    });
+    const data = fs.readFileSync(path.join(this.folderPath, this.selectedFile), { encoding: 'utf-8' });
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE, this.selectedFile);
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, true);
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, data);
   }
 
   fileContentEdited(code) {
     if (this.fileIsSavable && this.activeFile && this.folderPath) {
-      fs.writeFile(path.join(this.folderPath, this.activeFile), code);
+      fs.writeFileSync(path.join(this.folderPath, this.activeFile), code);
       this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, code);
     }
   }
 
   reloadFolderContents() {
     if (!this.folderPath) return;
-    fs.readdir(this.folderPath).then((files) => {
-      const onlyFiles = [];
-      for (const file of files) {
-        fs.stat(path.join(this.folderPath, file)).then((stats) => {
-          if (stats.isFile()) {
-            onlyFiles.push(file);
-          }
-        });
+    const files = fs.readdirSync(this.folderPath);
+
+    const onlyFiles = [];
+    for (const file of files) {
+      const stats = fs.statSync(path.join(this.folderPath, file));
+      if (stats.isFile()) {
+        onlyFiles.push(file);
       }
-      this.filesInFolder = onlyFiles.sort();
-    });
+    }
+
+    this.filesInFolder = onlyFiles.sort((a, b) => a.localeCompare(b));
   }
-
-  //endregion
-
-  //region Compile
 
   compile() {
     if (!this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH)) {
-      this.terminalOutput += 'Toolchain folder not specified!';
+      this.terminalOutput += 'Toolchain folder not specified! Go to settings to specify\n';
       this.scrollTerminaltoBottom();
       return;
     }
     this.compiling = true;
     const gcc = spawn(
       path.join(this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH), this.dataService.getSetting(DataKeys.TOOLCHAIN_PREFIX) + 'gcc'),
-      [...`${this.dataService.getSetting(DataKeys.GCC_SOURCES)} ${this.dataService.getSetting(DataKeys.GCC_FLAGS)}`.split(' ')],
+      [...`${this.projectService.getSetting(ProjectSettings.SOURCES)} ${this.projectService.getSetting(ProjectSettings.GCC_FLAGS)}`.split(' ')],
       { cwd: this.folderPath }
     );
     gcc.stdout.on('data', (data) => (this.terminalOutput += data));
@@ -341,8 +324,6 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
       this.scrollTerminaltoBottom();
     });
   }
-
-  //endregion
 
   scrollTerminaltoBottom() {
     this.terminalOutputElement.nativeElement.scrollTop = this.terminalOutputElement.nativeElement.scrollHeight;

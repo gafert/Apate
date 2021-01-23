@@ -1,48 +1,51 @@
-<div id="simulation-container">
-  <app-graph class="simulation-item-content app-graph"></app-graph>
-
-  <div class="tabs simulation-tabs">
-    <!-- The paths need to overwrite the last path element e.g. /home/simulation/overview -> /home/simulation/decoder -->
-    <button *ngVar="'overview' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Overview</button>
-    <button *ngVar="'cu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Control Unit<i class="fas fa-circle {{s}}"></i></button>
-    <button *ngVar="'alu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Arithmetic Logic Unit<i class="fas fa-circle {{s}}"></i></button>
-    <button *ngVar="'be' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Branch Evaluator<i class="fas fa-circle {{s}}"></i></button>
-  </div>
-
-  <div class="simulation-item-content control">
-    <div id="state">Stage: {{stageName}}</div>
-    <div id="settings">
+<div class="graph">
+  <div class="control">
+    <div class="title"><span>Stage: {{stageName}}</span></div>
+    <div class="settings">
       <mat-checkbox (change)="onChangeElaborateSteps($event)" [checked]="elaborateSteps"
                     tippy="Focus and go into elements step by step">Elaborate Steps
       </mat-checkbox>
     </div>
-    <div id="actions">
-      <button mat-flat-button color="accent" (click)="initiateSimulation()" style="margin-right: 0.5em;">Initiate</button>
-      <button mat-flat-button color="accent" (click)="stepSimulation()" [disabled]="!cpu.elfIsLoaded || stepDisabled">Step<i class="fas fa-play" style="margin-left: 0.5em; vertical-align: unset"></i></button>
+    <div class="actions">
+      <button mat-flat-button color="accent" (click)="initiateSimulation()" style="margin-right: 0.5em;">Initiate
+      </button>
+      <button mat-flat-button color="accent" (click)="stepSimulation()" [disabled]="!cpu.elfIsLoaded || stepDisabled">
+        Step<i
+        class="fas fa-play" style="margin-left: 0.5em; vertical-align: unset"></i></button>
+    </div>
+    <div class="tabs">
+      <!-- The paths need to overwrite the last path element e.g. /home/simulation/overview -> /home/simulation/decoder -->
+      <button *ngVar="'overview' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Overview</button>
+      <button *ngVar="'cu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Control Unit<i
+        class="fas fa-circle {{s}}"></i></button>
+      <button *ngVar="'alu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Arithmetic Logic Unit<i
+        class="fas fa-circle {{s}}"></i></button>
+      <button *ngVar="'be' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Branch Evaluator<i
+        class="fas fa-circle {{s}}"></i></button>
     </div>
   </div>
+  <app-graph class="canvas"></app-graph>
 
-  <div class="simulation-item-content info" *ngIf="infoText">
+  <div class="info" *ngIf="infoText">
     <i class="fas fa-info-circle"></i>
     {{infoText}}
   </div>
-
-
-  <app-instructions #instructionsComponent
-                    [parsedElf]="cpu.parsedElf"
-                    [programCounter]="cpu.bindings.pc | async"
-                    class="simulation-item-content app-instruction"></app-instructions>
-
-  <app-vertical-tabs class="simulation-item-content app-tabs">
-    <app-vertical-tabs-item tabTitle="Registers">
-      <app-registers class="app-registers"></app-registers>
-    </app-vertical-tabs-item>
-    <app-vertical-tabs-item tabTitle="Memory">
-      <app-memory></app-memory>
-    </app-vertical-tabs-item>
-    <app-vertical-tabs-item tabTitle="Terminal">
-      <app-terminal></app-terminal>
-    </app-vertical-tabs-item>
-  </app-vertical-tabs>
-
 </div>
+
+<app-instructions #instructionsComponent
+                  [parsedElf]="cpu.parsedElf"
+                  [programCounter]="cpu.bindings.pc | async"
+                  class="app-instruction"></app-instructions>
+
+<app-vertical-tabs class="app-tabs">
+  <app-vertical-tabs-item tabTitle="Registers">
+    <app-registers class="app-registers"></app-registers>
+  </app-vertical-tabs-item>
+  <app-vertical-tabs-item tabTitle="Memory">
+    <app-memory></app-memory>
+  </app-vertical-tabs-item>
+  <app-vertical-tabs-item tabTitle="Terminal">
+    <app-terminal></app-terminal>
+  </app-vertical-tabs-item>
+</app-vertical-tabs>
+

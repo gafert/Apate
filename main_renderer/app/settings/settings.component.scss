@@ -18,9 +18,11 @@
 .settings {
   border: $border;
   height: 100%;
+  background: $grey3;
 }
 
 .header {
+  background: $grey2;
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -58,7 +60,7 @@
     overflow: scroll;
     font-size: inherit;
     height: 2em;
-    border-radius: 0.7em;
+    border-radius: 0.4em;
 
     &:focus {
       outline: none;

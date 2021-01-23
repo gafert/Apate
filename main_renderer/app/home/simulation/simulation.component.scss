@@ -1,115 +1,72 @@
 @import "../../../import";
 
-$gridWidth: 11em;
-$gridHeight: 5em;
-
-$controlHeight: 3em;
-
-#simulation-container {
+:host {
   position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.graph {
+  width: calc(100% - (#{$gridWidth} * 4));
   height: 100%;
   display: flex;
-  top: -1px;
-}
-
-.tabs.simulation-tabs {
+  flex-direction: column;
   position: absolute;
-  top: calc((#{$controlHeight} * 1));
-  left: $gridWidth * 2;
-  right: $gridWidth * 2;
-
-  border-bottom: $border;
-
-  // Overwrite default color
-  background-color: $grey3;
-
-  // Invert colors
-  button {
-    // background-color: $grey3;
-
-    &[selected=true] {
-      // background-color: $grey2;
-    }
-  }
-
-  .fas {
-    margin-left: 0.5em;
-    &.alu {
-      color: $colorALU;
-    }
-    &.cu {
-      color: $colorControlUnit;
-    }
-    &.be {
-      color: $colorBranchEval;
-    }
-  }
-}
-
-.grid-stack-item {
-  pointer-events: all;
-}
-
-.simulation-item-content {
-  position: absolute;
-}
-
-.info {
-  width: calc((#{$gridWidth} * 2));
-  right: calc((#{$gridWidth} * 2) + 1em);
-  top: calc(#{$controlHeight} + #{$tabsHeight} + 1em);
-  border-radius: 1em;
-  border: $border;
-  background-color: $grey3;
-  padding: 1.5em;
-  opacity: 0.8;
-  transition: opacity 100ms;
-
-  i {
-    position: absolute;
-    left: -0.3em;
-    top: -0.3em;
-    font-size: 2em;
-  }
-
-  &:hover {
-    opacity: 1;
-  }
-}
-
-.control {
-  width: calc(100% - (#{$gridWidth} * 4));
-  height: calc((#{$controlHeight} * 1));
   left: $gridWidth * 2;
   top: 0;
   border-top: $border;
   background-color: $grey3;
-  padding: $tabsMarginLeft;
 
-  #state {
-    font-weight: bold;
-    font-size: large;
-  }
-
-  #settings {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0.2em;
-
-    mat-checkbox {
-      margin-right: 0.5em;
+  .control {
+    .tabs {
+      .fas {
+        margin-left: 0.5em;
+        &.alu {
+          color: $colorALU;
+        }
+        &.cu {
+          color: $colorControlUnit;
+        }
+        &.be {
+          color: $colorBranchEval;
+        }
+      }
     }
   }
 
-  #actions {
+  .canvas {
+    flex: 1 1;
+    outline: none;
+    background: $grey3;
+  }
+
+  .info {
     position: absolute;
-    right: $tabsMarginLeft;
-    bottom: $tabsMarginLeft - $tabsHeight;
+    top: calc(#{$controlHeight} + #{$tabsHeight} + 1em);
+    right: 1em;
+    border-radius: 1em;
+    border: $border;
+    background-color: $grey3;
+    padding: 1.5em;
+    opacity: 0.8;
+    transition: opacity 100ms;
+
+    i {
+      position: absolute;
+      left: -0.3em;
+      top: -0.3em;
+      font-size: 2em;
+    }
+
+    &:hover {
+      opacity: 1;
+    }
   }
 }
 
 .app-instruction {
+  position: absolute;
   width: $gridWidth * 2;
   bottom: 0;
   top: 0;
@@ -117,20 +74,9 @@ $controlHeight: 3em;
 }
 
 .app-tabs {
+  position: absolute;
   width: $gridWidth * 2;
   height: calc(100% - (#{$gridHeight} * 0));
   right: 0;
   bottom: 0;
-}
-
-.app-registers {
-  height: 100%;
-}
-
-.app-graph {
-  width: calc(100% - (#{$gridWidth} * 4));
-  height: calc(100% - #{$tabsHeight} - #{$controlHeight}); // Because tabs are a bit bigger
-  left: $gridWidth * 2;
-  top: calc(#{$controlHeight} + #{$tabsHeight});
-  outline: none;
 }
