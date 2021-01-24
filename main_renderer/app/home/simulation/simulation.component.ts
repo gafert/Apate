@@ -1,13 +1,13 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { byteToHex, range, readStyleProperty } from '../../utils/helper';
-import { CPUService } from './services/cpu.service';
-import { InstructionsComponent } from './components/instructions/instructions.component';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { DataKeys, DataService } from '../../services/data.service';
-import { GraphService } from './services/graph.service';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {byteToHex, range, readStyleProperty} from '../../utils/helper';
+import {CPUService} from './services/cpu.service';
+import {InstructionsComponent} from './components/instructions/instructions.component';
+import {BehaviorSubject, Subject} from 'rxjs';
+import {DataKeys, DataService} from '../../services/data.service';
+import {GraphService} from './services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
-import { Bindings, CPU_STATE_NAMES, CPU_STATES } from './services/bindingSubjects';
-import { Areas } from './services/graphHelpers/helpers';
+import {Bindings, CPU_STATE_NAMES, CPU_STATES} from './services/bindingSubjects';
+import {Areas} from './services/graphHelpers/helpers';
 
 @Component({
   selector: 'app-simulation',
@@ -93,7 +93,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.graphService.highlightStage(this.stage, false);
 
     // Load elf into CPU
-    this.cpu.initSimulation(this.elfPath);
+    this.cpu.initSimulation(this.dataService.getSetting(DataKeys.ELF_PATH));
     // Wait for program counter to be 0 before reloading
     setTimeout(() => {
       this.instructionsComponent.reload();
