@@ -172,7 +172,7 @@ button {
     color: white;
     background-color: $grey2;
     border: $border;
-    margin-left: $tabsMarginLeft;
+    margin-left: $margin;
     padding: 0em 1em;
     margin-bottom: -1px;
 
@@ -198,13 +198,16 @@ button {
 
   &--header {
     border-bottom: $border;
-    padding: 0.5em;
+    padding: $margin;
     align-items: center;
-    font-size: large;
-    font-weight: bold;
-    height: 2em;
     display: flex;
     justify-content: space-between;
+
+    /** In span so padding is not affected by font-size **/
+    span {
+      font-size: large;
+      font-weight: bold;
+    }
   }
 
   &--content {
@@ -217,7 +220,7 @@ button {
 .control {
   flex: 0 0;
   .title {
-    padding: $tabsMarginLeft;
+    padding: $margin;
     span {
       font-weight: bold;
       font-size: large;
@@ -242,7 +245,7 @@ button {
 
   .actions {
     position: absolute;
-    right: $tabsMarginLeft;
+    right: $margin;
     top: $tabsHeight;
   }
 }

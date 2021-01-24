@@ -23,8 +23,7 @@ export enum DataKeys {
 })
 export class DataService {
   public data = {};
-  // Temporary Variables set by the application
-  public instructionsSections: any;
+
   /** Only save to file if the hash of the element which should be saved changed */
   private hashList = [];
   private appStore = new Store();

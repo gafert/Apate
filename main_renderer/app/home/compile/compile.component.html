@@ -1,7 +1,7 @@
 <div class="sidebar">
   <div class="box">
     <div class="header">
-      Sources
+      <span>Sources</span>
     </div>
     <div class="text-box">
       <div *ngFor="let file of filesInFolder" class="file" (click)="clickFile($event, file)">{{file}}</div>
@@ -10,7 +10,7 @@
 
   <div class="box">
     <div class="header">
-      Terminal Output
+      <span>Terminal Output</span>
     </div>
     <div #terminalOutputElement class="text-box"
          style="white-space: pre-wrap; font-family: 'Roboto Mono'">{{terminalOutput}}</div>
@@ -20,7 +20,7 @@
 <div class="editor">
   <div class="control">
     <div class="title"><span>Compile</span></div>
-    <div class="actions"><button mat-flat-button color="accent">Compile</button></div>
+    <div class="actions"><button mat-flat-button color="accent" (click)="compile()">Compile</button></div>
     <div class="tabs">
       <button *ngIf="activeFile" selected=true>{{activeFile}}
         <i *ngIf="fileIsSavable" style="margin-left: 0.5em; font-size: 0.9em;"

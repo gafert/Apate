@@ -138,7 +138,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   }
 
   clickFile(event, file: string) {
-    const txtFiles = Object.keys(this.languages);
+    const txtFiles = ['txt', 's', 'c', 'cc', 'cpp', 'h', 'hpp', 'hh', 'js', 'ts', 'ld', 'json'];
 
     for (const txtFile of txtFiles) {
       if (file.toLowerCase().split('.').pop() === txtFile) {
