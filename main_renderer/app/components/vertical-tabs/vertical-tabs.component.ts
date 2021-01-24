@@ -1,12 +1,15 @@
-import { AfterViewInit, Component, ContentChildren, OnInit, QueryList, ViewChild } from '@angular/core';
+import {AfterContentInit, AfterViewInit, Component, ContentChildren, OnInit, QueryList, ViewChild} from '@angular/core';
 import {VerticalTabsItemComponent} from "../vertical-tabs-item/vertical-tabs-item.component";
+import {fromEvent} from "rxjs";
+import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 
 @Component({
   selector: 'app-vertical-tabs',
   templateUrl: './vertical-tabs.component.html',
   styleUrls: ['./vertical-tabs.component.scss']
 })
-export class VerticalTabsComponent implements AfterViewInit {
+@UntilDestroy()
+export class VerticalTabsComponent implements AfterContentInit, AfterViewInit {
   @ContentChildren(VerticalTabsItemComponent) tabs: QueryList<VerticalTabsItemComponent>;
   @ViewChild('tabsList') tabsList;
   @ViewChild('tabsContainer') tabsContainer;
@@ -23,7 +26,12 @@ export class VerticalTabsComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
+    // First event is not called
     this.tabsList.nativeElement.style.width = getComputedStyle(this.tabsContainer.nativeElement).height;
+    fromEvent(window, 'resize').pipe(untilDestroyed(this)).subscribe(() => {
+      this.tabsList.nativeElement.style.width = getComputedStyle(this.tabsContainer.nativeElement).height;
+      console.log(getComputedStyle(this.tabsContainer.nativeElement).height);
+    })
   }
 
   selectTab(tab: VerticalTabsItemComponent) {
