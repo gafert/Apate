@@ -35,15 +35,17 @@
       <g id="focusers" transform="translate(23 51)">
         <path id="focus_decoder" d="M0-1H602.679V752.6H0Z" transform="translate(517 67)" fill="none" stroke="#000" stroke-width="1"/>
         <rect id="focus_fetchpass" width="1025" height="754" transform="translate(95 66)" fill="none" stroke="#000" stroke-width="1"/>
-        <path id="focus_decoderpass" d="M0-1H602.679V752.6H0Z" transform="translate(517 67)" fill="none" stroke="#000" stroke-width="1"/>
+        <path id="focus_decoderpass" d="M0-1H801.169V363H0Z" transform="translate(95 67)" fill="none" stroke="#000" stroke-width="1"/>
         <path id="focus_alu" d="M0-1H733.448V409.164H0Z" transform="translate(1119.679 67)" fill="none" stroke="#000" stroke-width="1"/>
         <path id="focus_memory" d="M0-1H733.448V196.7H0Z" transform="translate(1119.679 445.408)" fill="none" stroke="#000" stroke-width="1"/>
         <path id="focus_branch" d="M0-1H718.161V230.6H0Z" transform="translate(1183 589)" fill="none" stroke="#000" stroke-width="1"/>
         <path id="focus_memorypass" d="M0-1H1097.056V621.292H0Z" transform="translate(1119.679 67)" fill="none" stroke="#000" stroke-width="1"/>
         <path id="focus_writeback" d="M0-1H378.293V404.646H0Z" transform="translate(1853.127 67)" fill="none" stroke="#000" stroke-width="1"/>
         <path id="focus_pc" d="M0-1H613.667V333.982H0Z" transform="translate(2220.161 67)" fill="none" stroke="#000" stroke-width="1"/>
-        <rect id="focus_fetch" width="442" height="364" transform="translate(87 66)" fill="none" stroke="#000" stroke-width="1"/>
+        <rect id="focus_fetch" width="422" height="364" transform="translate(95 66)" fill="none" stroke="#000" stroke-width="1"/>
         <path id="focus_decoderregisters" d="M0-1H602.679V353.97H0Z" transform="translate(517 465.628)" fill="none" stroke="#000" stroke-width="1"/>
+        <path id="focus_execute" d="M0-1H733.448V752.6H0Z" transform="translate(1119.679 67)" fill="none" stroke="#000" stroke-width="1"/>
+        <path id="focus_alupass" d="M0-1H780.8V404.646H0Z" transform="translate(1406.26 67)" fill="none" stroke="#000" stroke-width="1"/>
       </g>
       <g id="wb">
         <g id="mux_op_imm_lui_auipc_jal_jalr_load" transform="translate(234 130)">

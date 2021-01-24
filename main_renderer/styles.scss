@@ -280,6 +280,13 @@ button {
   padding: 0.1em 0.3em;
 }
 
+.controlsignal {
+  display: inline-block;
+  background-color: $accent;
+  border: 1px white solid;
+  padding: 0.1em 0.3em;
+}
+
 .wikilink {
   display: inline-block;
   color: lighten($accent, 10%);
