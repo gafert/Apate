@@ -33,6 +33,8 @@ import initiateSVGObjects, {
   updateSignalTexts
 } from './graphHelpers/helperSVGObject';
 import { CPU_STATES } from './bindingSubjects';
+import {fromEvent} from "rxjs";
+import {cumulativeOffset} from "../../../utils/helper";
 
 @Injectable({
   providedIn: 'root'
@@ -85,6 +87,12 @@ export class GraphService {
   private idRoot: IdRootInterface; // Holds the parsed svg and adds meshes to each element
   private signals: Signal[];
   private clickedElements = [];
+
+  /** Offset of renderDom in window, used for mouse position */
+  private offsetInWindow = {
+    left: 0,
+    top: 0
+  }
 
   constructor(private ngZone: NgZone, private cpu: CPUService) {
   }
@@ -180,6 +188,12 @@ export class GraphService {
 
           // Handle clicking to go into element / show infoText
           this.renderDom.addEventListener('dblclick', this.clickToShowInfo.bind(this, 'dblclick'));
+
+          // Event fired after resize
+          this.offsetInWindow = cumulativeOffset(this.renderDom);
+          fromEvent(window, 'resize').subscribe(() => {
+            this.offsetInWindow = cumulativeOffset(this.renderDom);
+          })
 
           // Split areas in world and focusElement on the first
           // This needs to be away from initiateObjects
@@ -514,6 +528,8 @@ export class GraphService {
 
         this.clickedElements.push(this.intersectedElement.name);
 
+        /*
+        // Used to click elements and put them into the clipboard for easier copy into stages.yml
         let s = '';
         for (let i = 0; i < this.clickedElements.length; i++) {
           s += this.clickedElements[i] + (i < this.clickedElements.length - 1 ? ', ' : '');
@@ -523,7 +539,7 @@ export class GraphService {
         navigator.clipboard.writeText(s).then((v) => {
           console.log(v);
         });
-
+        */
       }
     }
   }
@@ -545,7 +561,7 @@ export class GraphService {
     // Offset left because the dom does not start on the left border
     this.centeredMouse.x = ((event.clientX + this.renderDom.offsetLeft - (window.innerWidth - this.renderDom.clientWidth)) / this.renderDom.clientWidth) * 2 - 1;
     // Offset top because the dom does not start on the edge, additional - offset top because there is a header over all simulation elements
-    this.centeredMouse.y = -((event.clientY - this.renderDom.offsetTop - (window.innerHeight - this.renderDom.clientHeight - this.renderDom.offsetTop)) / this.renderDom.clientHeight) * 2 + 1;
+    this.centeredMouse.y = -((event.clientY - this.offsetInWindow.top - (window.innerHeight - this.renderDom.clientHeight - this.offsetInWindow.top)) / this.renderDom.clientHeight) * 2 + 1;
   }
 
   private render() {

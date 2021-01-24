@@ -1,3 +1,6 @@
+import {cumulativeOffset} from "./helper";
+import {fromEvent} from "rxjs";
+
 const eventify = require('ngraph.events');
 const kinetic = require('./kinetic.js');
 const animate = require('amator');
@@ -60,7 +63,14 @@ function panzoom(camera, owner) {
 	owner.addEventListener('touchstart', onTouch);
 	owner.addEventListener('keydown', onKeyDown);
 
-	return api;
+  // Event fired after resize
+  let offsetInWindow = cumulativeOffset(owner);
+  fromEvent(window, 'resize').subscribe(() => {
+    offsetInWindow = cumulativeOffset(owner);
+  })
+
+
+  return api;
 
 	function onTouch(e) {
 		const touchTime = new Date();
@@ -331,9 +341,8 @@ function panzoom(camera, owner) {
 		const scaleMultiplier = getScaleMultiplier(e.deltaY);
 
 		const mouse = {};
-		// TODO: This seems fishy
-    mouse.x = (e.clientX - owner.offsetLeft);
-    mouse.y = (e.clientY - owner.offsetTop);
+    mouse.x = (e.clientX - offsetInWindow.left);
+    mouse.y = (e.clientY - offsetInWindow.top);
 		// smoothScroll.cancel();
 		zoomTo(mouse.x, mouse.y, scaleMultiplier);
 	}
