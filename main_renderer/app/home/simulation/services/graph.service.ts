@@ -559,7 +559,11 @@ export class GraphService {
 
     // Depends on where the dom is in relation to the other elements
     // Offset left because the dom does not start on the left border
-    this.centeredMouse.x = ((event.clientX + this.renderDom.offsetLeft - (window.innerWidth - this.renderDom.clientWidth)) / this.renderDom.clientWidth) * 2 - 1;
+    let c = event.clientX + this.offsetInWindow.left; // Put in window
+    c = (c - (window.innerWidth - this.renderDom.clientWidth)) / this.renderDom.clientWidth;
+    c = c * 2 - 1; // Make centered
+
+    this.centeredMouse.x = c;
     // Offset top because the dom does not start on the edge, additional - offset top because there is a header over all simulation elements
     this.centeredMouse.y = -((event.clientY - this.offsetInWindow.top - (window.innerHeight - this.renderDom.clientHeight - this.offsetInWindow.top)) / this.renderDom.clientHeight) * 2 + 1;
   }

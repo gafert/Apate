@@ -4,200 +4,268 @@
 - instr: [] # If this infoText is on depending on the instruction, empty is all
   start: fetch # Defines where the stage starts, see CPU_STATE_IDS
   infos:
-    - text: Load new instruction at location of program counter # The text displayed
+    - text: > 
+        TEST <br>
+        <div class="wikilink" onclick="navigateInAngular('/home/compile')">Compile</div> 
+        <div class="module controlunit">Control Unit</div>
+        <div class="module memory">Memory</div> 
+        <div class="module alu">ALU</div> 
+        <div class="module registers">Registers</div> 
+        <div class="module branchevaluator">Branch Evaluator</div>
+        <div class="port">PORT</div> 
+    - text: Load a new instruction from the <div class="module memory">Memory</div> at the location of program counter. # The text displayed
       highlight: [p_pc-0001, s_pc-0002] # The elements that should be highlighted
       focusArea: overview # focusArea to go to, will be appended with areaborder_
       focusElement: fetch # focusElement to go to after focusArea has been selected, will be appended with focus_
       exec: fetch # If the cpu should execute
-    - text: Pass values into decoder
+    - text: Pass the unparsed 32 bit long instruction data into <div class="module controlunit">Control Unit</div> to be decoded.
       highlight: [s_instrmemread-0000]
       focusElement: fetchpass
 # DECODE
 - instr: []
   start: decode
   infos:
-    - text: Control Unit
+    - text: In the <div class="module controlunit">Control Unit</div> the instruction is decoded into different signals used throughout the CPU.
       highlight: []
       from: m_controlunit
       focusArea: cu
       exec: decode
-    - text: Get instruction group by opcode
+    - text: > 
+        First parse the opcode by comparing the first 8 bits of the unparsed instruction data. 
+        The opcode tells the CPU how to parse the instruction and what values are used throughout the CPU.
+        Once the opcode is parsed we know which elements of the CPU are not used, these will be hidden.
       highlight: []
       focusElement: cu_instr_group
-    - text: Get all values which are at fixed locations in the current instruction
+    - text: Secondly we can parse other value in the instruction. Some are hidden as the opcode tells us these will not be used in this instruction cycle.
       highlight: []
       focusElement: cu_static_values
-    - text: Depending on the instruction the Immediate value resides on different bit combinations
+    - text: Thirdly on the opcode and therefor the type of instruction the Immediate value can reside on different bit combinations. The used bit combination is shown.
       highlight: []
       focusElement: cu_immediates
-    - text: Store the name of the instruction to the Instruction Signal. The name of the instruction depends on the opcode, func3, func7 and sometimes the Immediate value
+    - text: >
+        Lastly the instruction name is parsed which corresponds to the command used in assembly. 
+        The instruction depends on <div class="port">FUNC3</div>, <div class="port">FUNC4</div> and <div class="port">IMM</div>.
+        Depending on these three value the instruction name will be stored in the <div class="port">INSTRUCTION</div> signal. 
+        You can see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?instructiontable')">Instruction Table</div> in the Wiki.
       highlight: [ ]
       focusElement: cu_instruction
 - instr: [op, imm, load, jalr, store, branch]
   infos:
-    - text: Get values stored in the Registers from the given addresses
+    - text: >
+        <div class="port">RS1 ADDR</div> and <div class="port">RS2 ADDR</div> are only the addresses to values in the Register. 
+        These values are now read from the Register and passed to <div class="port">RS1</div> and <div class="port">RS2</div> in the Data Path.
       focusArea: overview
       focusElement: decoderregisters
       highlight: [m_reg2-0080, m_reg1-0077]
 - instr: []
   infos:
-    - text: Pass values to the Data- and Control Path to activate the correct paths
+    - text: >
+        All parsed value are now passed to the Control Path and the Data Path. 
+        The Control Path contains all values which control the CPU in some way. 
+        The Data Path contains Data used inside the CPU.
       focusElement: decoderpass
       focusArea: overview
       highlight: [s_instr-0064, m_controlpath-0074, w_op-0066, w_imminstr-0065, w_load-0067, w_branch-0069, w_jal-0070, w_jalr-0071, w_lui-0072, w_auipc-0073, s_rd-0082, s_imm-0081, m_datapath-0083]
 # EXECUTE
-- instr: [imm]
+- instr: []
   start: execute
+  infos: 
+    - text: >
+        You reached the <div class="wikilink" onclick="navigateInAngular('/home/wiki?entry')">Execution Stage</div>.
+        <br><br>
+        This stage consists of three blocks: <div class="module alu">ALU</div>, <div class="module memory">Memory</div>, and <div class="module branchevaluator">Branch Evaluator</div>.
+        Depending on the opcode only one of these blocks is used.
+- instr: [imm]
   infos:
-    - text: Pass Immediate into Operator 1
+    - text: Pass <div class="port">IMM</div> into Operator 1 of the <div class="module alu">ALU</div>.
       highlight: [p_imm-0009, s_imm-0008, m_mux_immrs2-0004, s_immrs2-0005, m_mux_immrs2pcimm-0019, s_op1-0014]
       focusElement: alu
-    - text: Pass Register Source 1 into Operator 2
+    - text: Pass <div class="port">RS1</div> into Operator 2 of the <div class="module alu">ALU</div>.
       highlight: [p_rs1-0033, s_rs1-0032, m_mux_rs1412-0020, s_op2-00163]
 - instr: [op]
   infos:
-    - text: Pass Register Source 2 into Operator 1 of ALU
+    - text: Pass <div class="port">RS2</div> into Operator 1 of the <div class="module alu">ALU</div>.
       focusElement: alu
       highlight: [p_rs2-0006, s_rs2-0007, m_mux_immrs2-0004, s_immrs2-0005, m_mux_immrs2pcimm-0019, s_op1-0014]
-    - text: Pass Register Source 1 into Operator 2 of ALU
+    - text: Pass <div class="port">RS1</div> into Operator 2 of the <div class="module alu">ALU</div>.
       highlight: [p_rs1-0033, s_rs1-0032, m_mux_rs1412-0020, s_op2-0016]
 - instr: [jal, jalr]
   infos:
-    - text: Pass Program Counter into Operator 1
+    - text: Pass <div class="port">PC</div> into Operator 1 of the <div class="module alu">ALU</div>.
       focusElement: alu
       highlight: [p_pc-0026, s_pc-0027, m_mux_immrs2pcimm-0019, s_op1-0014]
-    - text: Pass 4 into Operator 2
+    - text: Pass <div class="port">4</div> into Operator 2 of the <div class="module alu">ALU</div>.
       highlight: []
 - instr: [lui, auipc]
   infos:
-    - text: Pass Immediate into Operator 1
+    - text: Pass <div class="port">IMM</div> into Operator 1 of the <div class="module alu">ALU</div>.
       focusElement: alu
       highlight: [p_imm-0024, s_imm-0025, m_mux_immrs2pcimm-0019, s_op1-0014]
-    - text: Pass 12 into Operator 2
+    - text: Pass <div class="port">12</div> into Operator 2 of the <div class="module alu">ALU</div>.
       highlight: [p_12-0028, s_12-0029, m_mux_rs1412-0020, s_op2-0016]
 - instr: [imm, op, jal, jalr, lui, auipc]
   infos:
-    - text: Arithemtic Logic Unit (ALU)
+    - text: > 
+        The Arithemtic Logic Unit <div class="module alu">ALU</div> is used to perform calculations on Operator 1 and Operator 2 
+        depending on the value of the <div class="port">INSTRUCTION</div>.
       focusArea: alu
       highlight: [ ]
-    - text: Calculate
+    - text: The calculate value is stored in the Output signal <div class="port">OUT</div>.
       exec: execute
       highlight: [ ]
-    - text: Overview
+    - text: Back to the Overview of the CPU.
       focusArea: overview
       focusElement: alu
       highlight: [ ]
 - instr: [auipc]
   infos:
-    - text: Add output of ALU to Program Counter and pass it to the next stage
+    - text: > 
+        The current instruction is AUIPC (Add Upper Immediate to Program Counter). 
+        The Upper Immediate value was already calculated by the <div class="module alu">ALU</div> and is now in the <div class="port">OUT</div> signal. 
+        This value needs to be added to the <div class="port">PC</div> before it is stored in the Register.
       focusElement: alu
       highlight: [p_pc-0011, s_pc-0012, m_addpcalu-0010, s_pcaluout-0013, m_mux_pcaluout-0017]
 - instr: [imm, op, jal, jalr, lui]
   infos:
-    - text: Pass ALU Output to the next stage
+    - text: Pass the <div class="port">OUT</div> of the <div class="module alu">ALU</div> to the <div class="module registers">Registers</div>.
       focusElement: alu
       highlight: [s_aluout-0018, m_mux_pcaluout-0017, s_regwrite]
-- instr: [auipc]
-  infos:
-    - text: Add output of ALU to Program Counter and pass it to the next stage
-      focusElement: alu
-      highlight: []
 - instr: [store]
   infos:
-    - text: Add Register Source 1 and Immediate to generate the memory address
+    - text: The memory address is always an addition of <div class="port">RS1</div> and <div class="port">IMM</div>.
       focusElement: memory
       highlight: []
-    - text: Pass Register Source 2 as the data to be written to the memory
+    - text: The data to be stored is always <div class="port">RS2</div>
       highlight: []
-    - text: Store the value in the memory, watch the memory in the next cycle
+    - text: Next the data of <div class="port">RS2</div> will be stored in the <div class="module memory">Memory</div>. Watch the memory tab to see the change.
       highlight: []
-    - text: Stored data
+    - text: The data has been stored in the <div class="module memory">Memory</div>.
       exec: execute
       highlight: []
 - instr: [load]
   infos:
-    - text: Add Register Source 1 and Immediate to generate the memory address
+    - text: The memory address is always an addition of <div class="port">RS1</div> and <div class="port">IMM</div>. As this is a LOAD instruction no data is needed.
       focusElement: memory
       highlight: []
-    - text: Load value from memory
+    - text: Next the value is loaded into the <div class="port">READ</div>.
       exec: execute
       highlight: []
-    - text: Pass read value to the next stage
+    - text: The value of <div class="port">READ</div> is passed to the <div class="module registers">Registers</div> to be saved.
       focusElement: memorypass
       highlight: []
 - instr: [branch]
   infos:
-    - text: Pass Register Source 1 and Register Source 2 to the Branch Evaluator
+    - text: The <div class="module branchevaluator">Branch Evaluator</div> compares <div class="port">RS1</div> and <div class="port">RS2</div> with methods depending on the instruction.
       highlight: []
       focusElement: branch
-      exec: execute
-    - text: Calculate the output and select the correct signal
+    - text: <div class="port">RS1</div> and <div class="port">RS2</div> are passed to the compare method depending on the instruction. The multiplexer decides on the method.
       highlight: []
       focusArea: be
+    - text: The result of the comparison is stored in <div class="port">OUT</div> and is either 1 or 0.
+      highlight: []
+      exec: execute
 - instr: [branch]
   if: !!js/function  'function (bindings) { return bindings.branchResult.value == true; }'
   infos:
-    - text: Use the result from the comparator to select Immediate and pass it the next stage
+    - text: Use the result from the <div class="module branchevaluator">Branch Evaluator</div> to select <div class="port">IMM</div> and pass it the next stage.
       focusArea: overview
       focusElement: branchpass
       highlight: []
 - instr: [branch]
   if: !!js/function  'function (bindings) { return bindings.branchResult.value == false; }'
   infos:
-    - text: Use the result from the comparator to select 4 and pass it the next stage
+    - text: Use the result from the <div class="module branchevaluator">Branch Evaluator</div> to select 4 and pass it the next stage.
       focusElement: branchpass
       focusArea: overview
       highlight: []
 # WRITE BACK
-- instr: [load, imm, op, jal, jalr, lui, auipc]
+- instr: []
   start: writeback
+  focusElement: writeback
   infos:
-    - text: Store passed value to the Register at the location of Return Register. Watch the Register at RD change in the next cycle.
+    - text: > 
+        This stage is called <div class="wikilink" onclick="navigateInAngular('/home/wiki?writebackstage')">Write Back Stage</div>. 
+        <br><br>
+        Depending on the instruction either a value from the <div class="module alu">ALU</div> or 
+        the loaded value from the <div class="module memory">Memory</div> will be stored in the <div class="module registers">Registers</div>.
+        The register address is set by <div class="port">RD</div>
+      focusElement: pc
+      highlight: []
+- instr: [load, imm, op, jal, jalr, lui, auipc]
+  infos:
+    - text: > 
+        Store the value of <div class="module memory">Memory</div> or <div class="module alu">ALU</div> 
+        to the <div class="module registers">Registers</div> at the location of the Return Address <div class="port">RD</div>. 
+        Watch the register tab to see how the value is written.
       focusElement: writeback
       highlight: []
-    - text: Stored value at Return Address (RD)
+    - text: The value has been stored in the <div class="module registers">Registers</div>.
       highlight: []
       exec: writeback
 - instr: [branch]
   infos:
-    - text: Nothing to be done in writeback on BRANCH calls
+    - text: In BRANCH instructions no data needs to be written to the <div class="module registers">Registers</div>.
       focusElement: writeback
       exec: writeback
       highlight: []
 - instr: [store]
   infos:
-    - text: Nothing to be done in writeback on STORE instruction
+    - text: In STORE instructions no data needs to be written to the <div class="module registers">Registers</div>.
       focusElement: writeback
       exec: writeback
       highlight: []
 # ADVANCE PROGRAM COUNTER
-- instr: [branch]
+- instr: []
   start: advanceprogramcounter
   infos:
-    - text: Pass Branch Result (4 or Immediate) to be added to the current Program Counter and set to the new Program Counter
+    - text: > 
+        This stage is called <div class="wikilink" onclick="navigateInAngular('/home/wiki?advpcstage')">Advance Program Counter Stage</div>. 
+        <br><br>
+        The new <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> will be set depending on the instruction.
+        If the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> is set the CPU will return to the 
+        <div class="wikilink" onclick="navigateInAngular('/home/wiki?fetchstage')">Fetch Stage</div>.
+      focusElement: pc
+      highlight: []
+- instr: [branch]
+  infos:
+    - text: > 
+        The result of the <div class="module branchevaluator">Branch Evaluator</div> which is either 4 or <div class="port">IMM</div> 
+        is added to the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> <div class="port">PC</div>. 
+        This is because <div class="module branchevaluator">Branch Evaluator</div> decide if the 
+        <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> should continue normally to the 
+        next instruction (4 memory locations -> 4 bytes -> one 32 bit instruction) or jump to a new location which is the value of
+        <div class="port">IMM</div> + <div class="port">PC</div>.
+        <br><br>Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
       focusElement: pc
       highlight: []
 - instr: [jal]
   infos:
-    - text: Pass Immediate to be added to the current Program Counter and set to the new Program Counter
+    - text: > 
+        Pass <div class="port">IMM</div> to be added to the current <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> <div class="port">PC</div> 
+        and set to the new <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div>.
+        <br><br>Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
       focusElement: pc
       highlight: []
 - instr: [jalr]
   infos:
-    - text: Add Register Source 1 and Immediate to set the new Program Counter
+    - text: > 
+        Add Register Source 1 and Immediate to set the new <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div>.
+        <br><br>Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
       focusElement: pc
       highlight: []
 - instr: [store, imm, op, lui, load, auipc]
   infos:
-    - text: Pass 4 to be added to the current Program Counter and set to the new Program Counter
+    - text: > 
+        This instruction does not change the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div>. 
+        So 4 is added to the current <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> <div class="port">PC</div> and set to 
+        the new <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div>. 
+        <br><br>Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
       focusElement: pc
       highlight: []
 - instr: []
   infos:
-    - text: Set new program counter. Watch the PC change in the 'Instructions' Panel on the right.
-      highlight: []
-- instr: []
-  infos:
-    - text: New Program Counter set. Cycle completed.
+    - text: > 
+        New <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> set.
+        <br><br>This cycle is complete. The CPU will now go to the <div class="wikilink" onclick="navigateInAngular('/home/wiki?fetchstage')">Fetch Stage</div>.
       exec: advanceprogramcounter
       highlight: []

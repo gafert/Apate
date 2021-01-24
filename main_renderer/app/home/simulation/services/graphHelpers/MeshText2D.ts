@@ -37,6 +37,7 @@ export class MeshText2D extends Text2D {
 
     this.texture = new THREE.Texture(this.canvas.canvas);
     this.texture.generateMipmaps = true;
+    this.texture.anisotropy = 16;
     this.texture.magFilter = THREE.LinearMipMapLinearFilter;
     this.texture.minFilter = THREE.NearestFilter;
     this.texture.needsUpdate = true;

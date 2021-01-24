@@ -49,8 +49,9 @@
     border: $border;
     background-color: $grey3;
     padding: 1.5em;
-    opacity: 0.8;
+    opacity: 1;
     transition: opacity 100ms;
+    max-width: 30em;
 
     i {
       position: absolute;

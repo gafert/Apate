@@ -20,6 +20,7 @@ import { VirtualScrollerModule } from 'ngx-virtual-scroller';
 import {RouterModule, Routes} from "@angular/router";
 import {MatButtonModule} from "@angular/material/button";
 import {MatRippleModule} from "@angular/material/core";
+import {SafeHtmlPipe} from "../../components/safeHMTL.pipe";
 
 const routes: Routes = [
   {
@@ -39,7 +40,7 @@ const routes: Routes = [
     RegistersComponent,
     TerminalComponent,
     GraphComponent,
-    SignalsComponent, VerticalTabsComponent, VerticalTabsItemComponent, VarDirective
+    SignalsComponent, VerticalTabsComponent, VerticalTabsItemComponent, VarDirective, SafeHtmlPipe
   ],
   imports: [RouterModule.forChild(routes), CommonModule, MatCheckboxModule, TippyModule,
     FormsModule, VirtualScrollerModule, MatButtonModule, MatRippleModule],

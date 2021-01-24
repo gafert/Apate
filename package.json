@@ -80,6 +80,7 @@
     "@fortawesome/fontawesome-free": "5.15.2",
     "@ngneat/helipopper": "2.0.0",
     "@ngneat/until-destroy": "8.0.3",
+    "@seregpie/three.text-sprite": "3.2.0",
     "@types/lodash": "4.14.166",
     "amator": "1.1.0",
     "codemirror": "5.59.0",

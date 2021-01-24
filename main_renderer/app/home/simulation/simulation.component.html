@@ -28,7 +28,7 @@
 
   <div class="info" *ngIf="infoText">
     <i class="fas fa-info-circle"></i>
-    {{infoText}}
+    <div [innerHTML]="infoText | safeHtml"></div>
   </div>
 </div>
 

@@ -250,3 +250,49 @@ button {
   }
 }
 
+/** Used in text and description **/
+.module {
+  display: inline-block;
+  background-color: $grey1;
+  border: 1px white solid;
+  padding: 0.1em 0.3em;
+  &.memory {
+    background-color: $colorMemory;
+  }
+  &.controlunit {
+    background-color: $colorControlUnit;
+  }
+  &.registers {
+    background-color: $colorRegs;
+  }
+  &.alu {
+    background-color: $colorALU;
+  }
+  &.branchevaluator {
+    background-color: $colorBranchEval;
+  }
+}
+
+.port {
+  display: inline-block;
+  background-color: $grey1;
+  border: 1px white solid;
+  padding: 0.1em 0.3em;
+}
+
+.wikilink {
+  display: inline-block;
+  color: lighten($accent, 10%);
+  font-weight: bold;
+  cursor: pointer;
+  &:after {
+    content: "\f0c1"; // Link symbol https://fontawesome.com/icons/link?style=solid
+    font-family: 'Font Awesome 5 Free', sans-serif;
+    font-weight: 900;
+    padding-left: 0.5em;
+  }
+  &:hover {
+    color: lighten($accent, 20%);
+  }
+}
+

@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="623" height="271" viewBox="0 0 623 271">
+  <defs>
+    <clipPath id="clip-legend">
+      <rect width="623" height="271"/>
+    </clipPath>
+  </defs>
+  <g id="legend" clip-path="url(#clip-legend)">
+    <rect width="623" height="271" fill="#fff"/>
+    <rect id="Rechteck_83" data-name="Rechteck 83" width="623" height="272" transform="translate(0 -1)" fill="#292929"/>
+    <line id="Linie_118" data-name="Linie 118" x2="27" transform="translate(108.5 44.5)" fill="none" stroke="#fff" stroke-width="1"/>
+    <line id="Linie_119" data-name="Linie 119" x2="27" transform="translate(108.5 63.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    <line id="Linie_120" data-name="Linie 120" x2="27" transform="translate(108.5 75.5)" fill="none" stroke="#78a0fa" stroke-width="1"/>
+    <text id="_1-Bit_Signal" data-name="1-Bit Signal" transform="translate(40 50)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">1-Bit Signal</tspan></text>
+    <text id="N-Bit_Signal_edited" data-name="N-Bit Signal edited" transform="translate(38 68)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">N-Bit Signal</tspan></text>
+    <text id="Control_Signal" data-name="Control Signal" transform="translate(25 86)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">Control Signal</tspan></text>
+    <line id="Linie_121" data-name="Linie 121" x2="27" transform="translate(108.5 81.5)" fill="none" stroke="#78a0fa" stroke-width="3"/>
+    <text id="Bit_Selector" data-name="Bit Selector" transform="translate(39 105)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">Bit Selector</tspan></text>
+    <line id="Linie_123" data-name="Linie 123" x2="27" transform="translate(108.5 100.5)" fill="none" stroke="#008e52" stroke-width="3"/>
+    <g id="Gruppe_368" data-name="Gruppe 368" transform="translate(519 40.846)">
+      <g id="p_rs2">
+        <g id="p" transform="translate(0 0.154)" fill="#333" stroke="#fff" stroke-width="1">
+          <rect width="80" height="26" stroke="none"/>
+          <rect x="0.5" y="0.5" width="79" height="25" fill="none"/>
+        </g>
+        <text id="t" transform="translate(6 19.154)" fill="#fff" font-size="16" font-family="ArialMT, Arial"><tspan x="0" y="0">SOURCE</tspan></text>
+      </g>
+      <line id="Linie_124" data-name="Linie 124" x2="11" transform="translate(79.5 13.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    </g>
+    <g id="Gruppe_370" data-name="Gruppe 370" transform="translate(519 80.846)">
+      <g id="p_rs2-2" data-name="p_rs2" transform="translate(10.5)">
+        <g id="p-2" data-name="p" transform="translate(0 0.154)" fill="#333" stroke="#fff" stroke-width="1">
+          <rect width="51" height="26" stroke="none"/>
+          <rect x="0.5" y="0.5" width="50" height="25" fill="none"/>
+        </g>
+        <text id="t-2" data-name="t" transform="translate(6 19.154)" fill="#fff" font-size="16" font-family="ArialMT, Arial"><tspan x="0" y="0">SINK</tspan></text>
+      </g>
+      <line id="Linie_124-2" data-name="Linie 124" x2="11" transform="translate(0 13.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    </g>
+    <text id="Multiplexer_MUX_" data-name="Multiplexer (MUX)" transform="translate(448 144)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">Multiplexer </tspan><tspan x="0" y="16">(MUX)</tspan></text>
+    <g id="group_imm_op" transform="translate(519 119.931)">
+      <g id="mux_imm_op" transform="translate(19.196)">
+        <path id="m_mux_immrs2" d="M1586.256,490.931V546l23.806-12.092V501.577Z" transform="translate(-1586.256 -490.931)" fill="#333" stroke="#fff" stroke-width="1"/>
+        <path id="s_immrs2" d="M-14.933-.064,1.3,0" transform="translate(39.244 27.569)" fill="none" stroke="#fff" stroke-width="3"/>
+      </g>
+      <g id="mux_op" transform="translate(0 38.029)">
+        <path id="s_rs2" d="M1513.356,490.96h19.029" transform="translate(-1513.356 -490.96)" fill="none" stroke="#fff" stroke-width="3"/>
+      </g>
+      <g id="mux_imm" transform="translate(0.236 15.156)">
+        <path id="s_imm" d="M1511.09,468.087h18.6" transform="translate(-1511.09 -468.087)" fill="none" stroke="#fff" stroke-width="3"/>
+      </g>
+    </g>
+    <g id="Gruppe_442" data-name="Gruppe 442" transform="translate(132 -24)">
+      <line id="Linie_138" data-name="Linie 138" x2="27" transform="translate(13.5 87.5)" fill="none" stroke="#fff" stroke-width="3"/>
+      <line id="Linie_32" data-name="Linie 32" y1="16" x2="6" transform="translate(18.5 71.5)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2"/>
+      <text id="N" transform="translate(27 83)" fill="#fff" font-size="12" font-family="ArialMT, Arial"><tspan x="0" y="0">N</tspan></text>
+    </g>
+    <text id="Signal_Source" data-name="Signal Source" transform="translate(437 59)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">Signal Source</tspan></text>
+    <text id="Signal_Sink" data-name="Signal Sink" transform="translate(451 99)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">Signal Sink</tspan></text>
+    <g id="Gruppe_52" data-name="Gruppe 52" transform="translate(-576 104)">
+      <g id="mux_op-2" data-name="mux_op">
+        <text id="w_op" transform="translate(1134 100)" fill="#78a0fa" font-size="7" font-family="ArialMT, Arial"><tspan x="-38.91" y="0">Control Path</tspan></text>
+        <line id="w_op-2" data-name="w_op" x2="6" transform="translate(1135.5 97.5)" fill="none" stroke="#78a0fa" stroke-width="1"/>
+      </g>
+      <g id="mux_imm-2" data-name="mux_imm">
+        <text id="w_imminstr" transform="translate(1134 91)" fill="#78a0fa" font-size="7" font-family="ArialMT, Arial"><tspan x="-38.91" y="0">Control Path</tspan></text>
+        <line id="w_imminstr-2" data-name="w_imminstr" x2="6" transform="translate(1135.5 88.5)" fill="none" stroke="#78a0fa" stroke-width="1"/>
+      </g>
+      <g id="mux_imm_op-2" data-name="mux_imm_op">
+        <g id="XOR" transform="translate(1139.7 85.006)">
+          <path id="m_xorimmop" d="M1093.7,106.006s2.387,4.311,2.387,8.386a17.207,17.207,0,0,1-2.387,7.912h9.492c4.66.152,9.63-7.912,9.63-7.912s-4.483-8.368-9.63-8.386Z" transform="translate(-1093.7 -106.006)" fill="#78a0fa" stroke="#fff" stroke-width="1"/>
+        </g>
+        <path id="w_immop" d="M7369.822,54.156h10.412" transform="translate(-6211 39)" fill="none" stroke="#78a0fa" stroke-width="1"/>
+      </g>
+    </g>
+    <text id="XOR_Control_Paths" data-name="XOR Control Paths" transform="translate(411 202)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">XOR Control Paths</tspan></text>
+    <path id="s_pc" d="M51.45,0H68" transform="translate(468.05 230.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    <path id="s_pcaluout" d="M7786,521h14.439" transform="translate(-7217.998 -286)" fill="none" stroke="#fff" stroke-width="3"/>
+    <g id="Rechteck_51" data-name="Rechteck 51" transform="translate(536 220)" fill="#333" stroke="#fff" stroke-width="1">
+      <rect width="32" height="32" stroke="none"/>
+      <rect x="0.5" y="0.5" width="31" height="31" fill="none"/>
+    </g>
+    <line id="Linie_26" data-name="Linie 26" y2="16.682" transform="translate(552.151 227.818)" fill="none" stroke="#fff" stroke-width="2"/>
+    <line id="Linie_27" data-name="Linie 27" x2="16.697" transform="translate(543.803 236.159)" fill="none" stroke="#fff" stroke-width="2"/>
+    <path id="w_aluout" d="M7765.918,531.706h16.874" transform="translate(-7246.355 -288)" fill="none" stroke="#fff" stroke-width="3"/>
+    <text id="ADD_2_Signals" data-name="ADD 2 Signals" transform="translate(435 241)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="0" y="0">ADD 2 Signals</tspan></text>
+    <g id="Gruppe_444" data-name="Gruppe 444" transform="translate(-12 56)">
+      <g id="p-3" data-name="p" transform="translate(328 14)" fill="#333" stroke="#fff" stroke-width="1">
+        <rect width="42" height="26" stroke="none"/>
+        <rect x="0.5" y="0.5" width="41" height="25" fill="none"/>
+      </g>
+      <text id="t-3" data-name="t" transform="translate(333 33)" fill="#fff" font-size="16" font-family="ArialMT, Arial"><tspan x="0" y="0">IMM</tspan></text>
+    </g>
+    <g id="p_pc" transform="translate(-645 -128)">
+      <g id="p-4" data-name="p" transform="translate(961 166)" fill="#78a0fa" stroke="#fff" stroke-width="1">
+        <rect width="42" height="26" stroke="none"/>
+        <rect x="0.5" y="0.5" width="41" height="25" fill="none"/>
+      </g>
+      <text id="t-4" data-name="t" transform="translate(971 185)" fill="#fff" font-size="16" font-family="ArialMT, Arial"><tspan x="0" y="0">PC</tspan></text>
+    </g>
+    <path id="s_pc-2" data-name="s_pc" d="M-.5,0,19.872,0" transform="translate(358.5 83.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    <g id="p_rs1" transform="translate(-645 -124)">
+      <g id="p-5" data-name="p" transform="translate(961 226)" fill="#00776d" stroke="#fff" stroke-width="1">
+        <rect width="42" height="26" stroke="none"/>
+        <rect x="0.5" y="0.5" width="41" height="25" fill="none"/>
+      </g>
+      <text id="t-5" data-name="t" transform="translate(967 245)" fill="#fff" font-size="16" font-family="ArialMT, Arial"><tspan x="0" y="0">RS1</tspan></text>
+    </g>
+    <g id="p_rs2-3" data-name="p_rs2" transform="translate(-473 -30)">
+      <g id="p-6" data-name="p" transform="translate(789 164)" fill="#1a0077" stroke="#fff" stroke-width="1">
+        <rect width="42" height="26" stroke="none"/>
+        <rect x="0.5" y="0.5" width="41" height="25" fill="none"/>
+      </g>
+      <text id="t-6" data-name="t" transform="translate(795 183)" fill="#fff" font-size="16" font-family="ArialMT, Arial"><tspan x="0" y="0">RS2</tspan></text>
+    </g>
+    <g id="p_4" transform="translate(-636 -54)">
+      <g id="p-7" data-name="p" transform="translate(952 252)" fill="#1c1c1c" stroke="#fff" stroke-width="1">
+        <rect width="42" height="26" stroke="none"/>
+        <rect x="0.5" y="0.5" width="41" height="25" fill="none"/>
+      </g>
+      <text id="t-7" data-name="t" transform="translate(968 271)" fill="#fff" font-size="16" font-family="ArialMT, Arial"><tspan x="0" y="0">4</tspan></text>
+    </g>
+    <g id="Gruppe_443" data-name="Gruppe 443" transform="translate(-15 -24)">
+      <g id="p-8" data-name="p" transform="translate(331 190)" fill="#167700" stroke="#fff" stroke-width="1">
+        <rect width="42" height="26" stroke="none"/>
+        <rect x="0.5" y="0.5" width="41" height="25" fill="none"/>
+      </g>
+      <text id="t-8" data-name="t" transform="translate(352 209)" fill="#fff" font-size="16" font-family="ArialMT, Arial"><tspan x="-11.555" y="0">RD</tspan></text>
+    </g>
+    <path id="s_pc-3" data-name="s_pc" d="M-.5,0,19.872,0" transform="translate(358.5 51.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    <path id="s_pc-4" data-name="s_pc" d="M-.5,0,19.872,0" transform="translate(358.5 115.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    <path id="s_pc-5" data-name="s_pc" d="M-.5,0,19.872,0" transform="translate(358.5 147.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    <path id="s_pc-6" data-name="s_pc" d="M-.5,0,19.872,0" transform="translate(358.5 178.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    <path id="s_pc-7" data-name="s_pc" d="M-.5,0,19.872,0" transform="translate(358.5 210.5)" fill="none" stroke="#fff" stroke-width="3"/>
+    <text id="Program_Counter" data-name="Program Counter" transform="translate(310 56)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="-91.16" y="0">Program Counter</tspan></text>
+    <text id="Immediate_Value" data-name="Immediate Value" transform="translate(310 88)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="-89.889" y="0">Immediate Value</tspan></text>
+    <text id="Register_Source_1" data-name="Register Source 1" transform="translate(310 120)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="-93.762" y="0">Register Source 1</tspan></text>
+    <text id="Register_Source_2" data-name="Register Source 2" transform="translate(310 152)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="-93.762" y="0">Register Source 2</tspan></text>
+    <text id="Return_Address" data-name="Return Address" transform="translate(310 184)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="-82.09" y="0">Return Address</tspan></text>
+    <text id="Constant_Value" data-name="Constant Value" transform="translate(310 216)" fill="#fff" font-size="12" font-family="Roboto-Regular, Roboto"><tspan x="-81.199" y="0">Constant Value</tspan></text>
+    <text id="Sources" transform="translate(321 28)" fill="#fff" font-size="16" font-family="Roboto-Medium, Roboto" font-weight="500"><tspan x="-58.352" y="0">Sources</tspan></text>
+    <text id="Lines" transform="translate(119 30)" fill="#fff" font-size="16" font-family="Roboto-Medium, Roboto" font-weight="500"><tspan x="-38.484" y="0">Lines</tspan></text>
+    <text id="Components" transform="translate(561 28)" fill="#fff" font-size="16" font-family="Roboto-Medium, Roboto" font-weight="500"><tspan x="-91.555" y="0">Components</tspan></text>
+  </g>
+</svg>
