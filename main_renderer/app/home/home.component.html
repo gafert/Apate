@@ -1,13 +1,15 @@
-<div class="header">
-  <button [routerLink]="['./simulation']" *ngIf="isSelectedButton('compile')" mat-flat-button color="primary">To Simulation</button>
-  <button [routerLink]="['./compile']" *ngIf="isSelectedButton('simulation')" mat-flat-button color="primary">To Compile</button>
-  <button mat-flat-button color="primary" (click)="openProjectDialog()" tippy="Open Project Folder"><i class="fas fa-folder"></i></button>
-  <button mat-flat-button color="primary" (click)="closeProject()" tippy="Close Project"><i class="fas fa-times"></i></button>
-  <button mat-flat-button color="primary" (click)="newProjectDialog()" tippy="Initiate new Project Folder"><i class="fas fa-folder-plus"></i></button>
-  <button mat-flat-button color="primary" (click)="openSettingsDialog()" tippy="Settings"><i class="fas fa-cog"></i></button>
-</div>
+<app-window title="CPU Simulator" [info]="dataService.getSetting(DataKeys.PROJECT_PATH) ? ('Project - ' + dataService.getSetting(DataKeys.PROJECT_PATH)) : ('ELF - ' + dataService.getSetting(DataKeys.ELF_PATH))">
+  <div window-actions>
+    <button [routerLink]="['./simulation']" *ngIf="isSelectedButton('compile')" mat-flat-button color="primary">To Simulation</button>
+    <button [routerLink]="['./compile']" *ngIf="isSelectedButton('simulation')" mat-flat-button color="primary">To Compile</button>
+    <button mat-flat-button color="primary" (click)="openProjectDialog()" tippy="Open Project Folder"><i class="fas fa-folder"></i></button>
+    <button mat-flat-button color="primary" (click)="closeProject()" tippy="Close Project"><i class="fas fa-times"></i></button>
+    <button mat-flat-button color="primary" (click)="newProjectDialog()" tippy="Initiate new Project Folder"><i class="fas fa-folder-plus"></i></button>
+    <button mat-flat-button color="primary" (click)="openSettingsDialog()" tippy="Settings"><i class="fas fa-cog"></i></button>
+  </div>
+  <div window-main style="height: 100%">
+    <router-outlet>
+    </router-outlet>
+  </div>
+</app-window>
 
-<div class="container">
-  <router-outlet>
-  </router-outlet>
-</div>

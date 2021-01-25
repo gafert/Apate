@@ -5,6 +5,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { SettingComponent } from '../components/setting/setting.component';
+import {WindowModule} from "../components/window/window.module";
 
 const routes: Routes = [
   {
@@ -15,9 +16,9 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [WizardComponent, SettingComponent],
-  imports: [
-    RouterModule.forChild(routes), CommonModule, FormsModule, MatButtonModule
-  ]
+    imports: [
+        RouterModule.forChild(routes), CommonModule, FormsModule, MatButtonModule, WindowModule
+    ]
 })
 export class WizardModule {
 }

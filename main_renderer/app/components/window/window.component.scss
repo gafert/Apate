@@ -70,8 +70,12 @@
   .actions {
     margin-right: 1em;
     ::ng-deep button {
+      margin-right: 0.5em;
       line-height: calc(var(--windowHeaderTitleHeight) * 1.5) !important;
       height: calc(var(--windowHeaderTitleHeight) * 1.5) !important;
+    }
+    ::ng-deep button:last-child {
+      margin-right: 0em;
     }
   }
 

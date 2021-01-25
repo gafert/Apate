@@ -1,7 +1,6 @@
 @import "../../import";
 
-:host {
-  border: $border;
+.container {
   display: flex;
   flex-flow: column;
   height: 100%;
@@ -28,7 +27,8 @@
   .column {
     flex-grow: 1;
     flex-basis: 0;
-    border: $border;
+    border-top: $border;
+    border-left: $border;
     margin-top: -1px;
     margin-left: -1px;
     .header {

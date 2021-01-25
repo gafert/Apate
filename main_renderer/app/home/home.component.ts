@@ -16,9 +16,12 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 @UntilDestroy()
 export class HomeComponent implements AfterViewInit {
   public byteToHex = byteToHex;
+  public DataKeys = DataKeys;
   public folderPath: string;
 
-  constructor(private dataService: DataService, private router: Router, private route: ActivatedRoute, private projectService: ProjectService) {
+  constructor(public dataService: DataService,
+              private router: Router,
+              private route: ActivatedRoute, private projectService: ProjectService) {
     dataService.data[DataKeys.PROJECT_PATH].pipe(untilDestroyed(this)).subscribe((value) => {
       this.folderPath = value;
     });

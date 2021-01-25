@@ -29,7 +29,9 @@ function createWindow(): BrowserWindow {
     maximizable: wizardSettings.maximizable,
     resizable: wizardSettings.resizable,
     fullscreenable: wizardSettings.fullscreenable,
-    backgroundColor: '#1a1b1c',
+    backgroundColor: '#1a1a1a',
+    frame: false,
+    titleBarStyle: 'hiddenInset',
     autoHideMenuBar: true,
     webPreferences: {
       enableRemoteModule: true,

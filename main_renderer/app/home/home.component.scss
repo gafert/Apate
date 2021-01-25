@@ -1,19 +1,1 @@
 @import "../../import";
-
-.container {
-  height: calc(100% - #{$bodyMarginTop});
-  width: 100%;
-}
-
-.header {
-  height: calc(#{$headerHeight} - 1px);
-  width: 100%;
-  background-color: $grey2;
-  align-items: center;
-  padding-left: 0.5em;
-  display: flex;
-
-  button {
-    margin-right: 0.5em;
-  }
-}
