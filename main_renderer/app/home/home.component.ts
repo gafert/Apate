@@ -1,27 +1,25 @@
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import { byteToHex } from '../utils/helper';
 import * as electron from 'electron';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as url from 'url';
 import * as isDev from 'electron-is-dev';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { DataKeys, DataService } from '../services/data.service';
 import { ProjectService } from '../services/project.service';
+import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
-export class HomeComponent implements AfterViewInit, OnDestroy {
+@UntilDestroy()
+export class HomeComponent implements AfterViewInit {
   public byteToHex = byteToHex;
   public folderPath: string;
 
-  private ngUnsubscribe = new Subject();
-
   constructor(private dataService: DataService, private router: Router, private route: ActivatedRoute, private projectService: ProjectService) {
-    dataService.data[DataKeys.PROJECT_PATH].pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    dataService.data[DataKeys.PROJECT_PATH].pipe(untilDestroyed(this)).subscribe((value) => {
       this.folderPath = value;
     });
   }
@@ -100,10 +98,5 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.clickCompileTab();
     }, 500);
-  }
-
-  ngOnDestroy() {
-    this.ngUnsubscribe.next();
-    this.ngUnsubscribe.complete();
   }
 }
