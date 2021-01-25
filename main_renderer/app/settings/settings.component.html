@@ -1,80 +1,59 @@
-<header id="titlebar">
-  <div id="drag-region">
-    <div id="window-title">
-      <span>Settings</span>
-    </div>
-    <div id="window-controls">
-
-      <div class="button" id="min-button">
-        <img class="icon" srcset="assets/icons/min-w-10.png 1x, assets/icons/min-w-12.png 1.25x, assets/icons/min-w-15.png 1.5x, assets/icons/min-w-15.png 1.75x, assets/icons/min-w-20.png 2x, assets/icons/min-w-20.png 2.25x, assets/icons/min-w-24.png 2.5x, assets/icons/min-w-30.png 3x, assets/icons/min-w-30.png 3.5x" draggable="false" />
-      </div>
-
-      <div class="button" id="max-button">
-        <img class="icon" srcset="assets/icons/max-w-10.png 1x, assets/icons/max-w-12.png 1.25x, assets/icons/max-w-15.png 1.5x, assets/icons/max-w-15.png 1.75x, assets/icons/max-w-20.png 2x, assets/icons/max-w-20.png 2.25x, assets/icons/max-w-24.png 2.5x, assets/icons/max-w-30.png 3x, assets/icons/max-w-30.png 3.5x" draggable="false" />
-      </div>
-
-      <div class="button" id="restore-button">
-        <img class="icon" srcset="assets/icons/restore-w-10.png 1x, assets/icons/restore-w-12.png 1.25x, assets/icons/restore-w-15.png 1.5x, assets/icons/restore-w-15.png 1.75x, assets/icons/restore-w-20.png 2x, assets/icons/restore-w-20.png 2.25x, assets/icons/restore-w-24.png 2.5x, assets/icons/restore-w-30.png 3x, assets/icons/restore-w-30.png 3.5x" draggable="false" />
-      </div>
-
-      <div class="button" id="close-button">
-        <img class="icon" srcset="assets/icons/close-w-10.png 1x, assets/icons/close-w-12.png 1.25x, assets/icons/close-w-15.png 1.5x, assets/icons/close-w-15.png 1.75x, assets/icons/close-w-20.png 2x, assets/icons/close-w-20.png 2.25x, assets/icons/close-w-24.png 2.5x, assets/icons/close-w-30.png 3x, assets/icons/close-w-30.png 3.5x" draggable="false" />
-      </div>
-
-    </div>
+<app-window title="Settings">
+  <div window-actions>
+    <button mat-flat-button>Action</button>
   </div>
-</header>
-
-<div id="main">
-  <div class="setting-box">
-    <div class="title">RISC-V Toolchain</div>
-    <div
-      *ngIf="!toolchainPath || toolchainDownloaderState === ToolchainDownEnum.UNZIPPING || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING; else toolchainPathSetting"
-      class="toolchain-path" contenteditable="false">
-      <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING"
-           style="margin-right: 2em; overflow-x: scroll">Downloading... {{toolchainPercentDownloaded}} %
-      </div>
-      <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.UNZIPPING"
-           style="margin-right: 2em; overflow-x: scroll">Unzipping...
-      </div>
+  <div window-main>
+    <div class="setting-box">
+      <div class="title">RISC-V Toolchain</div>
       <div
-        *ngIf="!toolchainPath
+        *ngIf="!toolchainPath || toolchainDownloaderState === ToolchainDownEnum.UNZIPPING || toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING; else toolchainPathSetting"
+        class="toolchain-path" contenteditable="false">
+        <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.DOWNLOADING"
+             style="margin-right: 2em; overflow-x: scroll">Downloading... {{toolchainPercentDownloaded}} %
+        </div>
+        <div *ngIf="toolchainDownloaderState === ToolchainDownEnum.UNZIPPING"
+             style="margin-right: 2em; overflow-x: scroll">Unzipping...
+        </div>
+        <div
+          *ngIf="!toolchainPath
         && (toolchainDownloaderState === ToolchainDownEnum.DOWNLOADED
         || toolchainDownloaderState === ToolchainDownEnum.NOT_DOWNLOADED
         || toolchainDownloaderState === ToolchainDownEnum.WAS_DOWNLOADED)"
-        style="margin-right: 2em; overflow-x: scroll">Path is not set
+          style="margin-right: 2em; overflow-x: scroll">Path is not set
+        </div>
       </div>
+      <ng-template #toolchainPathSetting>
+        <app-setting [settingKey]="DataKeys.TOOLCHAIN_PATH" #toolchain></app-setting>
+      </ng-template>
+      <i (click)="clickToolchainPath($event)" class="fas fa-chevron-down" style="top: 2em;"></i>
     </div>
-    <ng-template #toolchainPathSetting>
-      <app-setting [settingKey]="DataKeys.TOOLCHAIN_PATH" #toolchain></app-setting>
-    </ng-template>
-    <i (click)="clickToolchainPath($event)" class="fas fa-chevron-down" style="top: 2em;"></i>
-  </div>
-  <div class="setting-box">
-    <div class="title">Prefix</div>
-    <app-setting [settingDefault]="toolchainPrefixDefault"
-                 [settingKey]="DataKeys.TOOLCHAIN_PREFIX" #prefix></app-setting>
-  </div>
+    <div class="setting-box">
+      <div class="title">Prefix</div>
+      <app-setting [settingDefault]="toolchainPrefixDefault"
+                   [settingKey]="DataKeys.TOOLCHAIN_PREFIX" #prefix></app-setting>
+    </div>
 
-  <div class="setting-box">
-    <div class="title">Objdump flags</div>
-    <app-setting [settingDefault]="objdumpFlagsDefault"
-                 [settingKey]="DataKeys.OBJDUMP_FLAGS" #objdumpflags></app-setting>
-  </div>
+    <div class="setting-box">
+      <div class="title">Objdump flags</div>
+      <app-setting [settingDefault]="objdumpFlagsDefault"
+                   [settingKey]="DataKeys.OBJDUMP_FLAGS" #objdumpflags></app-setting>
+    </div>
 
-  <div class="setting-box">
-    <div class="title">Readelf flags</div>
-    <app-setting [settingDefault]="readElfDefault"
-                 [settingKey]="DataKeys.READ_ELF_FLAGS" #reafelfflags></app-setting>
-  </div>
+    <div class="setting-box">
+      <div class="title">Readelf flags</div>
+      <app-setting [settingDefault]="readElfDefault"
+                   [settingKey]="DataKeys.READ_ELF_FLAGS" #reafelfflags></app-setting>
+    </div>
 
-  <div class="setting-box">
-    <button mat-flat-button color="primary" (click)="clearSettingsAndRestart()">Reset all settings</button>
-    <button mat-flat-button color="accent" style="margin-left: 0.5em"
-            (click)="saveSettings([reafelfflags, objdumpflags, prefix, toolchain])">Save
-    </button>
+    <div class="setting-box">
+      <button mat-flat-button color="primary" (click)="clearSettingsAndRestart()">Reset all settings</button>
+      <button mat-flat-button color="accent" style="margin-left: 0.5em"
+              (click)="saveSettings([reafelfflags, objdumpflags, prefix, toolchain])">Save
+      </button>
+    </div>
   </div>
-</div>
+</app-window>
+
 
 <div #toolchainPathOptions class="option-menu">
   <div (click)="openToolchainPathExplorerDialog()" class="option">

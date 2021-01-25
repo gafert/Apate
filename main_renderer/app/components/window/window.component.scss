@@ -1,9 +1,11 @@
-@import "../import";
+@import "../../../import";
+
+$windowHeaderHeight: 32px;
+$windowHeaderTitleHeight: 12px;
 
 #main {
-  height: calc(100% - 32px);
+  height: calc(100% - #{$windowHeaderHeight});
   margin-top: 32px;
-  padding: 20px;
   overflow-y: auto;
   background: $grey3;
   border-left: $border;
@@ -19,13 +21,13 @@
   border: $border;
 }
 
-.maximized #titlebar {
+::ng-deep .maximized #titlebar {
   width: 100%;
   padding: 0;
 }
 
 #titlebar {
-  padding: 4px;
+  // padding: 4px;
 }
 
 #titlebar #drag-region {
@@ -43,25 +45,37 @@
   grid-template-columns: auto 138px;
 }
 
-#window-title {
+.window-title {
   grid-column: 1;
   display: flex;
   align-items: center;
-  margin-left: 8px;
+  margin-left: $windowHeaderTitleHeight;
   overflow: hidden;
   font-family: "Segoe UI", sans-serif;
-  font-size: 12px;
-}
+  font-size: $windowHeaderTitleHeight;
 
-.maximized #window-title {
-  margin-left: 12px;
-}
+  .title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 1em;
+  }
 
-#window-title span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.5;
+  .actions {
+    margin-right: 1em;
+    ::ng-deep button {
+      line-height: $windowHeaderTitleHeight * 2;
+      height: $windowHeaderTitleHeight * 2;
+    }
+  }
+
+  .info {
+    margin-right: 1em;
+  }
+
+  &.mac {
+    margin-left: 5em;
+  }
 }
 
 #window-controls {
@@ -135,11 +149,11 @@
   display: none !important;
 }
 
-.maximized #restore-button {
+::ng-deep .maximized #restore-button {
   display: flex !important;
 }
 
-.maximized #max-button {
+::ng-deep .maximized #max-button {
   display: none;
 }
 

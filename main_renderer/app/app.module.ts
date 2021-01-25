@@ -11,7 +11,6 @@ import { popperVariation, TippyModule, withContextMenuVariation } from '@ngneat/
 import { Props } from 'tippy.js';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
-import { WindowComponent } from './components/window/window.component';
 
 const tooltipVariation1: Partial<Props> = {
   theme: 'light',
@@ -33,7 +32,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [AppComponent, WindowComponent],
+  declarations: [AppComponent],
   imports: [RouterModule.forRoot(routes, {useHash: true, /* enableTracing: true */}),
     CommonModule, BrowserModule, BrowserAnimationsModule, FormsModule, HttpClientModule, TippyModule.forRoot({
       defaultVariation: 'tooltip',
