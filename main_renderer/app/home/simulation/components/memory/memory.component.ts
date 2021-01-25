@@ -1,21 +1,20 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Optional, ViewChild } from '@angular/core';
 import { byteToHex, range } from '../../../../utils/helper';
 import { CPUService } from '../../services/cpu.service';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
 import { INSTRUCTIONS_DESCRIPTIONS, OPCODES } from '../../../../utils/instructionParser';
 import { CPU_STATES } from '../../services/bindingSubjects';
 import { SimulationComponent } from '../../simulation.component';
+import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 
 @Component({
   selector: 'app-memory',
   templateUrl: './memory.component.html',
   styleUrls: ['./memory.component.scss']
 })
-export class MemoryComponent implements OnInit, OnDestroy, AfterViewInit {
+@UntilDestroy()
+export class MemoryComponent implements AfterViewInit {
   public byteToHex = byteToHex;
-  private ngUnsubscribe = new Subject();
 
   // Memory Buffer
   public memory = null;
@@ -38,7 +37,7 @@ export class MemoryComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('scroll') scroll: VirtualScrollerComponent;
 
   constructor(public cpu: CPUService, @Optional() public simulationComponent: SimulationComponent) {
-    cpu.bindings.memory.pipe(takeUntil(this.ngUnsubscribe)).subscribe((value) => {
+    cpu.bindings.memory.pipe(untilDestroyed(this)).subscribe((value) => {
       // Set this memory to the new value on change
       this.memory = value;
       // Create memoryElements to iterate over memory in *ngFor once
@@ -46,24 +45,15 @@ export class MemoryComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  ngOnInit(): void {
-
-  }
-
-  ngOnDestroy() {
-    this.ngUnsubscribe.next();
-    this.ngUnsubscribe.complete();
-  }
-
   ngAfterViewInit() {
     // Rerun check on signal changes
-    this.simulationComponent.stageSubject.pipe(takeUntil(this.ngUnsubscribe)).subscribe((stage) => {
+    this.simulationComponent.stageSubject.pipe(untilDestroyed(this)).subscribe((stage) => {
       this.checkActiveMemory()
     });
-    this.cpu.bindings.instrMemRead.pipe(takeUntil(this.ngUnsubscribe)).subscribe((stage) => {
+    this.cpu.bindings.instrMemRead.pipe(untilDestroyed(this)).subscribe((stage) => {
       this.checkActiveMemory()
     });
-    this.cpu.bindings.memread.pipe(takeUntil(this.ngUnsubscribe)).subscribe((stage) => {
+    this.cpu.bindings.memread.pipe(untilDestroyed(this)).subscribe((stage) => {
       this.checkActiveMemory()
     });
   }

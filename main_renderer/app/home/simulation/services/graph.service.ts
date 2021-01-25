@@ -33,7 +33,7 @@ import initiateSVGObjects, {
   updateSignalTexts
 } from './graphHelpers/helperSVGObject';
 import { CPU_STATES } from './bindingSubjects';
-import {fromEvent} from "rxjs";
+import {fromEvent, Subject} from "rxjs";
 import {cumulativeOffset} from "../../../utils/helper";
 
 @Injectable({
@@ -44,6 +44,10 @@ export class GraphService {
 
   // Target where the canvas will be put
   public currentArea: Areas;
+
+  public onChangeCurrentArea = new Subject<{ area: Areas; animate: boolean }>();
+  public onClickedRegisters = new Subject<any>();
+  public onClickedMemory = new Subject<any>();
 
   public update = {
     animations: true,
@@ -495,15 +499,13 @@ export class GraphService {
       if (this.intersectedElement.type === 'm') {
         const name = getModuleName(this.intersectedElement.name);
         if (name === 'alu' || name === 'cu' || name === 'be') {
-          this.goToArea(name, true);
-          // TODO: Change Tab in simulation
+          this.onChangeCurrentArea.next({area: name, animate: true})
         } else if (name === 'registers') {
-          // Open and mark registers
+          this.onClickedRegisters.next();
         } else if (name === 'memory') {
-          // Open and mark memory
+          this.onClickedMemory.next();
         }
       }
-      console.log(this.intersectedElement);
     }
   }
 

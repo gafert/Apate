@@ -15,12 +15,12 @@
     </div>
     <div class="tabs">
       <!-- The paths need to overwrite the last path element e.g. /home/simulation/overview -> /home/simulation/decoder -->
-      <button *ngVar="'overview' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Overview</button>
-      <button *ngVar="'cu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Control Unit<i
+      <button *ngVar="'overview' as s" (click)="goToArea(s)" [attr.selected]="selectedTab === s">Overview</button>
+      <button *ngVar="'cu' as s" (click)="goToArea(s)" [attr.selected]="selectedTab === s">Control Unit<i
         class="fas fa-circle {{s}}"></i></button>
-      <button *ngVar="'alu' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Arithmetic Logic Unit<i
+      <button *ngVar="'alu' as s" (click)="goToArea(s)" [attr.selected]="selectedTab === s">Arithmetic Logic Unit<i
         class="fas fa-circle {{s}}"></i></button>
-      <button *ngVar="'be' as s" (click)="focusArea(s)" [attr.selected]="selectedTab === s">Branch Evaluator<i
+      <button *ngVar="'be' as s" (click)="goToArea(s)" [attr.selected]="selectedTab === s">Branch Evaluator<i
         class="fas fa-circle {{s}}"></i></button>
     </div>
   </div>

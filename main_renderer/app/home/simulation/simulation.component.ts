@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {byteToHex, range, readStyleProperty} from '../../utils/helper';
 import {CPUService} from './services/cpu.service';
 import {InstructionsComponent} from './components/instructions/instructions.component';
@@ -8,13 +8,14 @@ import {GraphService} from './services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
 import {Bindings, CPU_STATE_NAMES, CPU_STATES} from './services/bindingSubjects';
 import {Areas} from './services/graphHelpers/helpers';
+import {UntilDestroy} from "@ngneat/until-destroy";
 
 @Component({
   selector: 'app-simulation',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.scss']
 })
-export class SimulationComponent implements OnInit, OnDestroy {
+export class SimulationComponent {
   @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
   public byteToHex = byteToHex;
   public readStyleProperty = readStyleProperty;
@@ -29,9 +30,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public stageSubject = new BehaviorSubject<CPU_STATES>(null);
   // Infotext
   public infoText;
-  // Elf which was found in path
-  public elfPath;
-  private ngUnsubscribe = new Subject();
   // Set by elaborate steps, will reset selectedTab to this
   private currentArea = this.selectedTab;
   private currentFocus;
@@ -42,9 +40,16 @@ export class SimulationComponent implements OnInit, OnDestroy {
   constructor(
     public cpu: CPUService,
     private dataService: DataService,
-    private graphService: GraphService
+    private graphService: GraphService,
+    private changeDetection: ChangeDetectorRef
   ) {
     this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;
+
+    this.graphService.onChangeCurrentArea.subscribe(({area, animate}) => {
+      this.goToArea(area, animate);
+      // Comes from other zone, call change detection manually
+      this.changeDetection.detectChanges();
+    })
   }
 
   private _stage: CPU_STATES;
@@ -70,12 +75,8 @@ export class SimulationComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnInit(): void {
-
-  }
-
-  focusArea(area) {
-    this.graphService.goToArea(area, false);
+  public goToArea(area, animate = false) {
+    this.graphService.goToArea(area, animate);
     this.selectedTab = area;
   }
 
@@ -169,15 +170,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
     // Enable step after animation
     this.stepDisabled = false;
-  }
-
-  runSimulation() {
-    this.cpu.runUntilBreak();
-  }
-
-  ngOnDestroy() {
-    this.ngUnsubscribe.next();
-    this.ngUnsubscribe.complete();
   }
 
   /**
