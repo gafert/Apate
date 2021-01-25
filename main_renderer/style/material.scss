@@ -1,5 +1,5 @@
-@import "import";
-@import '~@angular/material/theming';
+@import "../import";
+@import '../node_modules/@angular/material/theming';
 
 @include mat-core();
 

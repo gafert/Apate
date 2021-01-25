@@ -15,27 +15,6 @@
   }
 }
 
-.settings {
-  border: $border;
-  height: 100%;
-  background: $grey3;
-}
-
-.header {
-  background: $grey2;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1em;
-  -webkit-app-region: drag;
-  border-bottom: $border;
-
-  .title {
-    font-size: 1.5em;
-  }
-}
-
 .setting-box {
   position: relative;
   margin: 1em;

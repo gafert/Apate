@@ -11,6 +11,7 @@ import 'codemirror/mode/clike/clike';
 import 'codemirror/mode/cmake/cmake';
 import 'codemirror/mode/meta';
 import {MatButtonModule} from "@angular/material/button";
+import {TippyModule} from "@ngneat/helipopper";
 
 const routes: Routes = [
   {
@@ -22,8 +23,8 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [CompileComponent],
-  imports: [CommonModule, RouterModule.forChild(routes), FormsModule, CodemirrorModule,
-    MatButtonModule],
+    imports: [CommonModule, RouterModule.forChild(routes), FormsModule, CodemirrorModule,
+        MatButtonModule, TippyModule],
 })
 export class CompileModule {
 }

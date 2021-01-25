@@ -20,7 +20,7 @@
 <div class="editor">
   <div class="control">
     <div class="title"><span>Compile</span></div>
-    <div class="actions"><button mat-flat-button color="accent" (click)="compile()">Compile</button></div>
+    <div class="actions"><button mat-flat-button color="accent" (click)="compile()" tippy="Compile to ELF">Compile<i class="fas fa-hammer" style="margin-left: 0.5em;"></i></button></div>
     <div class="tabs">
       <button *ngIf="activeFile" selected=true>{{activeFile}}
         <i *ngIf="fileIsSavable" style="margin-left: 0.5em; font-size: 0.9em;"

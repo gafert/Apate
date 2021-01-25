@@ -1,9 +1,31 @@
-<div class="settings">
-  <div class="header">
-    <div class="title">Settings</div>
-    <button (click)="closeWindow()"><i class="fas fa-times" style="font-size: 1.5em;"></i></button>
-  </div>
+<header id="titlebar">
+  <div id="drag-region">
+    <div id="window-title">
+      <span>Settings</span>
+    </div>
+    <div id="window-controls">
 
+      <div class="button" id="min-button">
+        <img class="icon" srcset="assets/icons/min-w-10.png 1x, assets/icons/min-w-12.png 1.25x, assets/icons/min-w-15.png 1.5x, assets/icons/min-w-15.png 1.75x, assets/icons/min-w-20.png 2x, assets/icons/min-w-20.png 2.25x, assets/icons/min-w-24.png 2.5x, assets/icons/min-w-30.png 3x, assets/icons/min-w-30.png 3.5x" draggable="false" />
+      </div>
+
+      <div class="button" id="max-button">
+        <img class="icon" srcset="assets/icons/max-w-10.png 1x, assets/icons/max-w-12.png 1.25x, assets/icons/max-w-15.png 1.5x, assets/icons/max-w-15.png 1.75x, assets/icons/max-w-20.png 2x, assets/icons/max-w-20.png 2.25x, assets/icons/max-w-24.png 2.5x, assets/icons/max-w-30.png 3x, assets/icons/max-w-30.png 3.5x" draggable="false" />
+      </div>
+
+      <div class="button" id="restore-button">
+        <img class="icon" srcset="assets/icons/restore-w-10.png 1x, assets/icons/restore-w-12.png 1.25x, assets/icons/restore-w-15.png 1.5x, assets/icons/restore-w-15.png 1.75x, assets/icons/restore-w-20.png 2x, assets/icons/restore-w-20.png 2.25x, assets/icons/restore-w-24.png 2.5x, assets/icons/restore-w-30.png 3x, assets/icons/restore-w-30.png 3.5x" draggable="false" />
+      </div>
+
+      <div class="button" id="close-button">
+        <img class="icon" srcset="assets/icons/close-w-10.png 1x, assets/icons/close-w-12.png 1.25x, assets/icons/close-w-15.png 1.5x, assets/icons/close-w-15.png 1.75x, assets/icons/close-w-20.png 2x, assets/icons/close-w-20.png 2.25x, assets/icons/close-w-24.png 2.5x, assets/icons/close-w-30.png 3x, assets/icons/close-w-30.png 3.5x" draggable="false" />
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<div id="main">
   <div class="setting-box">
     <div class="title">RISC-V Toolchain</div>
     <div
@@ -48,11 +70,11 @@
 
   <div class="setting-box">
     <button mat-flat-button color="primary" (click)="clearSettingsAndRestart()">Reset all settings</button>
-    <button mat-flat-button color="accent" style="margin-left: 0.5em" (click)="saveSettings([reafelfflags, objdumpflags, gccflags, sources, prefix, elf, toolchain])">Save</button>
+    <button mat-flat-button color="accent" style="margin-left: 0.5em"
+            (click)="saveSettings([reafelfflags, objdumpflags, prefix, toolchain])">Save
+    </button>
   </div>
-
 </div>
-
 
 <div #toolchainPathOptions class="option-menu">
   <div (click)="openToolchainPathExplorerDialog()" class="option">

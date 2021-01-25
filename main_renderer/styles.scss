@@ -1,59 +1,11 @@
+@import "style/fonts";
 @import "import";
-
-// Fontawesome
 @import "~@fortawesome/fontawesome-free/css/all.css";
-
-// Tippy.js
-@import '~tippy.js/dist/tippy.css';
-@import '~tippy.js/themes/light.css';
-//@import '~tippy.js/animations/scale.css';
-//@import '~tippy.js/animations/shift-toward.css';
-@import '~tippy.js/animations/shift-toward-subtle.css';
-
-// Tippy overrides
-.tippy-content {
-  .context-menu-item {
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.1);
-    }
-
-    // Remove paddings from parent element with negative margins
-    &:first-child {
-      margin-top: -5px;
-    }
-
-    &:last-child {
-      margin-bottom: -5px;
-    }
-
-    margin-left: -9px;
-    margin-right: -9px;
-
-    padding: 5px 9px;
-  }
-}
-
-// Angular Material
-@import "material";
-
-// Codemirror
-@import "~codemirror/lib/codemirror";
-@import "~codemirror/theme/dracula";
-
-// CodeMirror overrides
-.cm-s-dracula.CodeMirror {
-  height: 100%;
-}
-
-.cm-s-dracula.CodeMirror, .cm-s-dracula .CodeMirror-gutters {
-  background-color: rgba(0, 0, 0, 0) !important;
-  color: #f8f8f2 !important;
-  border: none;
-}
-
-.cm-s-dracula .CodeMirror-gutters {
-  background-color: $grey3 !important;
-}
+@import "style/material";
+@import "style/codemirror";
+@import "style/tippy";
+@import "style/custom-titlebar";
+@import "style/inline-boxes";
 
 // Normalize
 
@@ -76,43 +28,10 @@ hr {
   display: none; /* Safari and Chrome */
 }
 
-// Fonts
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('assets/Roboto/Roboto-Regular.ttf');
-  font-weight: normal;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('assets/Roboto/Roboto-Bold.ttf');
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('assets/Roboto/Roboto-Black.ttf');
-  font-weight: 900;
-}
-
-@font-face {
-  font-family: 'Roboto Mono';
-  src: url('assets/Roboto_Mono/RobotoMono-Regular.ttf');
-  font-weight: normal;
-}
-
-@font-face {
-  font-family: 'Roboto Mono';
-  src: url('assets/Roboto_Mono/RobotoMono-Bold.ttf');
-  font-weight: bold;
-}
-
 // FONTS
 .mono {
   font-family: "Roboto Mono", monospace;
 }
-
 
 // Default styling
 
@@ -124,6 +43,7 @@ html, body {
   background: $grey2;
   height: 100%;
   font-size: 10pt;
+  overflow-y: hidden;
 }
 
 button {
@@ -249,57 +169,3 @@ button {
     top: $tabsHeight;
   }
 }
-
-/** Used in text and description **/
-.module {
-  display: inline-block;
-  background-color: $grey1;
-  border: 1px white solid;
-  padding: 0.1em 0.3em;
-  &.memory {
-    background-color: $colorMemory;
-  }
-  &.controlunit {
-    background-color: $colorControlUnit;
-  }
-  &.registers {
-    background-color: $colorRegs;
-  }
-  &.alu {
-    background-color: $colorALU;
-  }
-  &.branchevaluator {
-    background-color: $colorBranchEval;
-  }
-}
-
-.port {
-  display: inline-block;
-  background-color: $grey1;
-  border: 1px white solid;
-  padding: 0.1em 0.3em;
-}
-
-.controlsignal {
-  display: inline-block;
-  background-color: $accent;
-  border: 1px white solid;
-  padding: 0.1em 0.3em;
-}
-
-.wikilink {
-  display: inline-block;
-  color: lighten($accent, 10%);
-  font-weight: bold;
-  cursor: pointer;
-  &:after {
-    content: "\f0c1"; // Link symbol https://fontawesome.com/icons/link?style=solid
-    font-family: 'Font Awesome 5 Free', sans-serif;
-    font-weight: 900;
-    padding-left: 0.5em;
-  }
-  &:hover {
-    color: lighten($accent, 20%);
-  }
-}
-

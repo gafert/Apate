@@ -1,10 +1,10 @@
 <div class="header">
   <button [routerLink]="['./simulation']" *ngIf="isSelectedButton('compile')" mat-flat-button color="primary">To Simulation</button>
   <button [routerLink]="['./compile']" *ngIf="isSelectedButton('simulation')" mat-flat-button color="primary">To Compile</button>
-  <button mat-flat-button color="primary" (click)="openProjectDialog()">Open Project</button>
-  <button mat-flat-button color="primary" (click)="closeProject()">Close Project</button>
-  <button mat-flat-button color="primary" (click)="newProjectDialog()">New Project</button>
-  <button mat-flat-button color="primary" (click)="openSettingsDialog()">Settings</button>
+  <button mat-flat-button color="primary" (click)="openProjectDialog()" tippy="Open Project Folder"><i class="fas fa-folder"></i></button>
+  <button mat-flat-button color="primary" (click)="closeProject()" tippy="Close Project"><i class="fas fa-times"></i></button>
+  <button mat-flat-button color="primary" (click)="newProjectDialog()" tippy="Initiate new Project Folder"><i class="fas fa-folder-plus"></i></button>
+  <button mat-flat-button color="primary" (click)="openSettingsDialog()" tippy="Settings"><i class="fas fa-cog"></i></button>
 </div>
 
 <div class="container">

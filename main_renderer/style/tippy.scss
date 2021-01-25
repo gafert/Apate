@@ -1,0 +1,29 @@
+// Tippy.js
+@import '../node_modules/tippy.js/dist/tippy.css';
+@import '../node_modules/tippy.js/themes/light.css';
+//@import '~tippy.js/animations/scale.css';
+//@import '~tippy.js/animations/shift-toward.css';
+@import '../node_modules/tippy.js/animations/shift-toward-subtle.css';
+
+// Tippy overrides
+.tippy-content {
+  .context-menu-item {
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    // Remove paddings from parent element with negative margins
+    &:first-child {
+      margin-top: -5px;
+    }
+
+    &:last-child {
+      margin-bottom: -5px;
+    }
+
+    margin-left: -9px;
+    margin-right: -9px;
+
+    padding: 5px 9px;
+  }
+}

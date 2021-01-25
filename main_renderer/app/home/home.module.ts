@@ -3,6 +3,7 @@ import {HomeComponent} from './home.component';
 import {CommonModule} from "@angular/common";
 import {RouterModule, Routes} from "@angular/router";
 import {MatButtonModule} from "@angular/material/button";
+import {TippyModule} from "@ngneat/helipopper";
 
 const routes: Routes = [
   {
@@ -24,7 +25,7 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [HomeComponent],
-  imports: [RouterModule.forChild(routes), CommonModule, MatButtonModule],
+    imports: [RouterModule.forChild(routes), CommonModule, MatButtonModule, TippyModule],
 })
 export class HomeModule {
 }

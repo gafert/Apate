@@ -50,7 +50,7 @@ export class HomeComponent implements AfterViewInit {
       minimizable: false,
       maximizable: false,
       fullscreenable: false,
-      frame: true,
+      frame: false,
       parent: electron.remote.getCurrentWindow(),
       autoHideMenuBar: true,
       webPreferences: {
@@ -62,6 +62,7 @@ export class HomeComponent implements AfterViewInit {
 
     if (isDev) {
       child.loadURL('http://localhost:4200#/settings');
+      child.webContents.openDevTools();
     } else {
       const webPath = url.format({
         pathname: __dirname,
