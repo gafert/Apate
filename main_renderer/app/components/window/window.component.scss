@@ -1,11 +1,17 @@
 @import "../../../import";
 
-$windowHeaderHeight: 32px;
-$windowHeaderTitleHeight: 12px;
+:host {
+  --windowHeaderHeight: 32px;
+  --windowHeaderTitleHeight: 14px;
+}
+
+.mac {
+  --windowHeaderHeight: 38px;
+}
 
 #main {
-  height: calc(100% - #{$windowHeaderHeight});
-  margin-top: 32px;
+  height: calc(100% - var(--windowHeaderHeight));
+  margin-top: var(--windowHeaderHeight);
   overflow-y: auto;
   background: $grey3;
   border-left: $border;
@@ -16,7 +22,7 @@ $windowHeaderTitleHeight: 12px;
 #titlebar {
   display: block;
   position: fixed;
-  height: 32px;
+  height: var(--windowHeaderHeight);
   width: calc(100%);
   border: $border;
 }
@@ -49,10 +55,10 @@ $windowHeaderTitleHeight: 12px;
   grid-column: 1;
   display: flex;
   align-items: center;
-  margin-left: $windowHeaderTitleHeight;
+  margin-left: var(--windowHeaderTitleHeight);
   overflow: hidden;
   font-family: "Segoe UI", sans-serif;
-  font-size: $windowHeaderTitleHeight;
+  font-size: var(--windowHeaderTitleHeight);
 
   .title {
     overflow: hidden;
@@ -64,8 +70,8 @@ $windowHeaderTitleHeight: 12px;
   .actions {
     margin-right: 1em;
     ::ng-deep button {
-      line-height: $windowHeaderTitleHeight * 2;
-      height: $windowHeaderTitleHeight * 2;
+      line-height: calc(var(--windowHeaderTitleHeight) * 1.5) !important;
+      height: calc(var(--windowHeaderTitleHeight) * 1.5) !important;
     }
   }
 
@@ -73,8 +79,11 @@ $windowHeaderTitleHeight: 12px;
     margin-right: 1em;
   }
 
-  &.mac {
-    margin-left: 5em;
+  .mac & {
+    margin-left: 76px;
+    .title {
+      font-weight: bold;
+    }
   }
 }
 

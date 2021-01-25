@@ -1,6 +1,6 @@
-<header id="titlebar">
+<header id="titlebar" [class.mac]="isMac">
   <div id="drag-region">
-    <div class="window-title" [class.mac]="isMac">
+    <div class="window-title">
       <div class="title">{{title}}</div>
       <div class="actions">
         <ng-content select="[window-actions]"></ng-content>
@@ -31,6 +31,6 @@
   </div>
 </header>
 
-<div id="main">
+<div id="main" [class.mac]="isMac">
   <ng-content select="[window-main]"></ng-content>
 </div>

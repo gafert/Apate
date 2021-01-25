@@ -6,7 +6,7 @@ import * as url from 'url';
 import * as isDev from 'electron-is-dev';
 import { DataKeys, DataService } from '../services/data.service';
 import { ProjectService } from '../services/project.service';
-import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 @Component({
   selector: 'app-home',
@@ -53,6 +53,7 @@ export class HomeComponent implements AfterViewInit {
       frame: false,
       parent: electron.remote.getCurrentWindow(),
       autoHideMenuBar: true,
+      titleBarStyle: 'hiddenInset',
       webPreferences: {
         enableRemoteModule: true,
         nodeIntegration: true,
