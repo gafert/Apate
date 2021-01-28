@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen } from 'electron';
+import {app, BrowserWindow, ipcMain, screen} from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 
@@ -15,9 +15,9 @@ function createWindow(): BrowserWindow {
     y: Math.floor(size.height / 2 - 500 / 2),
     width: 700,
     height: 500,
-    resizable: false,
-    maximizable: false,
-    fullscreenable: false
+    resizable: true, // This prevents maximize minimize events so dont use it
+    maximizable: true, // This prevents maximize minimize events so dont use it
+    fullscreenable: true // This prevents maximize minimize events so dont use it
   }
 
   // Create the browser window.
@@ -73,19 +73,16 @@ function createWindow(): BrowserWindow {
     mainWindow = null;
   });
 
-
-  if (serve) {
-    mainWindow.webContents.openDevTools();
-  }
-
   return mainWindow;
 }
 
 ipcMain.on('main-window-home', (event, arg) => {
   const display = screen.getPrimaryDisplay();
   const maxSize = display.workAreaSize;
-  mainWindow.setPosition(0,0);
-  mainWindow.setSize(maxSize.width, maxSize.height);
+  const w = Math.floor(maxSize.width * 0.9);
+  const h = Math.floor(maxSize.height * 0.9 / (maxSize.width / maxSize.height));
+  mainWindow.setPosition(Math.floor(maxSize.width / 2 - w / 2), Math.floor(maxSize.height / 2 - h / 2));
+  mainWindow.setSize(w, h);
   mainWindow.setResizable(true);
   mainWindow.setMaximizable(true);
   mainWindow.setFullScreenable(true);
@@ -93,7 +90,7 @@ ipcMain.on('main-window-home', (event, arg) => {
 
 ipcMain.on('main-window-wizard', (event, arg) => {
   console.log(wizardSettings);
-  mainWindow.setPosition(wizardSettings.x,wizardSettings.y);
+  mainWindow.setPosition(wizardSettings.x, wizardSettings.y);
   mainWindow.setSize(wizardSettings.width, wizardSettings.height);
   mainWindow.setResizable(wizardSettings.resizable);
   mainWindow.setMaximizable(wizardSettings.maximizable);

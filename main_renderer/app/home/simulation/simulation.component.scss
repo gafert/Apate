@@ -8,15 +8,17 @@
 }
 
 .graph {
-  width: calc(100% - (#{$gridWidth} * 4));
-  height: 100%;
+  width: calc(100% - (#{$gridWidth} * 4) + 1px);
+  height: calc(100% + 2px);
   display: flex;
   flex-direction: column;
   position: absolute;
-  left: $gridWidth * 2;
+  left: 22em;
   top: 0;
-  border-top: $border;
-  background-color: $grey3;
+  background-color: #1a1b1c;
+  border: 1px solid #3d3f41;
+  margin-left: -1px;
+  margin-top: -1px;
 
   .control {
     .tabs {

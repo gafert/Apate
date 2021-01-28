@@ -9,21 +9,25 @@ import {remote} from "electron";
 export class WindowComponent implements AfterViewInit, OnDestroy {
   @Input() title = "CPU Simulator";
   @Input() info = "";
-  public win = remote.getCurrentWindow();
+  public win: Electron.BrowserWindow;
   public isMac = process.platform == 'darwin';
 
   ngOnDestroy() {
-    this.win.removeAllListeners();
+    // this.win.removeAllListeners();
   }
 
   ngAfterViewInit() {
+    this.win = remote.getCurrentWindow();
     // Toggle maximise/restore buttons when maximisation/unmaximisation occurs
     this.toggleMaxRestoreButtons();
-    this.win.on('maximize', this.toggleMaxRestoreButtons.bind(this));
-    this.win.on('unmaximize', this.toggleMaxRestoreButtons.bind(this));
+    this.win.on('maximize', () => this.toggleMaxRestoreButtons());
+    this.win.on('restore', () => this.toggleMaxRestoreButtons());
+    this.win.on('unmaximize', () => this.toggleMaxRestoreButtons());
+    this.win.on('resized', () => this.toggleMaxRestoreButtons());
   }
 
   toggleMaxRestoreButtons() {
+    console.log(this.win.isMaximized())
     if (this.win.isMaximized()) {
       document.body.classList.add('maximized');
     } else {

@@ -9,10 +9,13 @@
   --windowHeaderHeight: 38px;
 }
 
+
+
+
 #main {
   height: calc(100% - var(--windowHeaderHeight));
   margin-top: var(--windowHeaderHeight);
-  overflow-y: auto;
+  overflow: hidden;
   background: $grey3;
   border-left: $border;
   border-right: $border;
@@ -69,11 +72,14 @@
 
   .actions {
     margin-right: 1em;
+    white-space: nowrap;
+
     ::ng-deep button {
       margin-right: 0.5em;
       line-height: calc(var(--windowHeaderTitleHeight) * 1.5) !important;
       height: calc(var(--windowHeaderTitleHeight) * 1.5) !important;
     }
+
     ::ng-deep button:last-child {
       margin-right: 0em;
     }
@@ -81,10 +87,14 @@
 
   .info {
     margin-right: 1em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .mac & {
     margin-left: 76px;
+
     .title {
       font-weight: bold;
     }
@@ -162,11 +172,12 @@
   display: none !important;
 }
 
-::ng-deep .maximized #restore-button {
-  display: flex !important;
-}
+::ng-deep .maximized {
+  #restore-button {
+    display: flex !important;
+  }
 
-::ng-deep .maximized #max-button {
-  display: none;
+  #max-button {
+    display: none !important;
+  }
 }
-

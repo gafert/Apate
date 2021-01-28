@@ -24,17 +24,18 @@ $borderWidth: 1.7em;
   // width: 63em; // set with javascript
   bottom: 0;
   display: flex;
-  margin-bottom: calc(-#{$borderWidth} - 1px);
-  margin-right: 1px;
+  margin-bottom: calc(-#{$borderWidth} - 0px);
+  margin-right: -1px;
 }
 
 .vertical-tabs-list-component {
   transform: rotate(180deg);
   padding: 0 1.5em;
   border: $border;
-  height: calc(#{$borderWidth} + 1px);
-  line-height: calc(#{$borderWidth} + 1px);
-  margin: 0px -1px -1px 0px;
+  height: calc(#{$borderWidth} + 2px);
+  line-height: calc(#{$borderWidth} + 2px);
+  margin: 0px -1px 0px 0px;
+  background: $grey2;
   // margin-top: 1.5em;
 
   &.active {

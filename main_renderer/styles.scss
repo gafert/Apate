@@ -109,10 +109,12 @@ button {
 
 // Used in instructions, registers, terminal
 .grid-container {
-  height: 100%;
-  width: 100%;
+  height: calc(100% + 2px);
   background: $grey3;
-  border: $border;
+  border: 1px solid #3d3f41;
+  border-bottom: none;
+  margin-left: -1px;
+  margin-top: -1px;
   overflow: hidden;
 
   &--header {
