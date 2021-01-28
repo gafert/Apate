@@ -1,12 +1,10 @@
 import { AfterViewInit, Component } from '@angular/core';
 import { byteToHex } from '../utils/helper';
-import * as electron from 'electron';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as url from 'url';
-import * as isDev from 'electron-is-dev';
 import { DataKeys, DataService } from '../services/data.service';
 import { ProjectService } from '../services/project.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import {openSettingsDialog} from "../utils/helper";
 
 @Component({
   selector: 'app-home',
@@ -14,14 +12,15 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
   styleUrls: ['./home.component.scss'],
 })
 @UntilDestroy()
-export class HomeComponent implements AfterViewInit {
-  public byteToHex = byteToHex;
-  public DataKeys = DataKeys;
+export class HomeComponent  {
+  public readonly byteToHex = byteToHex;
+  public readonly DataKeys = DataKeys;
+  public readonly openSettingsDialog = openSettingsDialog;
   public folderPath: string;
 
   constructor(public dataService: DataService,
               private router: Router,
-              private route: ActivatedRoute, private projectService: ProjectService) {
+              private route: ActivatedRoute, public projectService: ProjectService) {
     dataService.data[DataKeys.PROJECT_PATH].pipe(untilDestroyed(this)).subscribe((value) => {
       this.folderPath = value;
     });
@@ -29,78 +28,5 @@ export class HomeComponent implements AfterViewInit {
 
   isSelectedButton(pathName) {
     return this.router.url.includes(pathName);
-  }
-
-  openProjectDialog() {
-    this.projectService.openExistingProject().then((folderPath) => {
-
-    });
-  }
-
-  newProjectDialog() {
-    this.projectService.initiateNewProject().then((folderPath) => {
-
-    });
-  }
-
-  closeProject() {
-    this.projectService.closeProject();
-  }
-
-  openSettingsDialog() {
-    const child = new electron.remote.BrowserWindow({
-      skipTaskbar: true,
-      minimizable: false,
-      maximizable: false,
-      fullscreenable: false,
-      frame: false,
-      parent: electron.remote.getCurrentWindow(),
-      autoHideMenuBar: true,
-      titleBarStyle: 'hiddenInset',
-      webPreferences: {
-        enableRemoteModule: true,
-        nodeIntegration: true,
-        nodeIntegrationInWorker: true,
-      },
-    });
-
-    if (isDev) {
-      child.loadURL('http://localhost:4200#/settings');
-    } else {
-      const webPath = url.format({
-        pathname: __dirname,
-        protocol: 'file:',
-        slashes: true,
-      });
-      child.loadURL(webPath + '/index.html#settings');
-    }
-
-    //child.webContents.openDevTools();
-    child.once('ready-to-show', () => {
-      child.show();
-    });
-    child.once('close', () => {
-      this.dataService.reloadSettings();
-    });
-  }
-
-  ngAfterViewInit() {
-    setTimeout(() => {
-      // this.clickCompileTab();
-    }, 2000);
-  }
-
-  clickCompileTab() {
-    document.getElementById('button-tab-compile').click();
-    setTimeout(() => {
-      this.clickSimulateTab();
-    }, 500);
-  }
-
-  clickSimulateTab() {
-    document.getElementById('button-tab-simulate').click();
-    setTimeout(() => {
-      this.clickCompileTab();
-    }, 500);
   }
 }

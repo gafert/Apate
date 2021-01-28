@@ -27,7 +27,7 @@
               <div class="text">
                 No installed toolchain found. Please set a toolchain path in the settings or download it.
               </div>
-              <button mat-flat-button color="primary">Open Settings</button>
+              <button mat-flat-button color="primary" (click)="openSettingsDialog(dataService)">Open Settings</button>
               <button mat-flat-button color="primary">Download Toolchain</button>
             </div>
             <button mat-flat-button color="accent" (click)="initiateNewProject()">New Project</button>

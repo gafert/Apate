@@ -9,6 +9,8 @@ import {remote} from "electron";
 export class WindowComponent implements AfterViewInit, OnDestroy {
   @Input() title = "CPU Simulator";
   @Input() info = "";
+  @Input() showMinimize = true;
+  @Input() showMaximize = true;
   public win: Electron.BrowserWindow;
   public isMac = process.platform == 'darwin';
 

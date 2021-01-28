@@ -1,3 +1,8 @@
+import * as electron from "electron";
+import * as isDev from "electron-is-dev";
+import * as url from "url";
+import {DataService} from "../services/data.service";
+
 /**
  * Read the custom property of body section with given name
  * @property name The element to read. E.g. "grey" to read --grey.
@@ -79,4 +84,41 @@ export function cumulativeOffset(element) {
     top: top,
     left: left
   };
+}
+
+export function openSettingsDialog(dataService: DataService) {
+  const child = new electron.remote.BrowserWindow({
+    skipTaskbar: true,
+    frame: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    parent: electron.remote.getCurrentWindow(),
+    autoHideMenuBar: true,
+    titleBarStyle: 'hiddenInset',
+    webPreferences: {
+      enableRemoteModule: true,
+      nodeIntegration: true,
+      nodeIntegrationInWorker: true,
+    },
+  });
+
+  if (isDev) {
+    child.loadURL('http://localhost:4200#/settings');
+  } else {
+    const webPath = url.format({
+      pathname: __dirname,
+      protocol: 'file:',
+      slashes: true,
+    });
+    child.loadURL(webPath + '/index.html#settings');
+  }
+
+  //child.webContents.openDevTools();
+  child.once('ready-to-show', () => {
+    child.show();
+  });
+  child.once('close', () => {
+    dataService.reloadSettings();
+  });
 }

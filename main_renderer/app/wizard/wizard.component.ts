@@ -4,6 +4,7 @@ import { ipcRenderer } from 'electron';
 import { DataKeys, DataService } from '../services/data.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../services/project.service';
+import {openSettingsDialog} from "../utils/helper";
 
 @Component({
   selector: 'app-wizard',
@@ -11,8 +12,9 @@ import { ProjectService } from '../services/project.service';
   styleUrls: ['./wizard.component.scss']
 })
 export class WizardComponent {
+  public readonly openSettingsDialog = openSettingsDialog;
 
-  constructor(private dataService: DataService,
+  constructor(public dataService: DataService,
     private router: Router,
     private route: ActivatedRoute,
     private changeDetection: ChangeDetectorRef,
