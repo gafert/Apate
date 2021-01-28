@@ -66,7 +66,6 @@ export class HomeComponent implements AfterViewInit {
 
     if (isDev) {
       child.loadURL('http://localhost:4200#/settings');
-      child.webContents.openDevTools();
     } else {
       const webPath = url.format({
         pathname: __dirname,

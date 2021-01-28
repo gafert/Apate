@@ -13,7 +13,7 @@ export class WindowComponent implements AfterViewInit, OnDestroy {
   public isMac = process.platform == 'darwin';
 
   ngOnDestroy() {
-    // this.win.removeAllListeners();
+    this.win.removeAllListeners();
   }
 
   ngAfterViewInit() {
@@ -27,7 +27,6 @@ export class WindowComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleMaxRestoreButtons() {
-    console.log(this.win.isMaximized())
     if (this.win.isMaximized()) {
       document.body.classList.add('maximized');
     } else {
