@@ -1,5 +1,4 @@
 import {cumulativeOffset} from "./helper";
-import {fromEvent} from "rxjs";
 
 const eventify = require('ngraph.events');
 const kinetic = require('./kinetic.js');

@@ -18,7 +18,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   public toolchainPath;
 
   public toolchainPrefixDefault = 'riscv64-unknown-elf-';
-  public gccFlagsDefault = '-O0 -march=rv32e -mabi=ilp32e -Triscv.ld -lgcc -nostdlib -o program.elf';
   public readElfDefault = '-a';
   public objdumpFlagsDefault = '--section .text.init --section .text --section .data --full-contents --disassemble --syms --source -z';
 

@@ -9,13 +9,14 @@ import RISCV_STAGES from '../../yamls/stages.yml';
 import {Bindings, CPU_STATE_NAMES, CPU_STATES} from './services/bindingSubjects';
 import {Areas} from './services/graphHelpers/helpers';
 import {UntilDestroy} from "@ngneat/until-destroy";
+import {ProjectService} from "../../services/project.service";
 
 @Component({
   selector: 'app-simulation',
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.scss']
 })
-export class SimulationComponent {
+export class SimulationComponent implements OnInit {
   @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
   public byteToHex = byteToHex;
   public readStyleProperty = readStyleProperty;
@@ -41,7 +42,8 @@ export class SimulationComponent {
     public cpu: CPUService,
     private dataService: DataService,
     private graphService: GraphService,
-    private changeDetection: ChangeDetectorRef
+    private changeDetection: ChangeDetectorRef,
+    private projectService: ProjectService
   ) {
     this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;
 
@@ -61,6 +63,10 @@ export class SimulationComponent {
   public set stage(stage: CPU_STATES) {
     this._stage = stage;
     this.stageSubject.next(this._stage);
+  }
+
+  ngOnInit() {
+    this.projectService.searchForElfInProject();
   }
 
   onChangeElaborateSteps(newVal) {
