@@ -84,13 +84,16 @@ export class GraphService {
   private intersectedElement;
   private mouseDownElement;
   private mouseFocusIsAnimating;
-  private raycaster: Raycaster;
+  private raycaster = new Raycaster();
   private hoverTooltipInstance: Instance<Props>;
   // Than the idFlat needs to be regenerated to allow the element to be accessed by e.g. mux identifiers
   private idFlat: IdFlatInterface; // Takes the parsed svg with meshes and flattens all names to be a 1D array
   private idRoot: IdRootInterface; // Holds the parsed svg and adds meshes to each element
   private signals: Signal[];
   private clickedElements = [];
+
+  // For zooming, needs to be disposed and restarted on new init
+  private panZoomInstance;
 
   /** Offset of renderDom in window, used for mouse position */
   private offsetInWindow = {
@@ -115,7 +118,11 @@ export class GraphService {
           this.renderDom.appendChild(this.renderer.domElement);
           this.resize();
           this.render();
-          panzoom(this.camera, this.renderDom);
+          this.setRenderDomListeners(this.renderDom);
+
+          // New render dom with new listeners, reset
+          this.panZoomInstance.dispose();
+          this.panZoomInstance = panzoom(this.camera, this.renderDom);
           resolve();
         } else {
           // Set initiated to true to not reload settings if init was called again by component using the service
@@ -125,7 +132,6 @@ export class GraphService {
           this.scene = new Scene();
           this.renderer = new WebGLRenderer({ alpha: true, antialias: true });
           this.renderer.setPixelRatio(window.devicePixelRatio);
-          this.renderer.domElement.style.outline = 'none';
           this.renderDom.appendChild(this.renderer.domElement);
 
           // Setup camera
@@ -144,9 +150,41 @@ export class GraphService {
           // Add render group to scene
           this.scene.add(this.renderGroup);
 
-          // Update signals texts if they change
-          addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot, this.update);
+          // Listeners on this specific dom element
+          this.setRenderDomListeners(this.renderDom);
 
+          fromEvent(window, 'resize').subscribe(() => {
+            this.offsetInWindow = cumulativeOffset(this.renderDom);
+            console.log(this.offsetInWindow);
+            this.resize();
+          })
+
+          // Call first event because events fired only after resize
+          this.offsetInWindow = cumulativeOffset(this.renderDom);
+          this.resize();
+
+          // Enable zooming
+          this.panZoomInstance = panzoom(this.camera, this.renderDom);
+
+          // Add tooltips
+          this.hoverTooltipInstance = tippy(window.document.body, {
+            content: 'Context menu',
+            trigger: 'manual',
+            theme: 'light',
+            interactive: true,
+            arrow: true,
+            allowHTML: true,
+            offset: [0, 10]
+          });
+
+          // Split areas in world and focusElement on the first
+          // This needs to be away from initiateObjects
+          // this.separateAreas();
+          this.goToArea('overview');
+
+          // Default no stage on
+          highlightStage(this.idFlat, false, false);
+          addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot, this.update);
           // Add signal change if cpuCycle is complete
           this.cpu.bindings.cycleComplete.subscribe(() => {
             if (this.update.updateVisibilities) {
@@ -157,63 +195,29 @@ export class GraphService {
             }
           });
 
-          // For intersection
-          this.raycaster = new Raycaster();
-          this.renderDom.addEventListener('mousemove', this.setLocalMouseVariables.bind(this), false);
-          this.renderDom.addEventListener('mouseleave', this.setLocalMouseVariables.bind(this, true), false);
-
-          // Enable resizing
-          window.addEventListener('resize', this.resize.bind(this));
-          this.resize();
-
-          // Enable zooming
-          panzoom(this.camera, domElement);
-
-          // Add tooltips
-          this.hoverTooltipInstance = tippy(this.renderer.domElement, {
-            content: 'Context menu',
-            trigger: 'manual',
-            theme: 'light',
-            interactive: true,
-            arrow: true,
-            allowHTML: true,
-            offset: [0, 10]
-          });
-
           // Start rendering
-          if (document.readyState !== 'loading') this.render();
-          else window.addEventListener('DOMContentLoaded', this.render.bind(this));
+          this.render();
 
-          // Handle clicking to focus on element
-          this.renderDom.addEventListener('mousedown', this.clickToZoom.bind(this, 'mousedown'));
-          this.renderDom.addEventListener('mouseup', this.clickToZoom.bind(this, 'mouseup'));
-          this.renderDom.addEventListener('mousemove', this.clickToZoom.bind(this, 'mousemove'));
-          // this.renderDom.addEventListener('scroll', this.clickToZoom.bind(this, 'scroll')) // not working
-
-          // Handle clicking to go into element / show infoText
-          this.renderDom.addEventListener('dblclick', this.clickToShowInfo.bind(this, 'dblclick'));
-
-          // Event fired after resize
-          this.offsetInWindow = cumulativeOffset(this.renderDom);
-          fromEvent(window, 'resize').subscribe(() => {
-            this.offsetInWindow = cumulativeOffset(this.renderDom);
-          })
-
-          // Split areas in world and focusElement on the first
-          // This needs to be away from initiateObjects
-          // this.separateAreas();
-
-          this.goToArea('overview');
-
+          // Add background, needs to be called after render
           this.scene.add(this.setupBackground(this.idFlat));
-
-          // Default no stage on
-          highlightStage(this.idFlat, false, false);
 
           resolve();
         }
       });
     });
+  }
+
+  private setRenderDomListeners(renderDom) {
+    // Handle clicking to focus on element
+    renderDom.addEventListener('mousedown', this.clickToZoom.bind(this, 'mousedown'));
+    renderDom.addEventListener('mouseup', this.clickToZoom.bind(this, 'mouseup'));
+    renderDom.addEventListener('mousemove', this.clickToZoom.bind(this, 'mousemove'));
+    // this.renderDom.addEventListener('scroll', this.clickToZoom.bind(this, 'scroll')) // not working
+
+    // Handle clicking to go into element / show infoText
+    renderDom.addEventListener('dblclick', this.clickToShowInfo.bind(this, 'dblclick'));
+    renderDom.addEventListener('mousemove', this.setLocalMouseVariables.bind(this), false);
+    renderDom.addEventListener('mouseleave', this.setLocalMouseVariables.bind(this, true), false);
   }
 
   /**

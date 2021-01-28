@@ -1,5 +1,6 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
-import { GraphService } from '../../services/graph.service';
+import {AfterViewInit, Component, ElementRef, OnDestroy} from '@angular/core';
+import {GraphService} from '../../services/graph.service';
+import {setZeroTimeout} from "../../../../utils/helper";
 
 @Component({
   selector: 'app-graph',
@@ -13,8 +14,11 @@ export class GraphComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.graphService.init(this.el.nativeElement).then(() => {
-      this.loaded = true;
+    // Prevents dom size calculations to go wrong after router change
+    setZeroTimeout(() => {
+      this.graphService.init(this.el.nativeElement).then(() => {
+        this.loaded = true;
+      });
     });
   }
 

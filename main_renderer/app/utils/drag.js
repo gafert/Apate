@@ -65,12 +65,13 @@ function panzoom(camera, owner) {
 
   // Event fired after resize
   let offsetInWindow = cumulativeOffset(owner);
-  fromEvent(window, 'resize').subscribe(() => {
-    offsetInWindow = cumulativeOffset(owner);
-  })
-
+  window.addEventListener('resize', onResize)
 
   return api;
+
+  function onResize(e) {
+    offsetInWindow = cumulativeOffset(owner);
+  }
 
 	function onTouch(e) {
 		const touchTime = new Date();
@@ -307,6 +308,7 @@ function panzoom(camera, owner) {
 	function disposeWindowEvents() {
 		window.removeEventListener('mouseup', handleMouseUp, true);
 		window.removeEventListener('mousemove', handleMouseMove, true);
+    window.removeEventListener('resize', onResize);
 	}
 
 	function dispose() {
