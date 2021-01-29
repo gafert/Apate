@@ -116,10 +116,10 @@ export class GraphService {
         if (this.initiated) {
           // Service already loaded scene, only set dom element again and start rendering
           this.renderDom.appendChild(this.renderer.domElement);
+          this.offsetInWindow = cumulativeOffset(this.renderDom);
           this.resize();
           this.render();
           this.setRenderDomListeners(this.renderDom);
-
           // New render dom with new listeners, reset
           this.panZoomInstance.dispose();
           this.panZoomInstance = panzoom(this.camera, this.renderDom);
