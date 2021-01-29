@@ -110,5 +110,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
 
   saveSettings(settingToSave: SettingComponent[]) {
     settingToSave.forEach((s) => s.save());
+    this.closeWindow();
   }
 }
