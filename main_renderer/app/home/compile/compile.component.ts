@@ -1,14 +1,25 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { spawn } from 'child_process';
-import { byteToHex } from '../../utils/helper';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {spawn} from 'child_process';
+import {byteToHex, readStyleProperty} from '../../utils/helper';
+// @ts-ignore
+import DEMO from 'raw-loader!../../utils/helper';
 import * as fs from 'fs';
 import * as path from 'path';
-import { CodemirrorComponent } from '@ctrl/ngx-codemirror';
-import { DataKeys, DataService } from '../../services/data.service';
-import { EditorConfiguration } from 'codemirror';
-import { ProjectService, ProjectSettings } from '../../services/project.service';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import {DataKeys, DataService} from '../../services/data.service';
+import {ProjectService, ProjectSettings} from '../../services/project.service';
+import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
 import Timeout = NodeJS.Timeout;
+import {
+  MonacoEditorComponent,
+  MonacoEditorConstructionOptions,
+  MonacoEditorLoaderService, MonacoStandaloneCodeEditor
+} from "@materia-ui/ngx-monaco-editor";
+import {filter, skipWhile, take, takeUntil, takeWhile} from "rxjs/operators";
+import * as electronIsDev from "electron-is-dev";
+import * as electron from 'electron';
+import {BehaviorSubject, fromEvent} from "rxjs";
+
+const app = electron.remote.app;
 
 @Component({
   selector: 'app-compile',
@@ -16,13 +27,12 @@ import Timeout = NodeJS.Timeout;
   styleUrls: ['./compile.component.scss']
 })
 @UntilDestroy()
-export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
+export class CompileComponent implements OnDestroy, OnInit, AfterViewInit {
   @ViewChild('fileOptions') fileOptions: ElementRef<HTMLDivElement>;
   @ViewChild('terminalOutputElement') terminalOutputElement: ElementRef<HTMLDivElement>;
-  @ViewChild('fileAreaContainer') fileAreaContainer: ElementRef<HTMLDivElement>;
-  @ViewChild('codemirrorComponent') codemirrorComponent: CodemirrorComponent;
+  @ViewChild(MonacoEditorComponent) monacoComponent: MonacoEditorComponent;
 
-  public DataKeys = DataKeys;
+  public readonly DataKeys = DataKeys;
 
   // Compiling
   /** True currently compiling */
@@ -41,35 +51,8 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   public activeFile;
   /** The file which is selected but its content is not yet displayed */
   public selectedFile;
-  /** The default settings the editor uses. Changes in these allValues to not affect the editor */
-  public editorOptions: EditorConfiguration = {
-    lineNumbers: true,
-    theme: 'dracula',
-    mode: 'clike',
-    readOnly: false,
-    inputStyle: 'contenteditable',
-    pasteLinesPerSelection: true
-  };
   /** Holds the editor so settings can be changed */
   public fileContent = '';
-
-  // Editor
-  languages = {
-    elf: 'plaintext',
-    cc: 'cpp',
-    cpp: 'cpp',
-    hpp: 'cpp',
-    hcc: 'cpp',
-    hxx: 'cpp',
-    c: 'c',
-    h: 'c',
-    hex: 'plaintext',
-    txt: 'plaintext',
-    ld: 'plaintext',
-    js: 'javascript',
-    ts: 'typescript',
-    json: 'json'
-  };
 
   /** Path will be set by the UI */
   private folderPath: string;
@@ -77,35 +60,64 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   private fileLoadedIntoEditor = false;
   private fileSaveTimeout: Timeout;
 
-  constructor(private changeDetection: ChangeDetectorRef,
-    private dataService: DataService,
-    private projectService: ProjectService) {
+  public editorOptions: MonacoEditorConstructionOptions = {
+    theme: "myCustomTheme",
+    roundedSelection: true,
+    autoIndent: "full"
+  };
+  private editorLanguages = {
+    cc: 'cpp',
+    cpp: 'cpp',
+    hpp: 'cpp',
+    hcc: 'cpp',
+    hxx: 'cpp',
+    c: 'c',
+    h: 'c',
+    js: 'javascript',
+    ts: 'typescript',
+    json: 'json'
+  };
+  private filesToOpenInEditor = ['txt', 's', 'c', 'cc', 'cpp', 'h', 'hpp', 'hh', 'js', 'ts', 'ld', 'json'];
+
+  private viewInitiated = new BehaviorSubject(false);
+
+  constructor(private changeDetection: ChangeDetectorRef, private dataService: DataService, private projectService: ProjectService, private monacoLoaderService: MonacoEditorLoaderService) {
+    if (electronIsDev) {
+      // In development this path is different
+      this.monacoLoaderService.monacoPath = path.join(app.getAppPath(), 'node_modules', 'monaco-editor', 'min', 'vs');
+    }
+
+    this.monacoLoaderService.isMonacoLoaded$.pipe(filter(isLoaded => isLoaded), take(1)).subscribe(() => {
+      monaco.editor.defineTheme("myCustomTheme", {
+        base: "vs-dark", // can also be vs or hc-black
+        inherit: true, // can also be false to completely replace the builtin rules
+        rules: [],
+        colors: {
+          "editor.background": readStyleProperty('grey3'),
+        }
+      });
+    });
   }
 
   ngOnInit() {
+    // Subscribe to all angular dependant elements
+    this.dataService.data[DataKeys.ACTIVE_FILE_IS_SAVEABLE].pipe(untilDestroyed(this)).subscribe((value) => this.fileIsSavable = value);
     this.dataService.data[DataKeys.ACTIVE_FILE].pipe(untilDestroyed(this)).subscribe((value) => (this.activeFile = value));
-    this.dataService.data[DataKeys.ACTIVE_FILE_IS_SAVEABLE].pipe(untilDestroyed(this)).subscribe((value) => {
-      this.fileIsSavable = value;
-      this.editorOptions.readOnly = !value;
-    });
     this.dataService.data[DataKeys.PROJECT_PATH].pipe(untilDestroyed(this)).subscribe((value) => {
       this.folderPath = value;
-      console.log(value);
       if (this.folderPath) this.reloadFolderContents();
     });
-
-    // Close dialog if somewhere is clicked
-    document.addEventListener('click', (event) => {
-      if (this.fileOptionsOpen) {
-        this.fileOptions.nativeElement.style.display = 'none';
-      }
-    });
-
     this.dataService.data[DataKeys.ACTIVE_FILE_CONTENT].pipe(untilDestroyed(this)).subscribe((value) => {
       if (this.fileContent !== value && value !== null) {
         this.fileContent = value;
         this.fileLoadedIntoEditor = true;
       }
+    });
+
+
+    // Close dialog if somewhere is clicked
+    fromEvent(document, 'click').pipe(untilDestroyed(this)).subscribe((event) => {
+      if (this.fileOptionsOpen) this.fileOptions.nativeElement.style.display = 'none';
     });
   }
 
@@ -114,16 +126,31 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   }
 
   ngAfterViewInit() {
-    this.dataService.data[DataKeys.ACTIVE_FILE].pipe(untilDestroyed(this)).subscribe((value) => {
-      if (this.activeFile) {
-        const modeObj = this.codemirrorComponent.codeMirrorGlobal.findModeByFileName(value);
-        const mode = modeObj ? modeObj.mode : null;
-        this.editorOptions.mode = mode;
-      }
-    });
+    this.viewInitiated.next(true);
+  }
+
+  editorInit() {
+    // Subscribe to all elements which are editor specific
+    this.viewInitiated.pipe(
+      untilDestroyed(this),
+      skipWhile((viewInitiated) => viewInitiated === false),
+      take(1)).subscribe(() => {
+      this.dataService.data[DataKeys.ACTIVE_FILE].pipe(untilDestroyed(this)).subscribe((value) => {
+        if (this.activeFile) {
+          const ending = value.split('.').pop();
+          let langId = this.editorLanguages[ending];
+          if (!langId) langId = "plaintext";
+          monaco.editor.setModelLanguage(this.monacoComponent.editor.getModel(), langId);
+        }
+      });
+      this.dataService.data[DataKeys.ACTIVE_FILE_IS_SAVEABLE].pipe(untilDestroyed(this)).subscribe((value) => {
+        this.monacoComponent.editor.updateOptions({ readOnly: !value })
+      });
+    })
   }
 
   fileContentChanged(event) {
+    this.fileContent = event;
     /**
      * This gets called every time the value in the editor is changed.
      * Start a timeout to save the file after 2s of inactivity.
@@ -138,10 +165,9 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   }
 
   clickFile(event, file: string) {
-    const txtFiles = ['txt', 's', 'c', 'cc', 'cpp', 'h', 'hpp', 'hh', 'js', 'ts', 'ld', 'json'];
-
-    for (const txtFile of txtFiles) {
-      if (file.toLowerCase().split('.').pop() === txtFile) {
+    for (const txtFile of this.filesToOpenInEditor) {
+      const fileEnding = file.toLowerCase().split('.').pop();
+      if (fileEnding === txtFile) {
         // Open as text file
         this.selectedFile = file;
         this.openFileAsText();
@@ -232,7 +258,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
     const dump = spawn(
       path.join(this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH), this.dataService.getSetting(DataKeys.TOOLCHAIN_PREFIX) + 'objdump'),
       [...`${this.dataService.getSetting(DataKeys.OBJDUMP_FLAGS)} ${this.selectedFile}`.split(' ')],
-      { cwd: this.folderPath }
+      {cwd: this.folderPath}
     );
     dump.stdout.on('data', (data) => (tempContent += data));
     dump.stderr.on('data', (data) => (tempContent += data));
@@ -254,7 +280,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
     const readelf = spawn(
       path.join(this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH), this.dataService.getSetting(DataKeys.TOOLCHAIN_PREFIX) + 'readelf'),
       [...`${this.dataService.getSetting(DataKeys.READ_ELF_FLAGS)} ${this.selectedFile}`.split(' ')],
-      { cwd: this.folderPath }
+      {cwd: this.folderPath}
     );
     readelf.stdout.on('data', (data) => (tempContent += data));
     readelf.stderr.on('data', (data) => (tempContent += data));
@@ -270,7 +296,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
   }
 
   openFileAsText() {
-    const data = fs.readFileSync(path.join(this.folderPath, this.selectedFile), { encoding: 'utf-8' });
+    const data = fs.readFileSync(path.join(this.folderPath, this.selectedFile), {encoding: 'utf-8'});
     this.dataService.setSetting(DataKeys.ACTIVE_FILE, this.selectedFile);
     this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, true);
     this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, data);
@@ -308,7 +334,7 @@ export class CompileComponent implements OnDestroy, AfterViewInit, OnInit {
     const gcc = spawn(
       path.join(this.dataService.getSetting(DataKeys.TOOLCHAIN_PATH), this.dataService.getSetting(DataKeys.TOOLCHAIN_PREFIX) + 'gcc'),
       [...`${this.projectService.getSetting(ProjectSettings.SOURCES)} ${this.projectService.getSetting(ProjectSettings.GCC_FLAGS)}`.split(' ')],
-      { cwd: this.folderPath }
+      {cwd: this.folderPath}
     );
     gcc.stdout.on('data', (data) => (this.terminalOutput += data));
     gcc.stderr.on('data', (data) => (this.terminalOutput += data));

@@ -18,12 +18,10 @@ export class CPUService {
   }
 
   public initSimulation(pathToElf: string) {
-    console.log(pathToElf);
     // Open ELF File
     const elfBuffer = readFileSync(pathToElf);
     this.parsedElf = parseElf(elfBuffer);
     parseElfRISCVInstructions(this.parsedElf, elfBuffer);
-    console.log(this.parsedElf);
     // Read program
     this.parsedElf.program.copy(this.bindings.memory.value, 0, 0);
     // this.bindings.memory.next();

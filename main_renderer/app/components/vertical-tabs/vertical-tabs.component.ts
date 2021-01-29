@@ -30,7 +30,6 @@ export class VerticalTabsComponent implements AfterContentInit, AfterViewInit {
     this.tabsList.nativeElement.style.width = getComputedStyle(this.tabsContainer.nativeElement).height;
     fromEvent(window, 'resize').pipe(untilDestroyed(this)).subscribe(() => {
       this.tabsList.nativeElement.style.width = getComputedStyle(this.tabsContainer.nativeElement).height;
-      console.log(getComputedStyle(this.tabsContainer.nativeElement).height);
     })
   }
 

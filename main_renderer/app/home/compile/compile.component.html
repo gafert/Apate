@@ -28,13 +28,10 @@
     </div>
   </div>
 
-  <div class="content" #fileAreaContainer>
-    <ngx-codemirror style="width: 100%; height: 100%"
-                    [(ngModel)]="fileContent"
-                    (ngModelChange)="fileContentChanged($event)"
-                    [options]="editorOptions"
-                    #codemirrorComponent
-    ></ngx-codemirror>
+  <div class="content">
+    <div id="editor-container" #fileAreaContainer>
+      <ngx-monaco-editor [options]="editorOptions" [ngModel]="fileContent" (ngModelChange)="fileContentChanged($event)" (init)="editorInit()"></ngx-monaco-editor>
+    </div>
   </div>
 </div>
 

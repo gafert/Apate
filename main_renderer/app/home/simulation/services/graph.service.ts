@@ -155,7 +155,6 @@ export class GraphService {
 
           fromEvent(window, 'resize').subscribe(() => {
             this.offsetInWindow = cumulativeOffset(this.renderDom);
-            console.log(this.offsetInWindow);
             this.resize();
           })
 

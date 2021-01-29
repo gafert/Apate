@@ -23,7 +23,8 @@
               "main_renderer/favicon.icns",
               "main_renderer/favicon.256x256.png",
               "main_renderer/favicon.512x512.png",
-              "main_renderer/static"
+              "main_renderer/static",
+              { "glob": "**/*", "input": "node_modules/monaco-editor", "output": "assets/monaco-editor/" }
             ],
             "styles": [
               "main_renderer/styles.scss"

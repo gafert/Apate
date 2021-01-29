@@ -55,7 +55,6 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   public optimizedInstructionList: OptimizedList[] = [];
 
   constructor(public cpu: CPUService, public graphService: GraphService, public dataService: DataService) {
-    console.log(this);
   }
 
   ngOnInit(): void {

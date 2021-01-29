@@ -59,6 +59,11 @@
   .content {
     height: calc(100% - #{$headerHeight + $tabsHeight - $margin});
     background: $grey3;
+    display: block;
+    #editor-container {
+      height: 100%;
+      width: 100%;
+    }
   }
 }
 

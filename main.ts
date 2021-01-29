@@ -1,6 +1,7 @@
-import {app, BrowserWindow, ipcMain, screen} from 'electron';
+import {app, BrowserWindow, ipcMain, protocol, screen} from 'electron';
 import * as path from 'path';
 import * as url from 'url';
+import electronIsDev = require("electron-is-dev");
 
 let mainWindow: BrowserWindow = null;
 const args = process.argv.slice(1);
@@ -34,6 +35,7 @@ function createWindow(): BrowserWindow {
     titleBarStyle: 'hiddenInset',
     autoHideMenuBar: true,
     webPreferences: {
+      webSecurity: !electronIsDev, // Used to load monaco files
       enableRemoteModule: true,
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
@@ -65,11 +67,7 @@ function createWindow(): BrowserWindow {
     });
   }
 
-  // Emitted when the window is closed.
   mainWindow.on('closed', () => {
-    // Dereference the window object, usually you would store window
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
     mainWindow = null;
   });
 
@@ -80,7 +78,7 @@ ipcMain.on('main-window-home', (event, arg) => {
   const display = screen.getPrimaryDisplay();
   const maxSize = display.workAreaSize;
   const w = Math.floor(maxSize.width * 0.9);
-  const h = Math.floor(maxSize.height * 0.9 / (maxSize.width / maxSize.height));
+  const h = Math.floor(maxSize.height - (maxSize.width * 0.1));
   mainWindow.setPosition(Math.floor(maxSize.width / 2 - w / 2), Math.floor(maxSize.height / 2 - h / 2));
   mainWindow.setSize(w, h);
   mainWindow.setResizable(true);
@@ -89,7 +87,6 @@ ipcMain.on('main-window-home', (event, arg) => {
 })
 
 ipcMain.on('main-window-wizard', (event, arg) => {
-  console.log(wizardSettings);
   mainWindow.setPosition(wizardSettings.x, wizardSettings.y);
   mainWindow.setSize(wizardSettings.width, wizardSettings.height);
   mainWindow.setResizable(wizardSettings.resizable);
@@ -98,14 +95,18 @@ ipcMain.on('main-window-wizard', (event, arg) => {
 })
 
 try {
-  // This method will be called when Electron has finished
-  // initialization and is ready to create browser windows.
-  // Some APIs can only be used after this event occurs.
+
   app.on('ready', () => {
+    if(electronIsDev) {
+      // Monaco editor is loaded from files and needs access
+      protocol.registerFileProtocol('file', (request, callback) => {
+        const pathname = request.url.replace('file:///', '');
+        callback(pathname);
+      });
+    }
     createWindow();
   });
 
-  // Quit when all windows are closed.
   app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
@@ -122,6 +123,5 @@ try {
     }
   });
 } catch (e) {
-  // Catch Error
-  // throw e;
+
 }

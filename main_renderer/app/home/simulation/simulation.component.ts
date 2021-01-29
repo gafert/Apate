@@ -1,14 +1,13 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {byteToHex, range, readStyleProperty} from '../../utils/helper';
 import {CPUService} from './services/cpu.service';
 import {InstructionsComponent} from './components/instructions/instructions.component';
-import {BehaviorSubject, Subject} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {DataKeys, DataService} from '../../services/data.service';
 import {GraphService} from './services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
 import {Bindings, CPU_STATE_NAMES, CPU_STATES} from './services/bindingSubjects';
 import {Areas} from './services/graphHelpers/helpers';
-import {UntilDestroy} from "@ngneat/until-destroy";
 import {ProjectService} from "../../services/project.service";
 
 @Component({
@@ -66,7 +65,8 @@ export class SimulationComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.projectService.searchForElfInProject();
+    if (this.dataService.getSetting(DataKeys.PROJECT_PATH))
+      this.projectService.searchForElfInProject();
   }
 
   onChangeElaborateSteps(newVal) {
@@ -266,6 +266,6 @@ export class SimulationComponent implements OnInit {
     } else {
       this.infoCounter++;
     }
-    return { ...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage };
+    return {...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage};
   }
 }
