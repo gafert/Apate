@@ -23,12 +23,11 @@
             <div class="description">
               Compile and simulate your own C files. This requires a RISC-V Toolchain.
             </div>
-            <div class="info">
+            <div class="info" *ngIf="!dataService.getSetting(DataKeys.TOOLCHAIN_PATH)">
               <div class="text">
-                No installed toolchain found. Please set a toolchain path in the settings or download it.
+                No installed toolchain found. Please go to Settings and download the toolchain.
               </div>
               <button mat-flat-button color="primary" (click)="openSettingsDialog(dataService)">Open Settings</button>
-              <button mat-flat-button color="primary">Download Toolchain</button>
             </div>
             <button mat-flat-button color="accent" (click)="initiateNewProject()">New Project</button>
             <button mat-flat-button color="primary" (click)="openExistingProject()">Open Project</button>

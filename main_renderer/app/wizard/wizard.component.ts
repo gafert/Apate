@@ -17,6 +17,7 @@ const app = electron.remote.app;
   styleUrls: ['./wizard.component.scss']
 })
 export class WizardComponent {
+  public readonly DataKeys = DataKeys;
   public readonly openSettingsDialog = openSettingsDialog;
   private readonly demosFolderPath = path.join(app.getPath('userData'), 'demos');
 
@@ -24,7 +25,7 @@ export class WizardComponent {
     private router: Router,
     private route: ActivatedRoute,
     private changeDetection: ChangeDetectorRef,
-    private projectService: ProjectService) {
+    private projectService: ProjectService,) {
 
     // Copy demos to folder if demos folder does not exits
     fs.pathExists(this.demosFolderPath).then((exists) => {
