@@ -20,13 +20,12 @@ export enum ProjectSettings {
 })
 export class ProjectService {
   private projectStore: Store;
-  private exampleProjectPath;
+  private readonly exampleProjectPath;
 
   constructor(private dataService: DataService, private router: Router, private route: ActivatedRoute) {
     let appPath = path.join(app.getAppPath(), 'dist', 'static');
-    if (isDev) {
-      appPath = path.join(app.getAppPath(), 'main_renderer', 'static');
-    }
+    if (isDev) appPath = path.join(app.getAppPath(), 'main_renderer', 'static');
+
     this.exampleProjectPath = path.join(appPath, 'example_project');
 
     const potentialProject = this.dataService.getSetting(DataKeys.PROJECT_PATH);
@@ -37,7 +36,7 @@ export class ProjectService {
     }
   }
 
-  initiateNewProject(): Promise<string> {
+  public initiateNewProject(): Promise<string> {
     return new Promise<string>((resolve, rejected) => {
       electron.remote.dialog
         .showOpenDialog({
@@ -74,7 +73,7 @@ export class ProjectService {
     });
   }
 
-  openExistingProject(): Promise<string> {
+  public openExitingProjectDialog(): Promise<string> {
     return new Promise<string>((resolve, rejected) => {
       electron.remote.dialog
         .showOpenDialog({
@@ -83,18 +82,7 @@ export class ProjectService {
         .then((result) => {
           if (!result.canceled) {
             const folderPath = result.filePaths[0];
-            this.projectStore = new Store({
-              cwd: folderPath
-            });
-
-            this.dataService.setSetting(DataKeys.PROJECT_PATH, folderPath);
-            this.dataService.setSetting(DataKeys.ELF_PATH, null);
-            this.searchForElfInProject();
-
-            this.dataService.setSetting(DataKeys.ACTIVE_FILE, null);
-            this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, '');
-            this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, false);
-
+            this.setProjectFolder(folderPath);
             resolve(folderPath);
           } else {
             rejected();
@@ -103,7 +91,21 @@ export class ProjectService {
     });
   }
 
-  searchForElfInProject() {
+  public setProjectFolder(path) {
+    this.projectStore = new Store({
+      cwd: path
+    });
+
+    this.dataService.setSetting(DataKeys.PROJECT_PATH, path);
+    this.dataService.setSetting(DataKeys.ELF_PATH, null);
+    this.searchForElfInProject();
+
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE, null);
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE_CONTENT, '');
+    this.dataService.setSetting(DataKeys.ACTIVE_FILE_IS_SAVEABLE, false);
+  }
+
+  public searchForElfInProject() {
     const project = this.dataService.data[DataKeys.PROJECT_PATH].value;
     const files = fs.readdirSync(project);
     for (const file of files) {
@@ -114,14 +116,14 @@ export class ProjectService {
     }
   }
 
-  closeProject() {
+  public closeProject() {
     this.dataService.setSetting(DataKeys.PROJECT_PATH, null);
     this.dataService.setSetting(DataKeys.ELF_PATH, null);
     ipcRenderer.send('main-window-wizard');
     this.router.navigate(['/wizard'], { relativeTo: this.route });
   }
 
-  getSetting(setting: ProjectSettings): any {
-    return this.projectStore.get(setting);
+  public getSetting(setting: ProjectSettings): any {
+    return this.projectStore?.get(setting);
   }
 }

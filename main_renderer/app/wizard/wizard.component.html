@@ -58,11 +58,9 @@
             <div class="description">
               Use precompiled ELF files and simulate them.
             </div>
-            <button mat-flat-button color="accent">Simple Adder</button>
-            <button mat-flat-button color="accent">Function Call</button>
-            <button mat-flat-button color="accent">Print to Terminal</button>
-            <button mat-flat-button color="accent">RISC-V Stresstest</button>
-            <button mat-flat-button color="primary">Open Demos Folder</button>
+            <button mat-flat-button color="accent" (click)="openDemo('adder')">Simple Adder</button>
+            <button mat-flat-button color="accent" (click)="openDemo('function')">Function Call</button>
+            <button mat-flat-button color="accent" (click)="openDemo('print')">Print to Terminal</button>
           </div>
         </div>
       </div>

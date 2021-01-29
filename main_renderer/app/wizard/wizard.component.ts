@@ -1,10 +1,15 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
-import * as electron from 'electron';
-import { ipcRenderer } from 'electron';
-import { DataKeys, DataService } from '../services/data.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ProjectService } from '../services/project.service';
+import {ChangeDetectorRef, Component} from '@angular/core';
+import {ipcRenderer} from 'electron';
+import {DataKeys, DataService} from '../services/data.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ProjectService} from '../services/project.service';
 import {openSettingsDialog} from "../utils/helper";
+
+import * as fs from 'fs-extra';
+import * as electron from 'electron';
+import * as path from "path";
+import * as isDev from "electron-is-dev";
+const app = electron.remote.app;
 
 @Component({
   selector: 'app-wizard',
@@ -13,12 +18,31 @@ import {openSettingsDialog} from "../utils/helper";
 })
 export class WizardComponent {
   public readonly openSettingsDialog = openSettingsDialog;
+  private readonly demosFolderPath = path.join(app.getPath('userData'), 'demos');
 
   constructor(public dataService: DataService,
     private router: Router,
     private route: ActivatedRoute,
     private changeDetection: ChangeDetectorRef,
     private projectService: ProjectService) {
+
+    // Copy demos to folder if demos folder does not exits
+    fs.pathExists(this.demosFolderPath).then((exists) => {
+      if(!exists) this.copyDemosToUserDataDirectory();
+    })
+  }
+
+  /**
+   * Copy static demos to user data
+   * @private
+   */
+  private copyDemosToUserDataDirectory() {
+    let appPath = path.join(app.getAppPath(), 'dist', 'static');
+    if (isDev) appPath = path.join(app.getAppPath(), 'main_renderer', 'static');
+
+    const staticDemosFolder = path.join(appPath, 'demos');
+
+    fs.copySync(staticDemosFolder, this.demosFolderPath);
   }
 
   openCustomELF() {
@@ -45,10 +69,14 @@ export class WizardComponent {
   }
 
   openExistingProject() {
-    this.projectService.openExistingProject().then(() => {
+    this.projectService.openExitingProjectDialog().then(() => {
       this.goToCompile();
-
     })
+  }
+
+  openDemo(demoName) {
+    this.projectService.setProjectFolder(path.join(this.demosFolderPath, demoName));
+    this.goToSimulation();
   }
 
   goToSimulation() {
@@ -63,6 +91,6 @@ export class WizardComponent {
     // Hide wizard as simulation loads a while a blocks
     document.getElementById('loading').style.display = 'block';
     ipcRenderer.send('main-window-home');
-    this.router.navigate(['/home/' + path], { relativeTo: this.route });
+    this.router.navigate(['/home/' + path], {relativeTo: this.route});
   }
 }
