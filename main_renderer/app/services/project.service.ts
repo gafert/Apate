@@ -23,7 +23,7 @@ export class ProjectService {
   private readonly exampleProjectPath;
 
   constructor(private dataService: DataService, private router: Router, private route: ActivatedRoute) {
-    let appPath = path.join(app.getAppPath(), 'dist', 'static');
+    let appPath = path.join(app.getAppPath(), 'dist', 'main_renderer', 'static');
     if (isDev) appPath = path.join(app.getAppPath(), 'main_renderer', 'static');
 
     this.exampleProjectPath = path.join(appPath, 'example_project');

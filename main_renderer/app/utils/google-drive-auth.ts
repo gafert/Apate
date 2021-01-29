@@ -8,10 +8,9 @@ const app = electron.remote.app;
 
 export function authorize() {
   return new Promise<any>((resolve) => {
-    let appPath = path.join(app.getAppPath(), 'dist', 'static');
-    if (isDev) {
-      appPath = path.join(app.getAppPath(), 'main_renderer', 'static');
-    }
+    let appPath = path.join(app.getAppPath(), 'dist', 'main_renderer', 'static');
+    if (isDev) appPath = path.join(app.getAppPath(), 'main_renderer', 'static');
+
     console.log('Reading secret from', appPath);
 
     // Load client secrets from a local file.

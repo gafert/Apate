@@ -38,7 +38,7 @@ export class WizardComponent {
    * @private
    */
   private copyDemosToUserDataDirectory() {
-    let appPath = path.join(app.getAppPath(), 'dist', 'static');
+    let appPath = path.join(app.getAppPath(), 'dist', 'main_renderer', 'static');
     if (isDev) appPath = path.join(app.getAppPath(), 'main_renderer', 'static');
 
     const staticDemosFolder = path.join(appPath, 'demos');
