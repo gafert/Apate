@@ -18,9 +18,9 @@
     <div *ngIf="!parsedElf" style="text-align: left; width: 90%; margin: auto; margin-top: 1em">
       <ng-container *ngVar="dataService.getSetting(DataKeys.ELF_PATH) as elf">
         <ng-container *ngIf="elf">
-          Using: {{elf}}
+          <i>{{elf}}</i>
           <br><br>
-          Please initiate load the ELF into the CPU.
+          Please initiate and load the ELF into the CPU.
         </ng-container>
         <ng-container *ngIf="!elf">
           No ELF found in the current folder <i class="fas fa-frown"></i>

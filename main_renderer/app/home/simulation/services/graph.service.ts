@@ -183,7 +183,7 @@ export class GraphService {
 
           // Default no stage on
           highlightStage(this.idFlat, false, false);
-          addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot, this.update);
+          this.signals = addSignalTextsAndUpdate(this.cpu.bindings, this.idFlat, this.idRoot, this.update);
           // Add signal change if cpuCycle is complete
           this.cpu.bindings.cycleComplete.subscribe(() => {
             if (this.update.updateVisibilities) {

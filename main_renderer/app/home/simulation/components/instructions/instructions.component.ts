@@ -1,12 +1,21 @@
-import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { byteToBinary, byteToHex } from '../../../../utils/helper';
-import { ELF, ELFSectionHeader, ElfSymbol, SHF_CONSTANTS } from '../../../../utils/elfParser';
-import { Instruction, INSTRUCTIONS_DESCRIPTIONS } from '../../../../utils/instructionParser';
-import { CPUService } from '../../services/cpu.service';
-import { GraphService } from '../../services/graph.service';
-import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
-import { animate, style, transition, trigger } from '@angular/animations';
-import { DataKeys, DataService } from '../../../../services/data.service';
+import {
+  AfterViewInit,
+  Component, EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Optional,
+  Output,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
+import {byteToBinary, byteToHex} from '../../../../utils/helper';
+import {ELF, ELFSectionHeader, ElfSymbol, SHF_CONSTANTS} from '../../../../utils/elfParser';
+import {Instruction, INSTRUCTIONS_DESCRIPTIONS} from '../../../../utils/instructionParser';
+import {CPUService} from '../../services/cpu.service';
+import {VirtualScrollerComponent} from 'ngx-virtual-scroller';
+import {animate, style, transition, trigger} from '@angular/animations';
+import {DataKeys, DataService} from '../../../../services/data.service';
 
 interface OptimizedList {
   instruction?: Instruction;
@@ -25,17 +34,17 @@ interface OptimizedList {
         transition(
           ':enter',
           [
-            style({ maxHeight: 0 }),
+            style({maxHeight: 0}),
             animate('1s ease-out',
-              style({ maxHeight: 500 }))
+              style({maxHeight: 500}))
           ]
         ),
         transition(
           ':leave',
           [
-            style({ maxHeight: 500 }),
+            style({maxHeight: 500}),
             animate('0.5s ease-out',
-              style({ maxHeight: 0 }))
+              style({maxHeight: 0}))
           ]
         )
       ]
@@ -52,9 +61,11 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() public programCounter;
   @Input() public parsedElf: ELF;
 
+  @Output() onRunToPC: EventEmitter<number> = new EventEmitter();
+
   public optimizedInstructionList: OptimizedList[] = [];
 
-  constructor(public cpu: CPUService, public graphService: GraphService, public dataService: DataService) {
+  constructor(public dataService: DataService) {
   }
 
   ngOnInit(): void {
@@ -114,15 +125,7 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   runUntilPC(pc: number) {
-    this.graphService.update.animations = false
-    this.graphService.update.updateVisibilities = false;
-    this.graphService.update.updateSignalTexts = false;
-    this.cpu.runUntilPC(pc).then(() => {
-      this.graphService.update.animations = true;
-      this.graphService.update.updateVisibilities = true;
-      this.graphService.update.updateSignalTexts = true;
-      this.graphService.updateGraph(true);
-    });
+    this.onRunToPC.emit(pc);
   }
 
   scrollToPc(pc) {

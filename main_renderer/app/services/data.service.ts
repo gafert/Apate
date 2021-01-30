@@ -33,7 +33,7 @@ export class DataService {
       if (isNaN(Number(dataKeysKey))) {
         const num = DataKeys[dataKeysKey];
         this.data[num] = new BehaviorSubject<any>(undefined);
-        this.data[num].next(this.appStore.get(dataKeysKey));
+        this.data[num].next(this.appStore.get(dataKeysKey, null));
         this.subscribeToSetting(this.data[num], dataKeysKey);
       }
     }

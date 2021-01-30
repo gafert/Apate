@@ -36,6 +36,7 @@ export class SimulationComponent implements OnInit {
   // Used by getNextInfo()
   private instrCounter = 0;
   private infoCounter = 0;
+  private stageExecuted = false;
 
   constructor(
     public cpu: CPUService,
@@ -45,6 +46,11 @@ export class SimulationComponent implements OnInit {
     private projectService: ProjectService
   ) {
     this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;
+    if (this.elaborateSteps === null) {
+      // Set default value to true
+      this.elaborateSteps = true;
+      this.dataService.setSetting(DataKeys.ELABORATE_STEPS, true);
+    }
 
     this.graphService.onChangeCurrentArea.subscribe(({area, animate}) => {
       this.goToArea(area, animate);
@@ -76,8 +82,10 @@ export class SimulationComponent implements OnInit {
     // Hide infos if not elaborate
     if (!this.elaborateSteps) {
       this.infoText = null;
+      this.graphService.removeAllHighlights();
     } else {
       this.setNextInfoByStage(this.stage);
+      this.stepSimulation();
     }
   }
 
@@ -107,9 +115,10 @@ export class SimulationComponent implements OnInit {
     }, 100);
   }
 
-  async stepSimulation() {
+  public async stepSimulation() {
     if (!this.elaborateSteps) {
       this.stage = this.cpu.advanceSimulationClock();
+      this.stageExecuted = true;
       this.stageName = CPU_STATE_NAMES[this.stage];
       this.graphService.highlightStage(this.stage, true);
       console.log('%cCPU STATE: ' + this.stageName, 'color: #7827e0');
@@ -122,14 +131,16 @@ export class SimulationComponent implements OnInit {
     const info = this.getNextInfo(this.cpu.bindings);
     this.infoText = info.text;
 
-    if (info.exec) {
-      console.log('%cCPU STATE: ' + this.cpu.advanceSimulationClock(), 'color: #7F2FeF');
-    }
-
     if (info.startOfStage) {
+      this.stageExecuted = false;
       this.stage = info.startOfStage;
       this.stageName = CPU_STATE_NAMES[this.stage];
       this.graphService.highlightStage(this.stage, true);
+    }
+
+    if (info.exec) {
+      console.log('%cCPU STATE: ' + this.cpu.advanceSimulationClock(), 'color: #7F2FeF');
+      this.stageExecuted = true;
     }
 
     if (info.highlight) {
@@ -182,23 +193,38 @@ export class SimulationComponent implements OnInit {
    * Find point in RISCV_STAGES to continue from. Uses the 'exec' property and finds the first matching stage
    * @param stage From which stage to continue
    */
-  private setNextInfoByStage(stage: CPU_STATES) {
-    let focusElement, focusArea;
-    for (let i = 0; i < RISCV_STAGES.length; i++) {
-      for (let j = 0; j < RISCV_STAGES[i].infos.length; j++) {
-        const info = RISCV_STAGES[i].infos[j];
+  public setNextInfoByStage(stage: CPU_STATES) {
+    let focusElement, focusArea, instrCounter, infoCounter, reachedCurrentStart;
+
+    for (instrCounter = 0; instrCounter < RISCV_STAGES.length; instrCounter++) {
+      const infos = RISCV_STAGES[instrCounter].infos;
+
+      if (stage === RISCV_STAGES[instrCounter].start) {
+        reachedCurrentStart = true;
+        if (!this.stageExecuted) {
+          console.log("Current stage not executed yet, going to info before start of this stage")
+          break;
+        }
+      } else if (reachedCurrentStart && RISCV_STAGES[instrCounter].start) {
+        console.log("Current stage already executed, going to next info before next start");
+        break;
+      }
+
+      // Get last focusArea and focusElement if needed
+      for (infoCounter = 0; infoCounter < infos.length; infoCounter++) {
+        const info = infos[infoCounter];
         focusArea = info.focusArea ? info.focusArea : focusArea;
         focusElement = info.focusElement ? info.focusElement : focusElement;
-        console.log(stage, info.exec);
-        if (stage === info.exec) {
-          this.currentArea = focusArea;
-          this.currentFocus = focusElement;
-          this.infoCounter = j;
-          this.instrCounter = i;
-          return;
-        }
       }
     }
+
+    instrCounter = instrCounter == 0 ? RISCV_STAGES.length - 1 : instrCounter - 1;
+    infoCounter = RISCV_STAGES[instrCounter].infos.length - 1;
+
+    this.currentArea = focusArea;
+    this.currentFocus = focusElement;
+    this.infoCounter = infoCounter;
+    this.instrCounter = instrCounter;
   }
 
   /**
@@ -267,5 +293,20 @@ export class SimulationComponent implements OnInit {
       this.infoCounter++;
     }
     return {...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage};
+  }
+
+  public runToPC(pc) {
+    this.graphService.update.animations = false
+    this.graphService.update.updateVisibilities = false;
+    this.graphService.update.updateSignalTexts = false;
+    this.cpu.runUntilPC(pc).then(() => {
+      this.graphService.update.animations = true;
+      this.graphService.update.updateVisibilities = true;
+      this.graphService.update.updateSignalTexts = true;
+      this.graphService.updateGraph(true);
+      this.stageExecuted = true;
+      this.setNextInfoByStage(CPU_STATES.ADVANCE_PC);
+      this.stepSimulation();
+    });
   }
 }

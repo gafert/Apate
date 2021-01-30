@@ -3,6 +3,7 @@
     <div class="title"><span>Stage: {{stageName}}</span></div>
     <div class="settings">
       <mat-checkbox (change)="onChangeElaborateSteps($event)" [checked]="elaborateSteps"
+                    [disabled]="!cpu.elfIsLoaded || stepDisabled"
                     tippy="Focus and go into elements step by step">Elaborate Steps
       </mat-checkbox>
     </div>
@@ -10,8 +11,7 @@
       <button mat-flat-button color="accent" (click)="initiateSimulation()" style="margin-right: 0.5em;">Initiate
       </button>
       <button mat-flat-button color="accent" (click)="stepSimulation()" [disabled]="!cpu.elfIsLoaded || stepDisabled">
-        Step<i
-        class="fas fa-play" style="margin-left: 0.5em; vertical-align: unset"></i></button>
+        Step<i class="fas fa-play" style="margin-left: 0.5em; vertical-align: unset"></i></button>
     </div>
     <div class="tabs">
       <!-- The paths need to overwrite the last path element e.g. /home/simulation/overview -> /home/simulation/decoder -->
@@ -35,7 +35,7 @@
 <app-instructions #instructionsComponent
                   [parsedElf]="cpu.parsedElf"
                   [programCounter]="cpu.bindings.pc | async"
-                  class="app-instruction"></app-instructions>
+                  class="app-instruction" (onRunToPC)="runToPC($event)"></app-instructions>
 
 <app-vertical-tabs class="app-tabs">
   <app-vertical-tabs-item tabTitle="Registers">
