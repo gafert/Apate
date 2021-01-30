@@ -17,20 +17,33 @@ export class CPUService {
   constructor() {
   }
 
-  public initSimulation(pathToElf: string) {
+  public init(pathToElf: string) {
+    this.reset();
     // Open ELF File
     const elfBuffer = readFileSync(pathToElf);
     this.parsedElf = parseElf(elfBuffer);
     parseElfRISCVInstructions(this.parsedElf, elfBuffer);
     // Read program
     this.parsedElf.program.copy(this.bindings.memory.value, 0, 0);
-    // this.bindings.memory.next();
-    this.bindings.pc.next(0);
-    this.bindings.cpuState.next(null);
-    this.bindings.nextCpuState.next(CPU_STATES.FETCH);
     this.elfIsLoaded = true;
   }
 
+  /**
+   * Reset CPU and all values
+   */
+  public reset() {
+    this.parsedElf = null;
+    this.elfIsLoaded = false;
+    this.bindings.clearAllValues();
+    this.bindings.cpuState.next(null);
+    this.bindings.nextCpuState.next(CPU_STATES.FETCH);
+  }
+
+  /**
+   * Advance to next stage on CPU. Each clock cycle one stage is advanced.
+   * Bindings will be updated and cycleComplete can be used to check if the stage was executed.
+   *
+   */
   public advanceSimulationClock() {
     let opcode = this.bindings.instruction.value?.opcode;
 

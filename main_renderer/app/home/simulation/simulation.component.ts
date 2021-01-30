@@ -108,7 +108,7 @@ export class SimulationComponent implements OnInit {
     this.graphService.highlightStage(this.stage, false);
 
     // Load elf into CPU
-    this.cpu.initSimulation(this.dataService.getSetting(DataKeys.ELF_PATH));
+    this.cpu.init(this.dataService.getSetting(DataKeys.ELF_PATH));
     // Wait for program counter to be 0 before reloading
     setTimeout(() => {
       this.instructionsComponent.reload();
@@ -295,6 +295,10 @@ export class SimulationComponent implements OnInit {
     return {...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage};
   }
 
+  /**
+   * Run until a specific PC is reached and continue from there normally
+   * @param pc
+   */
   public runToPC(pc) {
     this.graphService.update.animations = false
     this.graphService.update.updateVisibilities = false;
