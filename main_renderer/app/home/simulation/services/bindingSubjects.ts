@@ -179,6 +179,7 @@ export class Bindings {
   clearAllValues() {
     // @ts-ignore
     Object.values(this.allValues).forEach((value) => value.next(null));
+    this.pc.next(0);
     this.cpuregs.next(new Array(32).fill(0));
     this.memory.next(Buffer.alloc(MEMORY_SIZE, 0));
   }

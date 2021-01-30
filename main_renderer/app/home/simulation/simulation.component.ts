@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {byteToHex, range, readStyleProperty} from '../../utils/helper';
 import {CPUService} from './services/cpu.service';
 import {InstructionsComponent} from './components/instructions/instructions.component';
@@ -15,7 +15,7 @@ import {ProjectService} from "../../services/project.service";
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.scss']
 })
-export class SimulationComponent implements OnInit {
+export class SimulationComponent implements OnInit, OnDestroy {
   @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
   public byteToHex = byteToHex;
   public readStyleProperty = readStyleProperty;
@@ -24,19 +24,31 @@ export class SimulationComponent implements OnInit {
   public elaborateSteps = true;
   // Step may be disabled if animations are running
   public stepDisabled = false;
-  public selectedTab: Areas = 'overview';
+  public selectedTab: Areas = this.dataService.getVolatileData(this.constructor.name, 'selectedTab', 'overview');
   // Displayed on top
-  public stageName = 'Initiate the simulation';
-  public stageSubject = new BehaviorSubject<CPU_STATES>(null);
+  public stageName = this.dataService.getVolatileData(this.constructor.name, 'stageName', 'Initiate the simulation');
+  public stageSubject: BehaviorSubject<CPU_STATES> = this.dataService.getVolatileData(this.constructor.name, 'stageSubject', new BehaviorSubject<CPU_STATES>(null))
   // Infotext
-  public infoText;
+  public infoText = this.dataService.getVolatileData(this.constructor.name, 'infoText', undefined);
   // Set by elaborate steps, will reset selectedTab to this
-  private currentArea = this.selectedTab;
-  private currentFocus;
+  private currentArea = this.dataService.getVolatileData(this.constructor.name, 'currentArea', this.selectedTab);
+  private currentFocus = this.dataService.getVolatileData(this.constructor.name, 'currentFocus', undefined);
   // Used by getNextInfo()
-  private instrCounter = 0;
-  private infoCounter = 0;
-  private stageExecuted = false;
+  private instrCounter = this.dataService.getVolatileData(this.constructor.name, 'instrCounter', 0);
+  private infoCounter = this.dataService.getVolatileData(this.constructor.name, 'infoCounter', 0);
+  private stageExecuted = this.dataService.getVolatileData(this.constructor.name, 'stageExecuted', false);
+
+  ngOnDestroy() {
+    this.dataService.setVolatileData(this.constructor.name, 'selectedTab', this.selectedTab)
+    this.dataService.setVolatileData(this.constructor.name, 'stageSubject', this.stageSubject)
+    this.dataService.setVolatileData(this.constructor.name, 'stageName', this.stageName)
+    this.dataService.setVolatileData(this.constructor.name, 'infoText', this.infoText)
+    this.dataService.setVolatileData(this.constructor.name, 'currentArea', this.currentArea)
+    this.dataService.setVolatileData(this.constructor.name, 'currentFocus', this.currentFocus)
+    this.dataService.setVolatileData(this.constructor.name, 'instrCounter', this.instrCounter)
+    this.dataService.setVolatileData(this.constructor.name, 'infoCounter', this.infoCounter)
+    this.dataService.setVolatileData(this.constructor.name, 'stageExecuted', this.stageExecuted)
+  }
 
   constructor(
     public cpu: CPUService,
@@ -109,10 +121,6 @@ export class SimulationComponent implements OnInit {
 
     // Load elf into CPU
     this.cpu.init(this.dataService.getSetting(DataKeys.ELF_PATH));
-    // Wait for program counter to be 0 before reloading
-    setTimeout(() => {
-      this.instructionsComponent.reload();
-    }, 100);
   }
 
   public async stepSimulation() {
@@ -312,5 +320,22 @@ export class SimulationComponent implements OnInit {
       this.setNextInfoByStage(CPU_STATES.ADVANCE_PC);
       this.stepSimulation();
     });
+  }
+
+  /**
+   * Reset simulation
+   */
+  public resetSimulation() {
+    this.cpu.reset();
+    this.infoText = undefined;
+    this.instrCounter = 0;
+    this.infoCounter = 0;
+    this.currentFocus = undefined;
+    this.currentFocus = undefined;
+    this.stageExecuted = false;
+    this.stageSubject.next(null);
+    this.goToArea('overview');
+    this.graphService.removeAllHighlights();
+    this.stageName = 'Initiate the simulation';
   }
 }

@@ -3,8 +3,6 @@ import {
   Component, EventEmitter,
   Input,
   OnChanges,
-  OnInit,
-  Optional,
   Output,
   SimpleChanges,
   ViewChild
@@ -12,10 +10,12 @@ import {
 import {byteToBinary, byteToHex} from '../../../../utils/helper';
 import {ELF, ELFSectionHeader, ElfSymbol, SHF_CONSTANTS} from '../../../../utils/elfParser';
 import {Instruction, INSTRUCTIONS_DESCRIPTIONS} from '../../../../utils/instructionParser';
-import {CPUService} from '../../services/cpu.service';
 import {VirtualScrollerComponent} from 'ngx-virtual-scroller';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {DataKeys, DataService} from '../../../../services/data.service';
+import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
+import {skipWhile, take} from "rxjs/operators";
+import {BehaviorSubject} from "rxjs";
 
 interface OptimizedList {
   instruction?: Instruction;
@@ -51,7 +51,8 @@ interface OptimizedList {
     )
   ]
 })
-export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
+@UntilDestroy()
+export class InstructionsComponent implements OnChanges, AfterViewInit {
   public readonly byteToHex = byteToHex;
   public readonly byteToBinary = byteToBinary;
   public readonly DataKeys = DataKeys;
@@ -65,25 +66,17 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
 
   public optimizedInstructionList: OptimizedList[] = [];
 
+  private viewInitiated = new BehaviorSubject(false);
+
   constructor(public dataService: DataService) {
+
   }
 
-  ngOnInit(): void {
-    // Reload instructions from last initiation
-  }
-
-  ngAfterViewInit(): void {
-    // If the instructions were reloaded set the program counter
-    // Needs to be after view loaded to access the relevant dom elements
-    this.setInstructionColor(0, this.programCounter);
+  ngAfterViewInit() {
+    this.viewInitiated.next(true);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.programCounter) {
-      if (changes.programCounter.currentValue !== changes.programCounter.previousValue) {
-        this.setInstructionColor(changes.programCounter.previousValue, changes.programCounter.currentValue);
-      }
-    }
     if (changes.parsedElf?.currentValue) {
       this.optimizedInstructionList = [];
       for (const sectionHeader of this.parsedElf.section_headers) {
@@ -95,6 +88,13 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
               if (symbol?.instructions) {
                 for (const instruction of symbol.instructions) {
                   this.optimizedInstructionList.push({instruction: instruction});
+                  // Set pc once the view is initiated
+                  this.viewInitiated.pipe(
+                    untilDestroyed(this),
+                    skipWhile((viewInitiated) => viewInitiated === false),
+                    take(1)).subscribe(() => {
+                    this.setInstructionColor(0, this.programCounter);
+                  });
                 }
               }
             }
@@ -102,14 +102,13 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
         }
       }
     }
-  }
 
-  reload() {
-    // Emitted when the elf changed and instructions needed to be renewed
-    // Save instructions
-    setTimeout(() => {
-      this.setInstructionColor(0, this.programCounter);
-    }, 100);
+    // Set the on each change, but only after view is initiated
+    if (changes.programCounter && this.viewInitiated.value === true) {
+      if (changes.programCounter.currentValue !== changes.programCounter.previousValue) {
+        this.setInstructionColor(changes.programCounter.previousValue, changes.programCounter.currentValue);
+      }
+    }
   }
 
   expandInfo(instruction: Instruction) {
@@ -138,13 +137,13 @@ export class InstructionsComponent implements OnInit, OnChanges, AfterViewInit {
   private setInstructionColor(oldPC, newPC) {
     this.scrollToPc(newPC);
     const elementsOld = this.optimizedInstructionList.filter((e) => e.instruction?.pc == oldPC)
-    if (elementsOld.length > 0) {
+    if (elementsOld[0]?.instruction) {
       (elementsOld[0].instruction as any).wasActive = true;
       (elementsOld[0].instruction as any).active = false;
     }
 
     const elementsNew = this.optimizedInstructionList.filter((e) => e.instruction?.pc == newPC);
-    if (elementsNew.length > 0) {
+    if (elementsNew[0]?.instruction) {
       (elementsNew[0].instruction as any).wasActive = false;
       (elementsNew[0].instruction as any).active = true;
     }

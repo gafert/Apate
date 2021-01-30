@@ -8,7 +8,7 @@
     <button mat-flat-button color="primary" (click)="openSettingsDialog(dataService)" tippy="Settings"><i class="fas fa-cog"></i></button>
   </div>
   <div window-main style="height: 100%">
-    <router-outlet>
+    <router-outlet (activate)="routerActivate($event)">
     </router-outlet>
   </div>
 </app-window>
