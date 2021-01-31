@@ -3,27 +3,21 @@
   "directories": {
     "output": "release/"
   },
-  "extraResources": [
-    "binaries/"
-  ],
   "files": [
     "./dist/**/*",
     "main.js"
   ],
   "win": {
-    "icon": "dist/main_renderer",
     "target": [
       "portable"
     ]
   },
   "mac": {
-    "icon": "dist/main_renderer",
     "target": [
       "dmg"
     ]
   },
   "linux": {
-    "icon": "dist/main_renderer",
     "target": [
       "AppImage"
     ]
