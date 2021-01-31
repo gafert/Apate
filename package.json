@@ -1,7 +1,7 @@
 {
-  "name": "riscv-sim",
-  "version": "0.1.2",
-  "description": "CPU Visualisation based on a risc-v processor in verilog",
+  "name": "cpu-sim",
+  "version": "1.0.0",
+  "description": "CPU Visualisation based on a RISC V ISA",
   "author": {
     "name": "Michael Gafert",
     "email": "m.gafert@outlook.com"
@@ -16,11 +16,10 @@
     "ng:serve": "ng serve",
     "electron:tsc": "tsc -p tsconfig.electron.json",
     "electron:serve": "npm run electron:tsc && wait-on http-get://localhost:4200/ && electron . --serve --enable-logging --verbose",
-    "electron:linux": "npm run build:prod && electron-builder build --linux",
-    "electron:windows": "npm run build:prod && electron-builder build --win",
-    "electron:mac": "npm run build:prod && electron-builder build --mac",
-    "build": "npm run electron:tsc && ng build --base-href ./ ",
-    "build:prod": "npm run build -- -c production",
+    "electron:linux": "npm run build && electron-builder build --linux",
+    "electron:windows": "npm run build && electron-builder build --win",
+    "electron:mac": "npm run build && electron-builder build --mac",
+    "build": "npm run electron:tsc && ng build --base-href ./ -c production",
     "postinstall": "electron-builder install-app-deps",
     "ng": "ng",
     "test": "ng test",
