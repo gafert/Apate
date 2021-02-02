@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { DataKeys, DataService } from './data.service';
 import * as electron from 'electron';
 import { ipcRenderer } from 'electron';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as Store from 'electron-store';
 import * as isDev from 'electron-is-dev';
@@ -45,18 +45,12 @@ export class ProjectService {
         .then((result) => {
           if (!result.canceled) {
             const folderPath = result.filePaths[0];
+
+            fs.copySync(this.exampleProjectPath, folderPath);
+
             this.projectStore = new Store({
               cwd: folderPath
             });
-
-            fs.copyFileSync(path.join(this.exampleProjectPath, 'main.c'), path.join(folderPath, 'main.c'));
-            fs.copyFileSync(path.join(this.exampleProjectPath, 'riscv.ld'), path.join(folderPath, 'riscv.ld'));
-            fs.copyFileSync(path.join(this.exampleProjectPath, 'sim.h'), path.join(folderPath, 'sim.h'));
-            fs.copyFileSync(path.join(this.exampleProjectPath, 'start.s'), path.join(folderPath, 'start.s'));
-
-            // Set demo
-            this.projectStore.set(ProjectSettings.SOURCES, 'start.s main.c');
-            this.projectStore.set(ProjectSettings.GCC_FLAGS, '-O0 -march=rv32i -mabi=ilp32 -Triscv.ld -lgcc -nostdlib -o main.elf');
 
             this.dataService.setSetting(DataKeys.PROJECT_PATH, folderPath);
             this.dataService.setSetting(DataKeys.ELF_PATH, null);

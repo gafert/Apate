@@ -1,18 +1,18 @@
 SECTIONS
 {
-    .text.init : {
-        *(.text.init)
-    }
+  .text.init : {
+    *(.text.init)
+  }
 
-    .text : {
-        *(.text)
-    }
+  .text : {
+    *(.text)
+  }
 
-    .data : {
-        *(.bss)
-        *(.sdata)
-        *(.rodata)
-        *(.data*)
-        *(.got*)
-    }
+  .data : {
+    *(.bss)
+    *(.sdata)
+    *(.rodata)
+    *(.data*)
+    *(.got*)
+  }
 }

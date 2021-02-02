@@ -1,5 +1,5 @@
 #include "sim.h"
-  
+
 /**
 
 Simple adder.
@@ -30,8 +30,8 @@ Store register 5 into memory
 **/
 
 int main(void) {
-  	int number1 = 15; // LI = Will be loaded immediately 
-  	int number2 = 763; // LI = Will be loaded immediately
-  	int result = number1 + number2; // ADD
-  	return 23;
+  int number1 = 15; // LI = Will be loaded immediately
+  int number2 = 763; // LI = Will be loaded immediately
+  int result = number1 + number2; // ADD
+  return 23;
 }

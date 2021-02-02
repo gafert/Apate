@@ -78,7 +78,7 @@ modules:
   alu:
     name: Arithetic Logic Unit (ALU)
     desc: >
-      Performs calculations on Operator 1 and Operator 2 depending und FUNC3 and FUNC7. Operations include: Add, Subtract, Shift, And, Or, Xor.
+      Performs calculations on Operator 1 and Operator 2 depending und the instruction name. Operations include: Add, Subtract, Shift, And, Or, Xor.
   mux_immrs2:
     name: Multiplexer (MUX)
     desc: >
@@ -166,7 +166,19 @@ modules:
     desc: Contains all decoded instruction data signals which are used inside the CPU. These include Immediate Value (IMM), Return Register (RD), Register Source 1 (RS1) and Register Source 2 (RS2).
   controlpath:
     name: Control Path
-    desc: Contains all decoded instruction control signal which are used inside the CPU. These include FUNC3, FUNC7 and the signals for each instruction type. Depending on the instruction one of the instruction type signals is turned on and controls the CPU.
+    desc: Contains all decoded instruction control signal which are used inside the CPU. Depending on the instruction name one of the instruction type signals is turned on and controls the CPU.
+  mux_immvalue:
+    name: Multiplexer (MUX)
+    desc: >
+      Selects the correct bit combinations from the Unparsed Instruction Data to be stored as the Immediate value.
+      <hr>
+      <table>
+        <tr><td>IMM | LOAD | SYSTEM | JALR</td><td><i class="fas fa-arrow-right"></i></td><td>Use I-Type bit combination</td></tr>
+        <tr><td>STORE</td><td><i class="fas fa-arrow-right"></i></td><td>Use S-Type bit combination</td></tr>
+        <tr><td>BRANCH</td><td><i class="fas fa-arrow-right"></i></td><td>Use B-Type bit combination</td></tr>
+        <tr><td>LUI | AUIPC</td><td><i class="fas fa-arrow-right"></i></td><td>Use U-Type bit combination</td></tr>
+        <tr><td>JAL</td><td><i class="fas fa-arrow-right"></i></td><td>Use J-Type bit combination</td></tr>
+      </table>
 
   # from ALU
   mux_aluoutsignal:
@@ -388,7 +400,7 @@ signalsNPorts:
     name: Branch Value
   instrmemread:
     signal: true
-    name: Raw instruction data from the memory
+    name: Unparsed instruction data from the memory
 
   # from ALU
   op1:

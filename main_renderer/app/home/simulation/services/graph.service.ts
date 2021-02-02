@@ -402,21 +402,22 @@ export class GraphService {
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0) {
       const getName = (i) => {
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.signalID)) return { name: i.parent.parent.name, type: 's' };
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.portID)) return { name: i.parent.parent.name, type: 'p' };
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.parent.parent.name, type: 'm' };
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.wireID)) return { name: i.parent.parent.name, type: 'w' };
-        if (i?.parent?.name?.startsWith(SVG_IDS.signalID)) return { name: i.parent.name, type: 's' };
-        if (i?.parent?.name?.startsWith(SVG_IDS.portID)) return { name: i.parent.name, type: 'p' };
-        if (i?.parent?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.parent.name, type: 'm' };
-        if (i?.parent?.name?.startsWith(SVG_IDS.wireID)) return { name: i.parent.name, type: 'w' };
-        if (i?.name?.startsWith(SVG_IDS.signalID)) return { name: i.name, type: 's' };
-        if (i?.name?.startsWith(SVG_IDS.portID)) return { name: i.name, type: 'p' };
-        if (i?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.name, type: 'm' };
-        if (i?.name?.startsWith(SVG_IDS.wireID)) return { name: i.name, type: 'w' };
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.signalID)) return { name: i.parent.parent.name, type: 's', order: 1 };
+        if (i?.parent?.name?.startsWith(SVG_IDS.signalID)) return { name: i.parent.name, type: 's', order: 2  };
+        if (i?.name?.startsWith(SVG_IDS.signalID)) return { name: i.name, type: 's', order: 3  };
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.portID)) return { name: i.parent.parent.name, type: 'p', order: 4  };
+        if (i?.parent?.name?.startsWith(SVG_IDS.portID)) return { name: i.parent.name, type: 'p', order: 5  };
+        if (i?.name?.startsWith(SVG_IDS.portID)) return { name: i.name, type: 'p', order: 6  };
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.parent.parent.name, type: 'm', order: 7  };
+        if (i?.parent?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.parent.name, type: 'm', order: 8  };
+        if (i?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.name, type: 'm', order: 9  };
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.wireID)) return { name: i.parent.parent.name, type: 'w', order: 10  };
+        if (i?.parent?.name?.startsWith(SVG_IDS.wireID)) return { name: i.parent.name, type: 'w', order: 11  };
+        if (i?.name?.startsWith(SVG_IDS.wireID)) return { name: i.name, type: 'w', order: 12  };
       };
 
       let object;
+      intersects.sort((a,b) => getName(a)?.order > getName(b)?.order ? 1 : -1);
       for (const intersection of intersects) {
         object = getName(intersection.object);
         if (object) break;

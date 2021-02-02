@@ -51,7 +51,7 @@
       from: m_controlunit
       focusArea: cu
     - text: >
-        First, parse the <div class="wikilink" onclick="navigateInAngular('/home/wiki?opcode')">Opcode</div> by comparing the first 8 bits of the unparsed instruction data.
+        First, parse the <div class="wikilink" onclick="navigateInAngular('/home/wiki?opcode')">Opcode</div> by comparing the first 7 bits (0-6) of the unparsed instruction data.
         <br><br>
         The Opcode tells the CPU how to parse the instruction and what values are used throughout the CPU.
         Once the Opcode is parsed we know which elements of the CPU are not used, these will be hidden.
@@ -65,7 +65,7 @@
         <div class="wikilink" onclick="navigateInAngular('/home/wiki?instruction_table')">Instruction Table</div>.
         Not used signals are hidden.
         <br><br>
-        <div class="port">FUNC3</div> and <div class="port">FUNC7</div> are only used inside the <div class="module controlunit">Control Unit</div>
+        <div class="port">FUNCT3</div> and <div class="port">FUNCT7</div> are only used inside the <div class="module controlunit">Control Unit</div>
         and used to determine the instruction name stored in <div class="controlsignal">INSTRUCTION</div>
       highlight: []
       focusElement: cu_static_values
@@ -80,7 +80,7 @@
     - text: >
         Lastly, the instruction name is parsed and stored in <div class="controlsignal">INSTRUCTION</div>. This name corresponds to the command used in assembly.
         <br><br>
-        The instruction depends on <div class="port">FUNC3</div>, <div class="port">FUNC4</div> and <div class="port">IMM</div> and their combination. These can be seen in the
+        The instruction depends on <div class="port">FUNCT3</div>, <div class="port">FUNCT7</div> and <div class="port">IMM</div> and their combination. These can be seen in the
         <div class="wikilink" onclick="navigateInAngular('/home/wiki?instructiontable')">Instruction Table</div>.
         <br><br>
         In case of <div class="controlsignal">JALR</div>, <div class="controlsignal">JAL</div>, <div class="controlsignal">LUI</div> and
@@ -107,7 +107,7 @@
         The <div class="port">Data Path</div> contains data used inside the CPU.
       focusElement: decoder
       focusArea: overview
-      highlight: [s_instr-0064, m_controlpath-0074, w_op-0066, w_imminstr-0065, w_load-0067, w_branch-0069, w_jal-0070, w_jalr-0071, w_lui-0072, w_auipc-0073, s_rd-0082, s_imm-0081, m_datapath-0083]
+      highlight: [s_instr-0064, m_controlpath-0074, w_op-0066, w_imminstr-0065, w_load-0067, w_branch-0069, w_jal-0070, w_jalr-0071, w_lui-0072, w_auipc-0073, s_rd-0082, s_imm-0081, p_rd-0369,p_imm-0371, p_rs1-0372, p_rs2-0370]
 # EXECUTE
 - instr: []
   start: execute
@@ -178,11 +178,11 @@
   infos:
     - text: The memory address is always an addition of <div class="port">RS1</div> and <div class="port">IMM</div>.
       focusElement: memory
-      highlight: []
+      highlight: [s_rs1imm-0134,s_rs1-0135,s_imm-0137,p_imm-0138,p_rs1-0136,m_addrs1imm-0139  ]
     - text: The data to be stored is always <div class="port">RS2</div>
-      highlight: []
+      highlight: [p_rs2-0131, s_rs2-0132]
     - text: Next the data of <div class="port">RS2</div> will be stored in the <div class="module memory">Memory</div>. Watch the memory tab to see the change.
-      highlight: []
+      highlight: [m_memoryfetch-0133]
     - text: The data has been stored in the <div class="module memory">Memory</div>.
       exec: execute
       highlight: []
@@ -190,38 +190,44 @@
   infos:
     - text: The memory address is always an addition of <div class="port">RS1</div> and <div class="port">IMM</div>. As this is a LOAD instruction no data is needed.
       focusElement: memory
-      highlight: []
-    - text: Next the value is loaded into the <div class="port">READ</div>.
+      highlight: [s_rs1imm-0134,s_rs1-0135,s_imm-0137,p_imm-0138,p_rs1-0136,m_addrs1imm-0139  ]
+    - text: Next the value is loaded from the <div class="module memory">Memory</div> into the <div class="port">READ</div> value. Check the memory tab on the right.
       exec: execute
-      highlight: []
+      highlight: [m_memoryfetch-0133]
     - text: The value of <div class="port">READ</div> is passed to the <div class="module registers">Registers</div> to be saved.
       focusElement: memorypass
-      highlight: []
+      highlight: [s_memread-0142, m_mux_pcaluout-0017, s_regwrite-0084]
 - instr: [branch]
   infos:
     - text: The <div class="module branchevaluator">Branch Evaluator</div> compares <div class="port">RS1</div> and <div class="port">RS2</div> with methods depending on the instruction.
       highlight: []
       focusElement: branch
     - text: <div class="port">RS1</div> and <div class="port">RS2</div> are passed to the compare method depending on the instruction. The multiplexer decides on the method.
-      highlight: []
+      highlight: [p_rs1-0125,s_rs1-0127,s_rs2-0128,p_rs2-0126]
+    - text: The correct comparison is selected by the MUX an passed to <div class="port">OUT</div>. The result of the comparison is stored in <div class="port">OUT</div> and is either 1 or 0.
       focusArea: be
-    - text: The result of the comparison is stored in <div class="port">OUT</div> and is either 1 or 0.
-      highlight: []
+      highlight: [p_branchresult-0350]
       exec: execute
 - instr: [branch]
   if: !!js/function  'function (bindings) { return bindings.branchResult.value == true; }'
   infos:
-    - text: Use the result from the <div class="module branchevaluator">Branch Evaluator</div> to select <div class="port">IMM</div> and pass it the next stage.
+    - text: Use the result from the <div class="module branchevaluator">Branch Evaluator</div> to select <div class="port">IMM</div>.
       focusArea: overview
+      focusElement: branch
+      highlight: [p_imm-0118,s_imm-0119,s_branchresult-0123,m_mux_4imm-0122]
+    - text: Pass <div class="port">IMM</div> to the next stage.
       focusElement: branchpass
-      highlight: []
+      highlight: [ s_branchadd-0117 ]
 - instr: [branch]
   if: !!js/function  'function (bindings) { return bindings.branchResult.value == false; }'
   infos:
-    - text: Use the result from the <div class="module branchevaluator">Branch Evaluator</div> to select 4 and pass it the next stage.
-      focusElement: branchpass
+    - text: Use the result from the <div class="module branchevaluator">Branch Evaluator</div> to select 4.
       focusArea: overview
-      highlight: []
+      focusElement: branch
+      highlight: [s_4-0121,p_4-0120,s_branchresult-0123,m_mux_4imm-0122]
+    - text: Pass 4 to the next stage.
+      focusElement: branchpass
+      highlight: [s_branchadd-0117]
 # WRITE BACK
 - instr: []
   start: writeback
@@ -286,22 +292,31 @@
     - text: >
         Pass <div class="port">IMM</div> to be added to the current <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> <div class="port">PC</div>
         and set to the new <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div>.
-        <br><br>Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
+        <br><br>
+        This means we will jump to a different location in the program and not to the adjacent.
+        <br><br>
+        Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
       focusElement: pc
       highlight: []
 - instr: [jalr]
   infos:
     - text: >
         Add Register Source 1 and Immediate to set the new <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div>.
-        <br><br>Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
+        <br><br>
+        This means we will jump to a different location in the program and not to the adjacent.
+        <br><br>a
+        Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
       focusElement: pc
       highlight: []
 - instr: [store, imm, op, lui, load, auipc]
   infos:
     - text: >
-        This instruction does not change the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div>.
+        This instruction advances th <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> normally by 4.
         <br><br>
-        4 is added to the current Program Counter <div class="port">PC</div>. 4 memory locations equals 4 bytes which equal one 32 bit instruction.
+        Why 4?
+        <br>
+        The <div class="controlsignal">PC</div> always points to the first byte of the next instruction. As one instruction
+        is 32 bits long each instruction is offset by 4 bytes. If the Program Counter is 4 the second instruction is used. If the PC is 8 the third instruction is used.
         <br><br>
         Watch the instruction tab on the left to see the <div class="wikilink" onclick="navigateInAngular('/home/wiki?pc')">Program Counter</div> jump to the next instruction.
       focusElement: pc
