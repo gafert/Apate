@@ -29,6 +29,9 @@ This simulator is a tool for students to learn the inner workings of a CPU. Base
 * Custom JavaSript CPU based RV32I ISA
 
 
-Thank you to [@jameslzhu](https://github.com/jameslzhu) and his [RISC V Reference Sheet](https://github.com/jameslzhu/riscv-card)
+Thank you to [@jameslzhu](https://github.com/jameslzhu) for [RISC V Reference Sheet](https://github.com/jameslzhu/riscv-card), and [@anvaka](https://github.com/anvaka) for [three.map.control](https://github.com/anvaka/three.map.control). Other used packages are in the packages.json.
+
+
+
 
 
