@@ -1,7 +1,9 @@
-import * as electron from "electron";
-import * as isDev from "electron-is-dev";
-import * as url from "url";
-import {DataService} from "../services/data.service";
+import * as electron from 'electron';
+import * as isDev from 'electron-is-dev';
+import * as url from 'url';
+import { DataService } from '../services/data.service';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 
 /**
  * Read the custom property of body section with given name
@@ -84,6 +86,19 @@ export function cumulativeOffset(element) {
     top: top,
     left: left
   };
+}
+
+export function chmodRecursive(folderOrFile, mode = 0o777) {
+  const stat = fs.statSync(folderOrFile);
+
+  // Chmod this element
+  fs.chmodSync(folderOrFile, mode);
+
+  if(stat.isDirectory()) {
+    fs.readdirSync(folderOrFile).forEach((file) => {
+      chmodRecursive(path.join(folderOrFile, file))
+    });
+  }
 }
 
 export function openSettingsDialog(dataService: DataService) {

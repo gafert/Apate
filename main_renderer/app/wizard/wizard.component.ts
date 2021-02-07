@@ -1,14 +1,15 @@
-import {ChangeDetectorRef, Component} from '@angular/core';
-import {ipcRenderer} from 'electron';
-import {DataKeys, DataService} from '../services/data.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ProjectService} from '../services/project.service';
-import {openSettingsDialog} from "../utils/helper";
+import { ChangeDetectorRef, Component } from '@angular/core';
+import * as electron from 'electron';
+import { ipcRenderer } from 'electron';
+import { DataKeys, DataService } from '../services/data.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ProjectService } from '../services/project.service';
+import { chmodRecursive, openSettingsDialog } from '../utils/helper';
 
 import * as fs from 'fs-extra';
-import * as electron from 'electron';
-import * as path from "path";
-import * as isDev from "electron-is-dev";
+import * as path from 'path';
+import * as isDev from 'electron-is-dev';
+
 const app = electron.remote.app;
 
 @Component({
@@ -44,6 +45,8 @@ export class WizardComponent {
     const staticDemosFolder = path.join(appPath, 'demos');
 
     fs.copySync(staticDemosFolder, this.demosFolderPath);
+    // Make sure permissions are set so config.json is readable / executable
+    chmodRecursive(this.demosFolderPath, 0o777);
   }
 
   openCustomELF() {

@@ -1,7 +1,7 @@
-import {app, BrowserWindow, ipcMain, protocol, screen} from 'electron';
+import { app, BrowserWindow, ipcMain, protocol, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
-import electronIsDev = require("electron-is-dev");
+import electronIsDev = require('electron-is-dev');
 
 let mainWindow: BrowserWindow = null;
 const args = process.argv.slice(1);
@@ -95,7 +95,6 @@ ipcMain.on('main-window-wizard', (event, arg) => {
 })
 
 try {
-
   app.on('ready', () => {
     if(electronIsDev) {
       // Monaco editor is loaded from files and needs access
@@ -110,9 +109,9 @@ try {
   app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
+    // if (process.platform !== 'darwin') {
+    app.quit();
+    // }
   });
 
   app.on('activate', () => {
