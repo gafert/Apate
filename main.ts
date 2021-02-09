@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain, protocol, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
-import electronIsDev = require('electron-is-dev');
 
 let mainWindow: BrowserWindow = null;
 const args = process.argv.slice(1);
@@ -35,7 +34,7 @@ function createWindow(): BrowserWindow {
     titleBarStyle: 'hiddenInset',
     autoHideMenuBar: true,
     webPreferences: {
-      webSecurity: !electronIsDev, // Used to load monaco files
+      webSecurity: !serve, // Used to load monaco files
       enableRemoteModule: true,
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
@@ -96,7 +95,7 @@ ipcMain.on('main-window-wizard', (event, arg) => {
 
 try {
   app.on('ready', () => {
-    if(electronIsDev) {
+    if(serve) {
       // Monaco editor is loaded from files and needs access
       protocol.registerFileProtocol('file', (request, callback) => {
         const pathname = request.url.replace('file:///', '');

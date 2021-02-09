@@ -7,7 +7,7 @@ import {remote} from "electron";
   styleUrls: ['./window.component.scss']
 })
 export class WindowComponent implements AfterViewInit, OnDestroy {
-  @Input() title = "CPU Simulator";
+  @Input() name = "CPU Simulator";
   @Input() info = "";
   @Input() showMinimize = true;
   @Input() showMaximize = true;
