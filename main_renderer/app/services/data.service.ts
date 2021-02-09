@@ -16,6 +16,7 @@ export enum DataKeys {
   READ_ELF_FLAGS,
   ELF_PATH,
   ELABORATE_STEPS,
+  WIZARD_INTRO_NOT_ACTIVE,
 }
 
 @Injectable({

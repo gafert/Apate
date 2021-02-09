@@ -23,7 +23,45 @@
   flex: 1 1 auto;
   background: $grey3;
   display: flex;
+  position: relative;
   border-collapse: collapse;
+
+  .intro {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 1em;
+    background: $grey3;
+    border-top: $border;
+
+    .title {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .info {
+      margin-top: 1em;
+    }
+
+    .intro-demos {
+      button:nth-last-child(1) {
+        margin-right: 0em;
+      }
+      button {
+        margin-right: 1em;
+        margin-bottom: 1em;
+      }
+      text-align: center;
+      margin-top: 1em;
+    }
+
+    .professional-button-container {
+      width: 100%;
+      text-align: center;
+    }
+  }
+  
+
   .column {
     flex-grow: 1;
     flex-basis: 0;
@@ -75,6 +113,7 @@
     }
   }
 }
+
 
 #loading {
   position: absolute;

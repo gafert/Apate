@@ -22,6 +22,8 @@ export class WizardComponent {
   public readonly openSettingsDialog = openSettingsDialog;
   private readonly demosFolderPath = path.join(app.getPath('userData'), 'demos');
 
+  public introNotActive = this.dataService.getSetting(DataKeys.WIZARD_INTRO_NOT_ACTIVE);
+
   constructor(public dataService: DataService,
     private router: Router,
     private route: ActivatedRoute,
@@ -96,5 +98,10 @@ export class WizardComponent {
     document.getElementById('loading').style.display = 'block';
     ipcRenderer.send('main-window-home');
     this.router.navigate(['/home/' + path], {relativeTo: this.route});
+  }
+
+  setIntroActive(active) {
+    this.dataService.setSetting(DataKeys.WIZARD_INTRO_NOT_ACTIVE, !active);
+    this.introNotActive = !active;
   }
 }
