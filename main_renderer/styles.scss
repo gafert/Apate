@@ -93,6 +93,7 @@ button {
     margin-left: $margin;
     padding: 0em 1em;
     margin-bottom: -1px;
+    cursor: pointer;
 
     &:focus {
       outline: 0;

@@ -10,15 +10,19 @@
 
 .assembly-info {
   overflow: hidden;
+  padding: 0 0.3em 0.3em 0.3em;
 
   table {
     border-collapse: collapse;
   }
 
   .desc {
-    padding-bottom: 0.3em;
-    padding-top: 0.5em;
-    font-size: large;
+    padding-bottom: 0.5em;
+    font-weight: bold;
+
+    &:nth-child(1n + 3) {
+      padding-top: 0.5em;
+    }
 
     &::before {
       content: "";
@@ -28,12 +32,11 @@
       width: 100%;
       margin-right: -100%;
       border-bottom: #ffffff24 solid 1px;
-      margin-bottom: 0.3em;
+      margin-bottom: 0.5em;
     }
   }
 
   .formula {
-    padding-bottom: 0.5em;
     font-style: italic;
   }
 
@@ -42,14 +45,21 @@
   }
 
   .data-value {
-    font-style: italic;
+    font-family: "Roboto Mono", monospace;
     padding: 0;
   }
 }
 
 .instruction-container {
   margin: 0.3em;
-  padding: 0.3em;
+
+  .top-row {
+    padding: 0.3em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
 
   &.was-active {
     background-color: $accentDark;

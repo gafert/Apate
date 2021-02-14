@@ -91,11 +91,11 @@
     [class.active]="instruction.active"
     [class.was-active]="instruction.wasActive"
     variation="contextMenu">
-    <div style="display: flex; justify-content: space-between; align-items: center;" (click)="expandInfo(instruction)">
+    <div class="top-row" (click)="expandInfo(instruction)" tippy="Click to show more" delay="1000">
       <div class="text-rounded-container mono pc" tippy="Program Counter (PC) of the instruction"
            maxWidth="20em">{{instruction.pc}}</div>
       <div style="flex-grow: 1; padding-left: 0.5em"><span
-        tippy="Click to show more">{{info ? info.name : instruction.instructionName }}</span></div>
+        >{{info ? info.name : instruction.instructionName }}</span></div>
       <div class="text-rounded-container mono raw-instruction" [tippy]="rawInstruction" maxWidth="30em"
            [data]="instruction">{{byteToHex(instruction.unparsedInstruction, 8)}}</div>
     </div>
@@ -103,22 +103,38 @@
       <div class="desc">{{info.desc}}</div>
       <div class="formula">{{info.formula}}</div>
       <ng-container *ngIf="info.rs1 || info.rs2 || info.imm || info.rd">
-        <div class="desc">Values</div>
+        <div class="desc">Values stored in the instruction</div>
         <table>
           <tr *ngIf="info.rs1">
-            <td class="data-header">RS1 Addr.</td>
+            <ng-template #rs1>
+              <strong>Register Source Address 1</strong><br>
+              See Register Tab on the right for more Information
+            </ng-template>
+            <td class="data-header" [tippy]="rs1">RS1 Addr.</td>
             <td class="data-value">{{instruction.rs1}}</td>
           </tr>
           <tr *ngIf="info.rs2">
-            <td class="data-header">RS2 Addr.</td>
+            <ng-template #rs2>
+              <strong>Register Source Address 2</strong><br>
+              See Register Tab on the right for more Information
+            </ng-template>
+            <td class="data-header" [tippy]="rs2">RS2 Addr.</td>
             <td class="data-value">{{instruction.rs2}}</td>
           </tr>
           <tr *ngIf="info.rd">
-            <td class="data-header">RD Addr.</td>
+            <ng-template #rd>
+              <strong>Return Register Address</strong><br>
+              See Register Tab on the right for more Information
+            </ng-template>
+            <td class="data-header" [tippy]="rd">RD</td>
             <td class="data-value">{{instruction.rd}}</td>
           </tr>
           <tr *ngIf="info.imm">
-            <td class="data-header">IMM Value</td>
+            <ng-template #imm>
+              <strong>Immediate Value</strong><br>
+              Will be used on some way to calculate the above formula
+            </ng-template>
+            <td class="data-header" [tippy]="imm">IMM</td>
             <td class="data-value">{{instruction.imm}}</td>
           </tr>
         </table>
