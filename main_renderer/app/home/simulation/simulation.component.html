@@ -26,9 +26,11 @@
   </div>
   <app-graph class="canvas"></app-graph>
 
-  <div class="info" *ngIf="infoText">
-    <i class="fas fa-info-circle"></i>
-    <div [innerHTML]="infoText | safeHtml"></div>
+  <div class="info" *ngIf="infoText" [@openClose]="showInfo ? 'open' : 'closed'">
+    <i class="fas fa-info-circle" (click)="showInfo = !showInfo"></i>
+    <div class="text-holder">
+      <div class="text" [innerHTML]="infoText | safeHtml" ></div>
+    </div>
   </div>
 </div>
 

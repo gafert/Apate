@@ -1,25 +1,102 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {byteToHex, range, readStyleProperty} from '../../utils/helper';
-import {CPUService} from './services/cpu.service';
-import {InstructionsComponent} from './components/instructions/instructions.component';
-import {BehaviorSubject} from 'rxjs';
-import {DataKeys, DataService} from '../../services/data.service';
-import {GraphService} from './services/graph.service';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { byteToHex, range, readStyleProperty } from '../../utils/helper';
+import { CPUService } from './services/cpu.service';
+import { InstructionsComponent } from './components/instructions/instructions.component';
+import { BehaviorSubject } from 'rxjs';
+import { DataKeys, DataService } from '../../services/data.service';
+import { GraphService } from './services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
-import {Bindings, CPU_STATE_NAMES, CPU_STATES} from './services/bindingSubjects';
-import {Areas} from './services/graphHelpers/helpers';
-import {ProjectService} from "../../services/project.service";
+import { Bindings, CPU_STATE_NAMES, CPU_STATES } from './services/bindingSubjects';
+import { Areas } from './services/graphHelpers/helpers';
+import { ProjectService } from '../../services/project.service';
+import { animate, animation, sequence, state, style, transition, trigger, useAnimation } from '@angular/animations';
+
+const closedStyle = style({
+  maxHeight: '0',
+  width: '0',
+  paddingTop: '0.3em',
+  paddingBottom: '0.3em',
+  paddingLeft: '0',
+  paddingRight: '0',
+  right: '2em',
+  background: 'white'
+});
+
+const hideAnimation = animation([
+  sequence([
+    style({
+      maxHeight: '*',
+      paddingTop: '*',
+      paddingBottom: '*',
+      right: '*'
+    }), // Apparently these values are only known once it they are styled here
+    animate('0.2s', style({ maxHeight: '0em' })),
+    animate('0.1s', style({
+      paddingTop: '0.3em',
+      paddingBottom: '0.3em'
+    })),
+    animate('0.2s', closedStyle)
+  ])
+]);
+
+const showAnimation = animation([
+  sequence([
+    closedStyle,
+    animate('0.2s', style({
+      width: '*',
+      paddingLeft: '*',
+      paddingRight: '*',
+      background: '*',
+      right: '*'
+    })),
+    animate('0.1s linear', style({
+      paddingTop: '*',
+      paddingBottom: '*'
+    })),
+    animate('0.2s linear')
+  ])
+]);
 
 @Component({
   selector: 'app-simulation',
   templateUrl: './simulation.component.html',
-  styleUrls: ['./simulation.component.scss']
+  styleUrls: ['./simulation.component.scss'],
+  animations: [
+    trigger('openClose', [
+      state('closed', closedStyle),
+      state('open', style({})),
+      transition('open => closed', [useAnimation(hideAnimation)]),
+      transition('closed => open', [useAnimation(showAnimation)]),
+      transition('open => void', [
+        sequence([
+          useAnimation(hideAnimation),
+          animate('0.2s', style({ opacity: '0' })),
+          style({ display: 'none' })
+        ])
+      ]),
+      transition('closed => void', [
+        sequence([
+          animate('0.2s', style({ opacity: '0' })),
+          style({ display: 'none' })
+        ])
+      ]),
+      transition('void => open', [
+        sequence([
+          style({ display: 'block', opacity: '0' }),
+          closedStyle,
+          animate('0.2s', style({ opacity: '1' })),
+          useAnimation(showAnimation),
+        ])
+      ])
+    ])
+  ]
 })
 export class SimulationComponent implements OnInit, OnDestroy {
   @ViewChild('instructionsComponent') instructionsComponent: InstructionsComponent;
   public byteToHex = byteToHex;
   public readStyleProperty = readStyleProperty;
   public range = range;
+  public showInfo = true;
   // If step by step should be enabled
   public elaborateSteps = true;
   // Step may be disabled if animations are running
@@ -27,7 +104,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public selectedTab: Areas = this.dataService.getVolatileData(this.constructor.name, 'selectedTab', 'overview');
   // Displayed on top
   public stageName = this.dataService.getVolatileData(this.constructor.name, 'stageName', 'Initiate the simulation');
-  public stageSubject: BehaviorSubject<CPU_STATES> = this.dataService.getVolatileData(this.constructor.name, 'stageSubject', new BehaviorSubject<CPU_STATES>(null))
+  public stageSubject: BehaviorSubject<CPU_STATES> = this.dataService.getVolatileData(this.constructor.name, 'stageSubject', new BehaviorSubject<CPU_STATES>(null));
   // Infotext
   public infoText = this.dataService.getVolatileData(this.constructor.name, 'infoText', undefined);
   // Set by elaborate steps, will reset selectedTab to this
@@ -37,18 +114,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
   private instrCounter = this.dataService.getVolatileData(this.constructor.name, 'instrCounter', 0);
   private infoCounter = this.dataService.getVolatileData(this.constructor.name, 'infoCounter', 0);
   private stageExecuted = this.dataService.getVolatileData(this.constructor.name, 'stageExecuted', false);
-
-  ngOnDestroy() {
-    this.dataService.setVolatileData(this.constructor.name, 'selectedTab', this.selectedTab)
-    this.dataService.setVolatileData(this.constructor.name, 'stageSubject', this.stageSubject)
-    this.dataService.setVolatileData(this.constructor.name, 'stageName', this.stageName)
-    this.dataService.setVolatileData(this.constructor.name, 'infoText', this.infoText)
-    this.dataService.setVolatileData(this.constructor.name, 'currentArea', this.currentArea)
-    this.dataService.setVolatileData(this.constructor.name, 'currentFocus', this.currentFocus)
-    this.dataService.setVolatileData(this.constructor.name, 'instrCounter', this.instrCounter)
-    this.dataService.setVolatileData(this.constructor.name, 'infoCounter', this.infoCounter)
-    this.dataService.setVolatileData(this.constructor.name, 'stageExecuted', this.stageExecuted)
-  }
 
   constructor(
     public cpu: CPUService,
@@ -64,11 +129,11 @@ export class SimulationComponent implements OnInit, OnDestroy {
       this.dataService.setSetting(DataKeys.ELABORATE_STEPS, true);
     }
 
-    this.graphService.onChangeCurrentArea.subscribe(({area, animate}) => {
+    this.graphService.onChangeCurrentArea.subscribe(({ area, animate }) => {
       this.goToArea(area, animate);
       // Comes from other zone, call change detection manually
       this.changeDetection.detectChanges();
-    })
+    });
   }
 
   private _stage: CPU_STATES;
@@ -80,6 +145,18 @@ export class SimulationComponent implements OnInit, OnDestroy {
   public set stage(stage: CPU_STATES) {
     this._stage = stage;
     this.stageSubject.next(this._stage);
+  }
+
+  ngOnDestroy() {
+    this.dataService.setVolatileData(this.constructor.name, 'selectedTab', this.selectedTab);
+    this.dataService.setVolatileData(this.constructor.name, 'stageSubject', this.stageSubject);
+    this.dataService.setVolatileData(this.constructor.name, 'stageName', this.stageName);
+    this.dataService.setVolatileData(this.constructor.name, 'infoText', this.infoText);
+    this.dataService.setVolatileData(this.constructor.name, 'currentArea', this.currentArea);
+    this.dataService.setVolatileData(this.constructor.name, 'currentFocus', this.currentFocus);
+    this.dataService.setVolatileData(this.constructor.name, 'instrCounter', this.instrCounter);
+    this.dataService.setVolatileData(this.constructor.name, 'infoCounter', this.infoCounter);
+    this.dataService.setVolatileData(this.constructor.name, 'stageExecuted', this.stageExecuted);
   }
 
   ngOnInit() {
@@ -138,6 +215,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
     const info = this.getNextInfo(this.cpu.bindings);
     this.infoText = info.text;
+    this.showInfo = true;
 
     if (info.startOfStage) {
       this.stageExecuted = false;
@@ -210,11 +288,11 @@ export class SimulationComponent implements OnInit, OnDestroy {
       if (stage === RISCV_STAGES[instrCounter].start) {
         reachedCurrentStart = true;
         if (!this.stageExecuted) {
-          console.log("Current stage not executed yet, going to info before start of this stage")
+          console.log('Current stage not executed yet, going to info before start of this stage');
           break;
         }
       } else if (reachedCurrentStart && RISCV_STAGES[instrCounter].start) {
-        console.log("Current stage already executed, going to next info before next start");
+        console.log('Current stage already executed, going to next info before next start');
         break;
       }
 
@@ -233,6 +311,42 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.currentFocus = focusElement;
     this.infoCounter = infoCounter;
     this.instrCounter = instrCounter;
+  }
+
+  /**
+   * Run until a specific PC is reached and continue from there normally
+   * @param pc
+   */
+  public runToPC(pc) {
+    this.graphService.update.animations = false;
+    this.graphService.update.updateVisibilities = false;
+    this.graphService.update.updateSignalTexts = false;
+    this.cpu.runUntilPC(pc).then(() => {
+      this.graphService.update.animations = true;
+      this.graphService.update.updateVisibilities = true;
+      this.graphService.update.updateSignalTexts = true;
+      this.graphService.updateGraph(true);
+      this.stageExecuted = true;
+      this.setNextInfoByStage(CPU_STATES.ADVANCE_PC);
+      this.stepSimulation();
+    });
+  }
+
+  /**
+   * Reset simulation
+   */
+  public resetSimulation() {
+    this.cpu.reset();
+    this.infoText = undefined;
+    this.instrCounter = 0;
+    this.infoCounter = 0;
+    this.currentFocus = undefined;
+    this.currentFocus = undefined;
+    this.stageExecuted = false;
+    this.stageSubject.next(null);
+    this.goToArea('overview');
+    this.graphService.removeAllHighlights();
+    this.stageName = 'Initiate the simulation';
   }
 
   /**
@@ -300,42 +414,6 @@ export class SimulationComponent implements OnInit, OnDestroy {
     } else {
       this.infoCounter++;
     }
-    return {...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage};
-  }
-
-  /**
-   * Run until a specific PC is reached and continue from there normally
-   * @param pc
-   */
-  public runToPC(pc) {
-    this.graphService.update.animations = false
-    this.graphService.update.updateVisibilities = false;
-    this.graphService.update.updateSignalTexts = false;
-    this.cpu.runUntilPC(pc).then(() => {
-      this.graphService.update.animations = true;
-      this.graphService.update.updateVisibilities = true;
-      this.graphService.update.updateSignalTexts = true;
-      this.graphService.updateGraph(true);
-      this.stageExecuted = true;
-      this.setNextInfoByStage(CPU_STATES.ADVANCE_PC);
-      this.stepSimulation();
-    });
-  }
-
-  /**
-   * Reset simulation
-   */
-  public resetSimulation() {
-    this.cpu.reset();
-    this.infoText = undefined;
-    this.instrCounter = 0;
-    this.infoCounter = 0;
-    this.currentFocus = undefined;
-    this.currentFocus = undefined;
-    this.stageExecuted = false;
-    this.stageSubject.next(null);
-    this.goToArea('overview');
-    this.graphService.removeAllHighlights();
-    this.stageName = 'Initiate the simulation';
+    return { ...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage };
   }
 }
