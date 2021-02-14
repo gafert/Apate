@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {remote} from "electron";
+import { AfterViewInit, Component, Input, OnDestroy } from '@angular/core';
+import { remote } from 'electron';
 
 @Component({
   selector: 'app-window',
@@ -7,7 +7,7 @@ import {remote} from "electron";
   styleUrls: ['./window.component.scss']
 })
 export class WindowComponent implements AfterViewInit, OnDestroy {
-  @Input() name = "CPU Simulator";
+  @Input() name = "Apate";
   @Input() info = "";
   @Input() showMinimize = true;
   @Input() showMaximize = true;

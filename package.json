@@ -1,7 +1,7 @@
 {
-  "name": "cpu-sim",
+  "name": "apate",
   "version": "1.0.2",
-  "description": "CPU Visualisation based on a RISC V ISA",
+  "description": "CPU Visualisation based on a RISC-V ISA",
   "author": {
     "name": "Michael Gafert",
     "email": "m.gafert@outlook.com"

@@ -1,5 +1,5 @@
 {
-  "productName": "RISC-V Visualizer",
+  "productName": "Apate",
   "directories": {
     "output": "release/"
   },

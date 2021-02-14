@@ -62,7 +62,7 @@
       exec: decode
     - text: >
         Secondly, we can parse other values in the instruction. Which values are used in this instruction can be seen in the
-        <div class="wikilink" onclick="navigateInAngular('/home/wiki?instruction_table')">Instruction Table</div>.
+        <div class="wikilink" onclick="navigateInAngular('/home/wiki?instructiontable')">Instruction Table</div>.
         Not used signals are hidden.
         <br><br>
         <div class="port">FUNCT3</div> and <div class="port">FUNCT7</div> are only used inside the <div class="module controlunit">Control Unit</div>
@@ -113,7 +113,7 @@
   start: execute
   infos:
     - text: >
-        You reached the <div class="wikilink" onclick="navigateInAngular('/home/wiki?entry')">Execution Stage</div>.
+        You reached the <div class="wikilink" onclick="navigateInAngular('/home/wiki?executionstage')">Execution Stage</div>.
         <br><br>
         This stage consists of three blocks: <div class="module alu">ALU</div>, <div class="module memory">Memory</div>, and <div class="module branchevaluator">Branch Evaluator</div>.
         Depending on the opcode only one of these blocks is used.

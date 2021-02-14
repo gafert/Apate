@@ -1,12 +1,12 @@
-![Build/release](https://github.com/gafert/RISC-V-Simulation/workflows/Build/release/badge.svg)
+![Build/release](https://github.com/gafert/Apate/workflows/Build/release/badge.svg)
 
 # Apate - a visual CPU Simulator
 
-Download the latest [release](https://github.com/gafert/RISC-V-Simulation/releases).
+Download the latest [release](https://github.com/gafert/Apate/releases).
 
 This simulator is a tool for students to learn the inner workings of a CPU. Based on the RISC V instruction set (RV32I) it provides a visual step by step guid trough the flow of a CPU. 
 
-![Screenshot](https://github.com/gafert/RISC-V-Simulation/blob/master/res/apate.png?raw=true)
+![Screenshot](https://github.com/gafert/Apate/blob/master/res/apate.png?raw=true)
 
 ## Features
 

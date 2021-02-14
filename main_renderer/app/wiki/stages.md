@@ -1,5 +1,5 @@
 ---
-title: "CPU Simulation - Stages"
+title: "Apate - Stages"
 author: Michael Gafert
 date: November 21, 2020
 geometry: margin=2cm
