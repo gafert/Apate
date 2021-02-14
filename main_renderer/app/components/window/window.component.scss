@@ -65,6 +65,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-right: 1em;
+    flex-shrink: 0;
   }
 
   .actions {
@@ -95,6 +96,13 @@
     .title {
       font-weight: bold;
     }
+  }
+}
+
+// If big set name to left
+::ng-deep .maximized {
+  .mac .window-title {
+    margin-left: var(--windowHeaderTitleHeight) !important;
   }
 }
 
