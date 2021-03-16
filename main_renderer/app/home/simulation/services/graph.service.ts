@@ -22,19 +22,24 @@ import { animate, linear } from 'popmotion';
 import tippy, { Instance, Props } from 'tippy.js';
 import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
 import SVG_IDS from '../../../yamls/ids.yml';
-import { Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal } from './graphHelpers/helpers';
-import { centerCameraOnElement, focusCameraOnElement, forceStopFocus } from './graphHelpers/helperFocus';
-import { hideElement, highLightElement, removeAllHighlights, showElement } from './graphHelpers/helperVisibility';
-import { getModuleName, getPortName, getSName, getWName } from './graphHelpers/helperNameMatch';
+import { Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal } from './graphServiceHelpers/helpers';
+import { centerCameraOnElement, focusCameraOnElement, forceStopFocus } from './graphServiceHelpers/helperFocus';
+import {
+  hideElement,
+  highLightElement,
+  removeAllHighlights,
+  showElement
+} from './graphServiceHelpers/helperVisibility';
+import { getModuleName, getPortName, getSName, getWName } from './graphServiceHelpers/helperNameMatch';
 import initiateSVGObjects, {
   addSignalTextsAndUpdate,
   highlightStage,
   updateActiveElements,
   updateSignalTexts
-} from './graphHelpers/helperSVGObject';
+} from './graphServiceHelpers/helperSVGObject';
 import { CPU_STATES } from './bindingSubjects';
-import {fromEvent, Subject} from "rxjs";
-import {cumulativeOffset} from "../../../utils/helper";
+import { fromEvent, Subject } from 'rxjs';
+import { cumulativeOffset } from '../../../utils/helper';
 
 @Injectable({
   providedIn: 'root'

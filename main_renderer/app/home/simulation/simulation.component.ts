@@ -7,7 +7,7 @@ import { DataKeys, DataService } from '../../services/data.service';
 import { GraphService } from './services/graph.service';
 import RISCV_STAGES from '../../yamls/stages.yml';
 import { Bindings, CPU_STATE_NAMES, CPU_STATES } from './services/bindingSubjects';
-import { Areas } from './services/graphHelpers/helpers';
+import { Areas } from './services/graphServiceHelpers/helpers';
 import { ProjectService } from '../../services/project.service';
 import { animate, animation, sequence, state, style, transition, trigger, useAnimation } from '@angular/animations';
 

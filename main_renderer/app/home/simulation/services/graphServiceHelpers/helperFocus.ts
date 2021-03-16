@@ -1,6 +1,6 @@
-import {Camera, Mesh} from "three";
-import {animate, easeIn} from "popmotion";
-import {getCenterOfMeshes, IdFlatInterface} from "./helpers";
+import { Camera, Mesh } from 'three';
+import { animate, easeIn } from 'popmotion';
+import { getCenterOfMeshes, IdFlatInterface } from './helpers';
 
 // Stop the animation if it is already running
 let focusAnimation: any;

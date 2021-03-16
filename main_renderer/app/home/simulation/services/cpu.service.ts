@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Bindings, CPU_STATES } from './bindingSubjects';
 import { readFileSync } from 'fs';
 import { Instruction, INSTRUCTIONS, OPCODES, parseInstruction } from '../../../utils/instructionParser';
-import { parseElf, parseElfRISCVInstructions } from '../../../utils/elfParser';
+import { ELF, parseElf, parseElfRISCVInstructions } from '../../../utils/elfParser';
 import { setZeroTimeout } from '../../../utils/helper';
 
 
@@ -12,7 +12,7 @@ import { setZeroTimeout } from '../../../utils/helper';
 export class CPUService {
   public bindings = new Bindings();
   public elfIsLoaded = false;
-  public parsedElf;
+  public parsedElf: ELF;
 
   constructor() {
   }

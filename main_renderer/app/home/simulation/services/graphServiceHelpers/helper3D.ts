@@ -1,4 +1,4 @@
-import {Geometry, Vector2} from "three";
+import { Geometry, Vector2 } from 'three';
 
 export function computeUVsOfPlane(geometry: Geometry) {
   geometry.computeBoundingBox();

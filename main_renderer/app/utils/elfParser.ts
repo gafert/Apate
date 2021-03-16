@@ -1,4 +1,4 @@
-import {Instruction, parseInstruction} from './instructionParser';
+import { Instruction, parseInstruction } from './instructionParser';
 
 export enum SHF_CONSTANTS {
   SHF_WRITE = 0x1,
@@ -53,6 +53,8 @@ export interface ELFSectionHeader {
 }
 
 export interface ELF {
+  /** Section Header start */
+  e_machine: number;
   /** Section Header start */
   e_shoff: number;
   /** Section Header number */
@@ -113,14 +115,13 @@ function readString(data, location) {
  */
 export function parseElf(elf: Buffer): ELF {
   const parsedElf: ELF = {
-    e_shentsize: 0, e_shnum: 0, section_headers: [],
-    e_shoff: 0,
-    e_shstrndx: 0,
-    symbols: [],
+    e_machine: 0, e_shentsize: 0, e_shnum: 0, section_headers: [],
+    e_shoff: 0, e_shstrndx: 0, symbols: [],
     e_phoff: 0, p_memsz: 0, p_offset: 0, program: undefined
   };
 
   // Read Section Header
+  parsedElf.e_machine = read2BytesLittleEndian(elf, 0x12);
   parsedElf.e_shoff = read4BytesLittleEndian(elf, 0x20);
   parsedElf.e_shentsize = read2BytesLittleEndian(elf, 0x2E);
   parsedElf.e_shnum = read2BytesLittleEndian(elf, 0x30);

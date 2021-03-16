@@ -78,10 +78,10 @@ module.exports = (config, options) => {
   ];
 
   config.plugins = [
-    ...config.plugins,
+    ...config.plugins /*,
     new BundleAnalyzerPlugin({
       generateStatsFile: true
-    })
+    })*/
   ];
 
   // Could be fun

@@ -1,9 +1,9 @@
 import { SVGLoader } from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./riscv.svg';
-import {BufferGeometry, Color, Mesh, Object3D, ShapeGeometry, Vector2, Vector3} from 'three';
+import { BufferGeometry, Color, Mesh, Object3D, ShapeGeometry, Vector2 } from 'three';
 import { checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface, Signal } from './helpers';
 import { getSName } from './helperNameMatch';
-import {SpriteText2D, textAlign} from 'three-text2d';
+import { textAlign } from 'three-text2d';
 import * as d3 from 'd3';
 import * as tinycolor from 'tinycolor2';
 import { Bindings, CPU_STATES } from '../bindingSubjects';

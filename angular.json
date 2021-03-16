@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "angular-electron": {
+    "apate": {
       "root": "",
       "sourceRoot": "main_renderer",
       "projectType": "application",
@@ -93,24 +93,43 @@
         "serve": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "browserTarget": "angular-electron:build"
+            "browserTarget": "apate:build"
           },
           "configurations": {
             "dev": {
-              "browserTarget": "angular-electron:build:dev"
+              "browserTarget": "apate:build:dev"
             },
             "web": {
-              "browserTarget": "angular-electron:build:web"
+              "browserTarget": "apate:build:web"
             },
             "production": {
-              "browserTarget": "angular-electron:build:production"
+              "browserTarget": "apate:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "angular-electron:build"
+            "browserTarget": "apate:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-builders/custom-webpack:karma",
+          "options": {
+            "main": "main_renderer/test.ts",
+            "polyfills": "main_renderer/polyfills-test.ts",
+            "tsConfig": "main_renderer/tsconfig.spec.json",
+            "karmaConfig": "main_renderer/karma.conf.js",
+            "scripts": [],
+            "styles": [
+              "main_renderer/styles.scss"
+            ],
+            "assets": [
+              "main_renderer/assets"
+            ],
+            "customWebpackConfig": {
+              "path": "./angular.webpack.js"
+            }
           }
         },
         "lint": {
@@ -129,7 +148,7 @@
       }
     }
   },
-  "defaultProject": "angular-electron",
+  "defaultProject": "apate",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",
