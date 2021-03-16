@@ -1,3 +1,5 @@
+import { byteToHex } from './helper';
+
 export enum IMM_FUNC {
   ADDI = 0,
   SLLI = 1,
@@ -550,6 +552,9 @@ export interface Instruction {
 
   /** Where in memory this instruction is saved, not filled by this parser but by an elf loader **/
   pc?: number;
+
+  /** Assembly of the instruction as shown by objdump **/
+  assembly?: string;
 }
 
 export function convertToSigned(bitnumber, bitlenght): number {
@@ -718,11 +723,47 @@ export function getNameOfGroup(opcode): 'imm' | 'op' | 'lui' | 'auipc' | 'jal' |
   if (opcode === OPCODES.SYSTEM) return 'system';
 }
 
+const cpuRegDefinitions = [
+  ['zero', 'Fixed Zero'],
+  ['ra', 'Return address'],
+  ['sp', 'Stack pointer'],
+  ['gp', 'Global pointer'],
+  ['tp', 'Thread pointer'],
+  ['t0', 'Temporary / alternate return address'],
+  ['t1', 'Temporary'],
+  ['t2', 'Temporary'],
+  ['s0', 'Saved register / frame pointer'],
+  ['s1', 'Saved register'],
+  ['a0', 'Function argument / return value'],
+  ['a1', 'Function argument / return value'],
+  ['a2', 'Function argument'],
+  ['a3', 'Function argument'],
+  ['a4', 'Function argument'],
+  ['a5', 'Function argument'],
+  ['a6', 'Function argument'],
+  ['a7', 'Function argument'],
+  ['s2', 'Saved register'],
+  ['s3', 'Saved register'],
+  ['s4', 'Saved register'],
+  ['s5', 'Saved register'],
+  ['s6', 'Saved register'],
+  ['s7', 'Saved register'],
+  ['s8', 'Saved register'],
+  ['s9', 'Saved register'],
+  ['s10', 'Saved register'],
+  ['s11', 'Saved register'],
+  ['t3', 'Temporary'],
+  ['t4', 'Temporary'],
+  ['t5', 'Temporary'],
+  ['t6', 'Temporary']
+];
+
+
 /**
  * Parses a instruction e.g. 0x058000ef. BigEndian encoding.
  * @param instruction The instruction encoded in big endian as a number
  */
-export function parseInstruction(instruction): Instruction {
+export function parseInstruction(instruction, addr = 0): Instruction {
   const always11 = (instruction) & 0b11; // The first two bits are always 11
   const opcode = (instruction >> 2) & 0b11111;
   const type = OPCODE_INSTRUCTION_FORMAT[opcode];
@@ -807,6 +848,37 @@ export function parseInstruction(instruction): Instruction {
   }
 
   const name = getNameFromInstruction(opcode, func3, func7, imm);
+  const description = INSTRUCTIONS_DESCRIPTIONS[name];
+
+  const rdString = description.rd ? cpuRegDefinitions[rd][0] : '';
+  const rs1String = description.rs1 ? cpuRegDefinitions[rs1][0] : '';
+  const rs2String = description.rs2 ? cpuRegDefinitions[rs2][0] : '';
+
+  let assembly;
+  switch (opcode) {
+    case OPCODES.STORE:
+      assembly = `${name.toLowerCase()} ${rs2String},${imm}(${rs1String})`
+      break;
+    case OPCODES.JALR:
+    case OPCODES.LOAD:
+      assembly = `${name.toLowerCase()} ${rdString},${imm}(${rs1String})`
+      break;
+    case OPCODES.JAL:
+      assembly = `${name.toLowerCase()} ${rdString},${byteToHex(imm + addr, 0).toLowerCase()}`
+      break;
+    case OPCODES.BRANCH:
+      assembly = `${name.toLowerCase()} ${rs1String},${rs2String},${byteToHex(imm + addr, 0).toLowerCase()}`
+      break;
+    case OPCODES.SYSTEM:
+      assembly = `${name.toLowerCase()}`
+      break;
+    case OPCODES.LUI:
+      assembly = `${name.toLowerCase()} ${rdString},0x${byteToHex(imm, 0).toLowerCase()}`
+      break;
+    default:
+      assembly = `${name.toLowerCase()}${description.rd ? (' ' + rdString) : ''}${description.rs1 ? (',' + rs1String) : ''}${description.rs2 ? (',' + rs2String) : ''}${description.imm ? (',' + imm) : ''}`
+  }
+
   const parsedInstruction: Instruction = {
     unparsedInstruction: instruction,
     instructionTypeFormat: type,
@@ -824,10 +896,12 @@ export function parseInstruction(instruction): Instruction {
     rs1: rs1,
     rs2: rs2,
     instructionName: name,
-    description: INSTRUCTIONS_DESCRIPTIONS[name]
+    description: description,
+    assembly: assembly,
   };
 
   return parsedInstruction;
 }
+
 
 

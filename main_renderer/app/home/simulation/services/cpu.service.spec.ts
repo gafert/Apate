@@ -3,12 +3,6 @@ import { TestBed } from '@angular/core/testing';
 import { CPUService } from './cpu.service';
 import { execSync } from 'child_process';
 
-/*it('riscv64-unknown-elf-objdump', function() {
-  const stdout = execSync('riscv64-unknown-elf-objdump -v').toString();
-  expect(stdout.startsWith("GNU objdump ")).toBeTrue();
-  console.log("riscv64-unknown-elf-objdump with version " + stdout.split(/([ \n\r])/)[8] + " is installed");
-});*/
-
 const elfLocations = [
   { name: 'adder', location: 'main_renderer/static/demos/adder/main.elf' },
   { name: 'function', location: 'main_renderer/static/demos/function/main.elf' },
@@ -140,5 +134,43 @@ elfLocations.forEach((elf) => {
 
       console.log(`${service.parsedElf.section_headers.length - 1} section headers have been parsed and equal in name, offset and size`);
     });
+
+    it('instruction parser', function() {
+      const service = initCPUService(elfPath);
+
+      // Get assembly from elf
+      // Flatten arrays and remove undefined
+      const instructions = service.parsedElf.symbols.map((header) => {
+        return header.instructions?.map((inst) => {
+          return inst.assembly
+        })
+      }).flat().filter(Boolean);
+
+      const objdump = execSync(`riscv64-unknown-elf-objdump ${elfPath} -S -M no-aliases`).toString();
+      const regex = /[0-9a-fA-F]+:\t[0-9a-fA-F]+\s+(\w+\t*[\w\d,-/(/)]+)/;
+
+      let instructionCounter = 0;
+
+      const lines = objdump.split("\n");
+      for (const l of lines) {
+        const match = regex.exec(l);
+
+        // If no match in objdump stdout ignore line
+        if(!match) continue;
+
+        // Replace tab with space
+        const assembly = match[1].replace("\t", " ");
+
+        // Some are undefined in the javascript parsed and listed as unimp by objdump, ignore
+        if(assembly.includes("unimp")) continue;
+
+        expect(instructions[instructionCounter]).toEqual(assembly);
+
+        console.log(instructions[instructionCounter] + "\t\t" + assembly);
+
+        instructionCounter++;
+      }
+    });
   });
 });
+

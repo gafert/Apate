@@ -223,9 +223,10 @@ export function parseElfRISCVInstructions(parsedElf: ELF, elf: Buffer) {
             }
           }
           for (let i = parsedElf.p_offset + symbol.st_value; i < lastOffset; i = i + 4) {
-            const instruction = parseInstruction(read4BytesLittleEndian(elf, i));
+            const pc = i - parsedElf.p_offset;
+            const instruction = parseInstruction(read4BytesLittleEndian(elf, i), pc);
             // Add where the parsed instruction is
-            instruction.pc = i - parsedElf.p_offset;
+            instruction.pc = pc;
             symbol.instructions.push(instruction);
           }
         }
