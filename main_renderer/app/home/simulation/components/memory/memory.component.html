@@ -65,11 +65,11 @@
         </thead>
         <tbody #container>
         <tr *ngFor="let i of scroll.viewPortItems" [class.active]="i === address">
-          <td *ngIf="!addressAsDecimal" class="address">{{byteToHex(i, 2)}}</td>
-          <td *ngIf="addressAsDecimal" class="address">{{i}}</td>
+          <td *ngIf="!addressAsDecimal" class="address" tippy="as dec: {{i}}">{{byteToHex(i, 2)}}</td>
+          <td *ngIf="addressAsDecimal" class="address" tippy="as hex: {{byteToHex(i, 2)}}">{{i}}</td>
           <td class="separator"></td>
-          <td *ngIf="!dataAsDecimal" class="data-hex">{{get4BytesHex(memory, i)}}</td>
-          <td *ngIf="dataAsDecimal" class="data-decimal">{{read4BytesLittleEndian(memory, i)}}</td>
+          <td *ngIf="!dataAsDecimal" class="data-hex" tippy="as dec: {{read4BytesLittleEndian(memory, i)}}">{{get4BytesHex(memory, i)}}</td>
+          <td *ngIf="dataAsDecimal" class="data-decimal" tippy="as hex: {{get4BytesHex(memory, i)}}">{{read4BytesLittleEndian(memory, i)}}</td>
           <td class="separator"></td>
           <td class="data-ascii">{{get4BytesAscii(memory, i)}}</td>
         </tr>
