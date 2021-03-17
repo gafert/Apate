@@ -1,6 +1,6 @@
 {
   "name": "apate",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "CPU Visualisation based on a RISC-V ISA",
   "author": {
     "name": "Michael Gafert",
