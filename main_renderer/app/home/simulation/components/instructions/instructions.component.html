@@ -95,7 +95,7 @@
       <div class="text-rounded-container mono pc" tippy="Program Counter (PC) of the instruction"
            maxWidth="20em">{{instruction.pc}}</div>
       <div style="flex-grow: 1; padding-left: 0.5em"><span
-        >{{info ? info.name : instruction.instructionName }}</span></div>
+        >{{instruction.assembly }}</span></div>
       <div class="text-rounded-container mono raw-instruction" [tippy]="rawInstruction" maxWidth="30em"
            [data]="instruction">{{byteToHex(instruction.unparsedInstruction, 8)}}</div>
     </div>
@@ -111,7 +111,7 @@
               See Register Tab on the right for more Information
             </ng-template>
             <td class="data-header" [tippy]="rs1">RS1 Addr.</td>
-            <td class="data-value">{{instruction.rs1}}</td>
+            <td class="data-value">{{instruction.rs1}} -> {{cpuRegDefinitions[instruction.rs1][0]}}</td>
           </tr>
           <tr *ngIf="info.rs2">
             <ng-template #rs2>
@@ -119,7 +119,7 @@
               See Register Tab on the right for more Information
             </ng-template>
             <td class="data-header" [tippy]="rs2">RS2 Addr.</td>
-            <td class="data-value">{{instruction.rs2}}</td>
+            <td class="data-value">{{instruction.rs2}} -> {{cpuRegDefinitions[instruction.rs2][0]}}</td>
           </tr>
           <tr *ngIf="info.rd">
             <ng-template #rd>
@@ -127,7 +127,7 @@
               See Register Tab on the right for more Information
             </ng-template>
             <td class="data-header" [tippy]="rd">RD</td>
-            <td class="data-value">{{instruction.rd}}</td>
+            <td class="data-value">{{instruction.rd}} -> {{cpuRegDefinitions[instruction.rd][0]}}</td>
           </tr>
           <tr *ngIf="info.imm">
             <ng-template #imm>
