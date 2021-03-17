@@ -31,6 +31,7 @@ $registerColors: (
   table-layout: fixed;
   border-spacing: 0;
   border-collapse: collapse;
+  border-top: $border;
 
   td {
     overflow-y: scroll;
