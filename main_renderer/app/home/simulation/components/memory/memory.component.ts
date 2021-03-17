@@ -5,7 +5,7 @@ import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
 import { INSTRUCTIONS_DESCRIPTIONS, OPCODES } from '../../../../utils/instructionParser';
 import { CPU_STATES } from '../../services/bindingSubjects';
 import { SimulationComponent } from '../../simulation.component';
-import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 @Component({
   selector: 'app-memory',
@@ -78,26 +78,32 @@ export class MemoryComponent implements AfterViewInit {
    * @param location Start of the four bytes
    */
   get4BytesHex(data: Buffer, location) {
-    let s = byteToHex(data[location + 3], 2) + ' ';
-    s += byteToHex(data[location + 2], 2) + ' ';
+    let s = byteToHex(data[location], 2) + ' ';
     s += byteToHex(data[location + 1], 2) + ' ';
-    s += byteToHex(data[location], 2);
+    s += byteToHex(data[location + 2], 2) + ' ';
+    s += byteToHex(data[location + 3], 2);
     return s;
   }
 
   /**
    * Get 4 bytes from memory and display them as ascii.
-   * e.g. 0x484950 -> "012"
+   * e.g. 0x48495000 -> "..HI"
    * @param data Memory array buffer
    * @param location Start of the four bytes
    */
   get4BytesAscii(data: Buffer, location) {
-    let s = String.fromCharCode(data[location + 3]);
-    s += String.fromCharCode(data[location + 2]);
-    s += String.fromCharCode(data[location + 1]);
-    s += String.fromCharCode(data[location]);
-    return s;
+    return this.dataToCharacter(data[location]) + this.dataToCharacter(data[location + 1]) +
+      this.dataToCharacter(data[location + 2]) + this.dataToCharacter(data[location + 3])
   }
+
+  /**
+   * Convert data to character and spaces to dots
+   * @param data
+   */
+  dataToCharacter(data) {
+    return (data < 33 || data > 125) ? '.' : String.fromCharCode(data);
+  }
+
 
   /**
    * Check if the memory is used.
