@@ -1,4 +1,5 @@
-import { byteToHex, cpuRegDefinitions } from './helper';
+import { byteToHex } from './helper';
+import CPU_REGISTER_NAMES from '../yamls/register.yml';
 
 export enum IMM_FUNC {
   ADDI = 0,
@@ -814,9 +815,9 @@ export function parseInstruction(instruction, addr = 0): Instruction {
   const name = getNameFromInstruction(opcode, func3, func7, imm);
   const description = INSTRUCTIONS_DESCRIPTIONS[name];
 
-  const rdString = description.rd ? cpuRegDefinitions[rd][0] : '';
-  const rs1String = description.rs1 ? cpuRegDefinitions[rs1][0] : '';
-  const rs2String = description.rs2 ? cpuRegDefinitions[rs2][0] : '';
+  const rdString = description.rd ? CPU_REGISTER_NAMES[rd][0] : '';
+  const rs1String = description.rs1 ? CPU_REGISTER_NAMES[rs1][0] : '';
+  const rs2String = description.rs2 ? CPU_REGISTER_NAMES[rs2][0] : '';
 
   let assembly;
   switch (opcode) {

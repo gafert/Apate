@@ -8,7 +8,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { byteToBinary, byteToHex, cpuRegDefinitions } from '../../../../utils/helper';
+import { byteToBinary, byteToHex } from '../../../../utils/helper';
 import { ELF, ELFSectionHeader, ElfSymbol, SHF_CONSTANTS } from '../../../../utils/elfParser';
 import { Instruction, INSTRUCTIONS_DESCRIPTIONS } from '../../../../utils/instructionParser';
 import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
@@ -17,6 +17,7 @@ import { DataKeys, DataService } from '../../../../services/data.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { skipWhile, take } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
+import CPU_REGISTER_NAMES from '../../../../yamls/register.yml';
 
 interface OptimizedList {
   instruction?: Instruction;
@@ -57,7 +58,7 @@ export class InstructionsComponent implements OnChanges, AfterViewInit {
   public readonly byteToHex = byteToHex;
   public readonly byteToBinary = byteToBinary;
   public readonly DataKeys = DataKeys;
-  public readonly cpuRegDefinitions = cpuRegDefinitions;
+  public readonly cpuRegDefinitions = CPU_REGISTER_NAMES;
 
   @ViewChild(VirtualScrollerComponent) private virtualScroller: VirtualScrollerComponent;
 
