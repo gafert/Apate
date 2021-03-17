@@ -66,6 +66,7 @@ export class InstructionsComponent implements OnChanges, AfterViewInit {
   @Input() public parsedElf: ELF;
 
   @Output() onRunToPC: EventEmitter<number> = new EventEmitter();
+  @Output() onLoadElf: EventEmitter<any> = new EventEmitter();
 
   public optimizedInstructionList: OptimizedList[] = [];
 
@@ -112,6 +113,10 @@ export class InstructionsComponent implements OnChanges, AfterViewInit {
         this.setInstructionColor(changes.programCounter.previousValue, changes.programCounter.currentValue);
       }
     }
+  }
+
+  initiateSimulation() {
+    this.onLoadElf.emit();
   }
 
   expandInfo(instruction: Instruction) {

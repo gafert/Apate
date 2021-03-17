@@ -8,7 +8,7 @@
       </mat-checkbox>
     </div>
     <div class="actions">
-      <button mat-flat-button color="accent" (click)="initiateSimulation()" style="margin-right: 0.5em;">Initiate
+      <button mat-flat-button color="accent" (click)="initiateSimulation()" style="margin-right: 0.5em;">{{cpu.elfIsLoaded ? 'Reload' : 'Load ELF'}}
       </button>
       <button mat-flat-button color="accent" (click)="stepSimulation()" [disabled]="!cpu.elfIsLoaded || stepDisabled">
         Step<i class="fas fa-play" style="margin-left: 0.5em; vertical-align: unset"></i></button>
@@ -37,7 +37,9 @@
 <app-instructions #instructionsComponent
                   [parsedElf]="cpu.parsedElf"
                   [programCounter]="cpu.bindings.pc | async"
-                  class="app-instruction" (onRunToPC)="runToPC($event)"></app-instructions>
+                  class="app-instruction"
+                  (onRunToPC)="runToPC($event)"
+                  (onLoadElf)="initiateSimulation()"></app-instructions>
 
 <app-vertical-tabs class="app-tabs">
   <app-vertical-tabs-item>

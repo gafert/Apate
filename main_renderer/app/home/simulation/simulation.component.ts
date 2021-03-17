@@ -183,7 +183,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.selectedTab = area;
   }
 
-  initiateSimulation() {
+  public initiateSimulation() {
     // Reset all cpu values
     this.cpu.bindings.clearAllValues();
 
