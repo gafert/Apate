@@ -39,6 +39,9 @@
       <span>Registers<i class="fas fa-question-circle" style="margin-left: 0.5em"></i></span>
     </div>
   </div>
+  <div style="margin: 0.5em">
+    <mat-checkbox [(ngModel)]="dataAsDecimal">Data as decimal</mat-checkbox>
+  </div>
   <div class="grid-container--content">
     <table class="reg-table">
       <tr>
@@ -52,7 +55,7 @@
           Name
         </th>
         <th style="width: 25%">
-          Hex
+          {{dataAsDecimal ? 'Dec' : 'Hex'}}
         </th>
         <th style="width: 10%">
           ASCII
@@ -121,7 +124,7 @@
     <span [tippy]="tippyRegisterName" [data]="i">{{cpuRegDefinitions[i][0]}}</span>
   </td>
   <td>
-    <span [tippy]="tippyRegisterValue" [data]="i">{{byteToHex(cpu.bindings.cpuregs.value[i], 2)}}</span>
+    <span [tippy]="tippyRegisterValue" [data]="i">{{dataAsDecimal ? cpu.bindings.cpuregs.value[i] : byteToHex(cpu.bindings.cpuregs.value[i], 2)}}</span>
   </td>
   <td>
     <span [tippy]="tippyRegisterValue" [data]="i">{{fromCharCode(cpu.bindings.cpuregs.value[i])}}</span>

@@ -12,6 +12,7 @@ export class RegistersComponent implements OnInit {
   public readonly byteToHex = byteToHex;
   public readonly fromCharCode = String.fromCharCode;
   public readonly cpuRegDefinitions = CPU_REGISTER_NAMES;
+  public dataAsDecimal = false;
 
   constructor(public cpu: CPUService) {
   }
