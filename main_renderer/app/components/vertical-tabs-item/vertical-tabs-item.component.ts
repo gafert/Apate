@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-vertical-tabs-item',
@@ -6,7 +6,7 @@ import {Component, Input, OnInit} from '@angular/core';
   styleUrls: ['./vertical-tabs-item.component.css']
 })
 export class VerticalTabsItemComponent implements OnInit {
-  @Input('tabTitle') title: string;
+  @ViewChild('title') title;
   @Input() active = false;
 
   constructor() { }

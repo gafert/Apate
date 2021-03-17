@@ -5,7 +5,7 @@
   <div class="vertical-tabs-list" #tabsList>
     <div *ngFor="let tab of tabs" (click)="selectTab(tab)" [class.active]="tab.active"
          class="vertical-tabs-list-component">
-      {{tab.title}}
+      <ng-container *ngTemplateOutlet="tab.title"></ng-container>
     </div>
   </div>
 </div>

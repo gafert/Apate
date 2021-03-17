@@ -1,3 +1,7 @@
 <div [hidden]="!active" style="height: 100%">
-  <ng-content></ng-content>
+  <ng-content select="[content]"></ng-content>
 </div>
+
+<ng-template #title>
+  <ng-content select="[title]"></ng-content>
+</ng-template>

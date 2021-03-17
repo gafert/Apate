@@ -40,14 +40,17 @@
                   class="app-instruction" (onRunToPC)="runToPC($event)"></app-instructions>
 
 <app-vertical-tabs class="app-tabs">
-  <app-vertical-tabs-item tabTitle="Registers">
-    <app-registers class="app-registers"></app-registers>
+  <app-vertical-tabs-item>
+    <span title>Registers<i class="fas fa-circle registers"></i></span>
+    <app-registers content class="app-registers"></app-registers>
   </app-vertical-tabs-item>
-  <app-vertical-tabs-item tabTitle="Memory">
-    <app-memory></app-memory>
+  <app-vertical-tabs-item>
+    <span title>Memory<i class="fas fa-circle memory"></i></span>
+    <app-memory content></app-memory>
   </app-vertical-tabs-item>
-  <app-vertical-tabs-item tabTitle="Terminal">
-    <app-terminal></app-terminal>
+  <app-vertical-tabs-item>
+    <span title>Terminal</span>
+    <app-terminal content></app-terminal>
   </app-vertical-tabs-item>
 </app-vertical-tabs>
 

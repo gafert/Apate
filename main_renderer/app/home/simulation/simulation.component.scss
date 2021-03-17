@@ -20,22 +20,7 @@
   margin-left: -1px;
   margin-top: -1px;
 
-  .control {
-    .tabs {
-      .fas {
-        margin-left: 0.5em;
-        &.alu {
-          color: $colorALU;
-        }
-        &.cu {
-          color: $colorControlUnit;
-        }
-        &.be {
-          color: $colorBranchEval;
-        }
-      }
-    }
-  }
+
 
   .canvas {
     flex: 1 1;
@@ -97,4 +82,31 @@
   height: calc(100% - (#{$gridHeight} * 0));
   right: 0;
   bottom: 0;
+}
+
+.fas {
+  &.alu {
+    color: $colorALU;
+    margin-left: 0.5em;
+  }
+
+  &.cu {
+    color: $colorControlUnit;
+    margin-left: 0.5em;
+  }
+
+  &.be {
+    color: $colorBranchEval;
+    margin-left: 0.5em;
+  }
+
+  &.memory {
+    color: $colorMemory;
+    margin-left: 0.5em;
+  }
+
+  &.registers {
+    color: $colorRegs;
+    margin-left: 0.5em;
+  }
 }
