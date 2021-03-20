@@ -1,12 +1,12 @@
-import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
-import {CPUService} from '../../services/cpu.service';
+import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { CPUService } from '../../services/cpu.service';
 
 @Component({
-  selector: 'app-terminal',
-  templateUrl: './terminal.component.html',
-  styleUrls: ['./terminal.component.css'],
+  selector: 'app-program-output',
+  templateUrl: './program-output.component.html',
+  styleUrls: ['./program-output.component.scss'],
 })
-export class TerminalComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ProgramOutput implements OnInit, OnDestroy, AfterViewInit {
   public terminal = '';
 
   constructor(private SimLib: CPUService) {
