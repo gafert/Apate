@@ -3,34 +3,19 @@
   Displays all 32 registers and their currently stored values.
   Hover over the short name to see the full name.<br><br>
   Each instruction cycle up to three addresses (RD, RS1, RS2) are read from the instruction.
-  These addresses correspond to a position in the registers and are also marked.<br><br>
+  These addresses correspond to a position in the registers and are also marked.<br>
 
-  <table>
-    <tr style="vertical-align: top">
-      <td>
-        <div class="rd-info">RD (Register Destination)</div>
-      </td>
-      <td>
-        Address at which the calculated / loaded data is stored in the 'Write Back' stage.
-      </td>
-    </tr>
-    <tr style="vertical-align: top">
-      <td>
-        <div class="rs1-info">RS1 (Register Source 1)</div>
-      </td>
-      <td>
-        Address at which data is loaded from a register. RS1 and RS2 values are read from the register in the 'Decoder' stage.
-      </td>
-    </tr>
-    <tr style="vertical-align: top">
-      <td>
-        <div class="rs2-info">RS2 (Register Source 2)</div>
-      </td>
-      <td>
-        Additional address at which data is loaded from a register.
-      </td>
-    </tr>
-  </table>
+  <div class="rd-info">RD (Register Destination)</div>
+
+  Address at which the calculated / loaded data is stored in the 'Write Back' stage.
+
+  <div class="rs1-info">RS1 (Register Source 1)</div>
+
+  Address at which data is loaded from a register. RS1 and RS2 values are read from the register in the 'Decoder' stage.
+
+  <div class="rs2-info">RS2 (Register Source 2)</div>
+
+  Additional address at which data is loaded from a register.
 </ng-template>
 
 <div class="grid-container">
