@@ -21,8 +21,8 @@ hr {
   border-bottom: 1px solid #00000029;
 }
 
-// Disable scrollbar
-*::-webkit-scrollbar {
+// Default disable scrollbar, if scrollbars are used @include scrollbars from import.scss
+::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
 

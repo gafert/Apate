@@ -48,3 +48,26 @@ $gridWidth: 11em;
 $gridHeight: 5em;
 
 $border: 1px solid $grey1;
+
+@mixin scrollbar {
+  /* width */
+  *::-webkit-scrollbar {
+    width: 10px;
+    display: block !important;
+  }
+
+  /* Track */
+  *::-webkit-scrollbar-track {
+    background: $grey3;
+  }
+
+  /* Handle */
+  *::-webkit-scrollbar-thumb {
+    background: $grey1;
+  }
+
+  /* Handle on hover */
+  *::-webkit-scrollbar-thumb:hover {
+    background: $grey1;
+  }
+}

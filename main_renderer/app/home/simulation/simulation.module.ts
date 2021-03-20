@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 
-import { MemoryCellComponent } from './components/memory-cell/memory-cell.component';
 import { MemoryComponent } from './components/memory/memory.component';
 import { InstructionsComponent } from './components/instructions/instructions.component';
 import { RegistersComponent } from './components/registers/registers.component';
@@ -29,12 +28,10 @@ const routes: Routes = [
   },
 ];
 
-
 @NgModule({
   declarations: [
     SimulationComponent,
     ChangingValueComponent,
-    MemoryCellComponent,
     MemoryComponent,
     InstructionsComponent,
     RegistersComponent,

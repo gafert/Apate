@@ -14,6 +14,14 @@
   width: 100%;
 }
 
+// Include scrollbar styling which is disabled by default
+@include scrollbar;
+
+// Set border left of scrollbar
+*::-webkit-scrollbar-track {
+  border-left: $border;
+}
+
 .memory-table {
   font-size: 1em;
   border-spacing: 0;

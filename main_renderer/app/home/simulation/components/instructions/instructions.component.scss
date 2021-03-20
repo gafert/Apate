@@ -87,3 +87,14 @@
   left: calc(50% - 0.5em - 0.05em);
   top: calc(50% - 0.5em);
 }
+
+.grid-container--content  {
+  // Include scrollbar styling which is disabled by default
+  @include scrollbar;
+
+  // Set border left of scrollbar
+  *::-webkit-scrollbar-track {
+    border-left: $border;
+  }
+}
+
