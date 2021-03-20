@@ -60,12 +60,18 @@
   font-family: "Segoe UI", sans-serif;
   font-size: var(--windowHeaderTitleHeight);
 
+  img {
+    height: 90%;
+    margin-right: 0.5em;
+  }
+
   .title {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-right: 1em;
     flex-shrink: 0;
+    font-size: 1.2em;
   }
 
   .actions {

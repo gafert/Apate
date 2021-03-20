@@ -9,6 +9,7 @@ import * as isDev from 'electron-is-dev';
 import { ActivatedRoute, Router } from '@angular/router';
 
 const app = electron.remote.app;
+const shell = electron.remote.shell;
 
 export enum ProjectSettings {
   SOURCES = 'sources',
@@ -115,6 +116,10 @@ export class ProjectService {
     this.dataService.setSetting(DataKeys.ELF_PATH, null);
     ipcRenderer.send('main-window-wizard');
     this.router.navigate(['/wizard'], { relativeTo: this.route });
+  }
+
+  public openProjectInFileWindow() {
+    shell.openPath(this.dataService.getSetting(DataKeys.PROJECT_PATH))
   }
 
   public getSetting(setting: ProjectSettings): any {

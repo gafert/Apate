@@ -1,15 +1,23 @@
 <app-window name="Apate" [info]="dataService.getSetting(DataKeys.PROJECT_PATH) ? ('Project - ' + dataService.getSetting(DataKeys.PROJECT_PATH)) : ('ELF - ' + dataService.getSetting(DataKeys.ELF_PATH))">
   <div window-actions>
-    <button [routerLink]="['./simulation']" *ngIf="isSelectedButton('compile')" mat-flat-button color="primary">To Simulation</button>
-    <button [routerLink]="['./compile']" *ngIf="isSelectedButton('simulation')" mat-flat-button color="primary">To Compile</button>
-    <button mat-flat-button color="primary" (click)="projectService.openExitingProjectDialog()" tippy="Open Project Folder"><i class="fas fa-folder"></i></button>
-    <button mat-flat-button color="primary" (click)="projectService.closeProject()" tippy="Close Project"><i class="fas fa-times"></i></button>
-    <button mat-flat-button color="primary" (click)="projectService.initiateNewProject()" tippy="Initiate new Project Folder"><i class="fas fa-folder-plus"></i></button>
-    <button mat-flat-button color="primary" (click)="openSettingsDialog(dataService)" tippy="Settings"><i class="fas fa-cog"></i></button>
+    <button [routerLink]="['./simulation']" *ngIf="isSelectedButton('compile')" mat-flat-button color="primary">Open Simulation</button>
+    <button [routerLink]="['./compile']" *ngIf="isSelectedButton('simulation')" mat-flat-button color="primary">Open Compilation</button>
+    <button mat-flat-button color="primary" (click)="openSettingsDialog(dataService)"><i class="fas fa-cog"></i></button>
+    <button mat-flat-button color="primary" [tippy]="projectContextMenu" variation="menu" placement="bottom-start" [offset]="[0,5]"><i class="fas fa-folder"></i></button>
   </div>
   <div window-main style="height: 100%">
     <router-outlet (activate)="routerActivate($event)">
     </router-outlet>
   </div>
 </app-window>
+
+<ng-template #projectContextMenu let-hide let-item="data">
+  <ul>
+    <li (click)="projectService.initiateNewProject(); hide()">New project</li>
+    <li (click)="projectService.openExitingProjectDialog(); hide()">Open project</li>
+    <li (click)="projectService.closeProject(); hide()">Close project</li>
+    <li (click)="projectService.openProjectInFileWindow(); hide()">Open project in file window</li>
+  </ul>
+</ng-template>
+
 

@@ -26,4 +26,13 @@
 
     padding: 5px 9px;
   }
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    li {
+      @extend .context-menu-item;
+    }
+  }
 }

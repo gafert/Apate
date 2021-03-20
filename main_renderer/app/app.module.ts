@@ -40,6 +40,11 @@ const routes: Routes = [
         tooltip: tooltipVariation1,
         popper: popperVariation,
         contextMenu: withContextMenuVariation(popperVariation),
+        menu: {
+          ...popperVariation,
+          arrow: false,
+          offset: [0, 0]
+        },
       }
     })],
   providers: [],
