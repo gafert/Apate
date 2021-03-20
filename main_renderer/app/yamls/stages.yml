@@ -46,7 +46,7 @@
         <div class="port">IMM</div> Immediate value <br>
         <div class="port">RS1</div> Register Source 1 <br>
         <div class="port">RS2</div> Register Source 2 <br>
-        <div class="port">RD</div> Return Address <br>
+        <div class="port">RD</div> Register Destination <br>
       highlight: []
       from: m_controlunit
       focusArea: cu
@@ -244,7 +244,7 @@
   infos:
     - text: >
         Store the value of <div class="module memory">Memory</div> or <div class="module alu">ALU</div>
-        to the <div class="module registers">Registers</div> at the location of the Return Address <div class="port">RD</div>.
+        to the <div class="module registers">Registers</div> at the location of the Register Destination <div class="port">RD</div>.
         Watch the register tab to see how the value is written.
       focusElement: writeback
       highlight: [m_regwrite-0086]

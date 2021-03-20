@@ -8,7 +8,7 @@
   <table>
     <tr style="vertical-align: top">
       <td>
-        <div class="rd-info">RD (Return Address)</div>
+        <div class="rd-info">RD (Register Destination)</div>
       </td>
       <td>
         Address at which the calculated / loaded data is stored in the 'Write Back' stage.
@@ -74,13 +74,13 @@
 <ng-template #hasActiveRegister let-i="i" let-rd="rd" let-rs1="rs1" let-rs2="rs2">
   <tr [class.active-reg-rs1]="rs1" [class.active-reg-rs2]="rs2" [class.active-reg-rd]="rd">
     <td>
-      <span *ngIf="rd && !rs2 && !rs1" tippy="Return Address">RD</span>
-      <span *ngIf="rd && !rs2 && rs1" tippy="Return Address and Source Register 1">RD/RS1</span>
-      <span *ngIf="rd && rs2 && !rs1" tippy="Return Address and Source Register 2">RD/RS2</span>
-      <span *ngIf="!rd && !rs2 && rs1" tippy="Source Register 1">RS1</span>
-      <span *ngIf="!rd && rs2 && !rs1" tippy="Source Register 2">RS2</span>
-      <span *ngIf="!rd && rs2 && rs1" tippy="Source Register 1 and Source Register 1">RS1/RS2</span>
-      <span *ngIf="rd && rs2 && rs1" tippy="Return Address, Source Register 2 and Source Register 1">RD/RS1/RS2</span>
+      <span *ngIf="rd && !rs2 && !rs1" tippy="Register Destination">RD</span>
+      <span *ngIf="rd && !rs2 && rs1" tippy="Register Destination and Register Source 1">RD/RS1</span>
+      <span *ngIf="rd && rs2 && !rs1" tippy="Register Destination and Register Source 2">RD/RS2</span>
+      <span *ngIf="!rd && !rs2 && rs1" tippy="Register Source 1">RS1</span>
+      <span *ngIf="!rd && rs2 && !rs1" tippy="Register Source 2">RS2</span>
+      <span *ngIf="!rd && rs2 && rs1" tippy="Register Source 1 and 2">RS1/RS2</span>
+      <span *ngIf="rd && rs2 && rs1" tippy="Register Destination, Source Register 1 and 2">RD/RS1/RS2</span>
     </td>
     <ng-container *ngTemplateOutlet="line; context: { i: i }"></ng-container>
   </tr>

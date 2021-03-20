@@ -532,7 +532,7 @@ export interface Instruction {
   /** Func7 number value **/
   func7: any;
 
-  /** Return address **/
+  /** Register destination **/
   rd: number;
   /** Register source 1 **/
   rs1: number;
