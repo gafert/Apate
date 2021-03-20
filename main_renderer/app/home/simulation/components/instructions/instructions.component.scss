@@ -52,6 +52,35 @@
 
 .instruction-container {
   margin: 0.3em;
+  border: 1px solid $grey3;
+
+  .raw-instruction {
+    color: $grey1;
+    transition: color 200ms;
+  }
+
+  &:not(.was-active):not(.active) {
+    &:hover {
+      background-color: $grey2;
+      border: 1px $grey2 solid;
+      transition: background-color 200ms, border 200ms;
+
+      .raw-instruction {
+        color: white;
+      }
+    }
+
+    &[data-expanded="true"] {
+      background-color: $grey2;
+      border: $border;
+      transition: background-color 200ms, border 200ms;
+
+      .raw-instruction {
+        color: white;
+      }
+    }
+  }
+
 
   .top-row {
     padding: 0.3em;
@@ -63,19 +92,31 @@
 
   &.was-active {
     background-color: $accentDark;
+    border: 1px solid $accentDark;
 
-    .raw-instruction, .pc {
+    .pc {
       background-color: $accent;
       border-color: $accent;
+      color: white;
+    }
+
+    .raw-instruction {
+      color: white;
     }
   }
 
   &.active {
     background-color: $accent;
+    border: 1px solid $accent;
 
-    .raw-instruction, .pc {
+    .pc {
       background-color: $accentDark;
       border-color: $accentDark;
+      color: white;
+    }
+
+    .raw-instruction {
+      color: white;
     }
   }
 }

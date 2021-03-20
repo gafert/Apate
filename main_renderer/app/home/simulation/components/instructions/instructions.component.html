@@ -39,11 +39,11 @@
             *ngTemplateOutlet="instruction_template; context: { instruction: listElement.instruction, info: getInfoOfInstruction(listElement.instruction.instructionName)}">
           </ng-container>
         </ng-container>
-        <div *ngIf="listElement.symbol" class="small-edged-container grey3">
-          Symbol {{listElement.symbol.name}}
+        <div *ngIf="listElement.symbol" class="small-edged-container grey2">
+          &nbsp;&nbsp;─&nbsp;&nbsp;&nbsp;Symbol {{listElement.symbol.name}}
         </div>
-        <div *ngIf="listElement.section" class="small-edged-container grey3">
-          Section {{listElement.section.name}}
+        <div *ngIf="listElement.section" class="small-edged-container grey2">
+          &nbsp;&nbsp;─&nbsp;&nbsp;&nbsp;Section {{listElement.section.name}}
         </div>
       </div>
       <!-- padding at bottom -->
@@ -86,20 +86,26 @@
   </table>
 </ng-template>
 
+<ng-template #pcInfo let-data="data">
+  <strong>Program Counter</strong><br>
+  as hex: {{byteToHex(data.pc, 2)}}
+</ng-template>
+
 <ng-template #instruction_template let-instruction="instruction" let-info="info">
   <div
     [data]="instruction"
     [tippy]="contextMenu"
-    class="grey2 instruction-container"
+    class="instruction-container"
+    [attr.data-expanded]="instruction.infoExpanded"
     [class.active]="instruction.active"
     [class.was-active]="instruction.wasActive"
     variation="contextMenu">
-    <div class="top-row" (click)="expandInfo(instruction)" tippy="Click to show more" delay="1000">
-      <div class="text-rounded-container mono pc" tippy="Program Counter (PC) of the instruction"
+    <div class="top-row" (click)="expandInfo(instruction)">
+      <div class="text-rounded-container mono pc grey1" [tippy]="pcInfo" [data]="instruction"
            maxWidth="20em">{{instruction.pc}}</div>
       <div style="flex-grow: 1; padding-left: 0.5em"><span
         >{{instruction.assembly }}</span></div>
-      <div class="text-rounded-container mono raw-instruction" [tippy]="rawInstruction" maxWidth="30em"
+      <div class="mono raw-instruction" delay="500" [tippy]="rawInstruction" maxWidth="30em"
            [data]="instruction">{{byteToHex(instruction.unparsedInstruction, 8)}}</div>
     </div>
     <div *ngIf="info && instruction.infoExpanded" class="assembly-info" [@infoAnimation]>
@@ -114,7 +120,7 @@
               See Register Tab on the right for more Information
             </ng-template>
             <td class="data-header" [tippy]="rs1">RS1 Addr.</td>
-            <td class="data-value">{{instruction.rs1}} -> {{cpuRegDefinitions[instruction.rs1][0]}}</td>
+            <td class="data-value">{{instruction.rs1}} ─► {{cpuRegDefinitions[instruction.rs1][0]}}</td>
           </tr>
           <tr *ngIf="info.rs2">
             <ng-template #rs2>
@@ -122,7 +128,7 @@
               See Register Tab on the right for more Information
             </ng-template>
             <td class="data-header" [tippy]="rs2">RS2 Addr.</td>
-            <td class="data-value">{{instruction.rs2}} -> {{cpuRegDefinitions[instruction.rs2][0]}}</td>
+            <td class="data-value">{{instruction.rs2}} ─► {{cpuRegDefinitions[instruction.rs2][0]}}</td>
           </tr>
           <tr *ngIf="info.rd">
             <ng-template #rd>
@@ -130,7 +136,7 @@
               See Register Tab on the right for more Information
             </ng-template>
             <td class="data-header" [tippy]="rd">RD</td>
-            <td class="data-value">{{instruction.rd}} -> {{cpuRegDefinitions[instruction.rd][0]}}</td>
+            <td class="data-value">{{instruction.rd}} ─► {{cpuRegDefinitions[instruction.rd][0]}}</td>
           </tr>
           <tr *ngIf="info.imm">
             <ng-template #imm>
