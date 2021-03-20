@@ -36,17 +36,17 @@ interface OptimizedList {
         transition(
           ':enter',
           [
-            style({maxHeight: 0}),
+            style({ maxHeight: 0 }),
             animate('1s ease-out',
-              style({maxHeight: 500}))
+              style({ maxHeight: 500 }))
           ]
         ),
         transition(
           ':leave',
           [
-            style({maxHeight: 500}),
+            style({ maxHeight: 500 }),
             animate('0.5s ease-out',
-              style({maxHeight: 0}))
+              style({ maxHeight: 0 }))
           ]
         )
       ]
@@ -59,17 +59,12 @@ export class InstructionsComponent implements OnChanges, AfterViewInit {
   public readonly byteToBinary = byteToBinary;
   public readonly DataKeys = DataKeys;
   public readonly cpuRegDefinitions = CPU_REGISTER_NAMES;
-
-  @ViewChild(VirtualScrollerComponent) private virtualScroller: VirtualScrollerComponent;
-
   @Input() public programCounter;
   @Input() public parsedElf: ELF;
-
   @Output() onRunToPC: EventEmitter<number> = new EventEmitter();
   @Output() onLoadElf: EventEmitter<any> = new EventEmitter();
-
   public optimizedInstructionList: OptimizedList[] = [];
-
+  @ViewChild(VirtualScrollerComponent) private virtualScroller: VirtualScrollerComponent;
   private viewInitiated = new BehaviorSubject(false);
 
   constructor(public dataService: DataService) {
@@ -85,13 +80,13 @@ export class InstructionsComponent implements OnChanges, AfterViewInit {
       this.optimizedInstructionList = [];
       for (const sectionHeader of this.parsedElf.section_headers) {
         if (this.isSHFExecInstr(sectionHeader.sh_flags)) {
-          this.optimizedInstructionList.push({section: sectionHeader});
+          this.optimizedInstructionList.push({ section: sectionHeader });
           if (sectionHeader?.symbols) {
             for (const symbol of sectionHeader.symbols) {
-              this.optimizedInstructionList.push({symbol: symbol});
+              this.optimizedInstructionList.push({ symbol: symbol });
               if (symbol?.instructions) {
                 for (const instruction of symbol.instructions) {
-                  this.optimizedInstructionList.push({instruction: instruction});
+                  this.optimizedInstructionList.push({ instruction: instruction });
                   // Set pc once the view is initiated
                   this.viewInitiated.pipe(
                     untilDestroyed(this),
@@ -137,14 +132,14 @@ export class InstructionsComponent implements OnChanges, AfterViewInit {
 
   scrollToPc(pc) {
     if (!pc) return;
-    const elements = this.optimizedInstructionList.filter((e) => e.instruction?.pc == pc)
+    const elements = this.optimizedInstructionList.filter((e) => e.instruction?.pc == pc);
     if (elements.length > 0)
       this.virtualScroller.scrollInto(elements[0], true, -100);
   }
 
   private setInstructionColor(oldPC, newPC) {
     this.scrollToPc(newPC);
-    const elementsOld = this.optimizedInstructionList.filter((e) => e.instruction?.pc == oldPC)
+    const elementsOld = this.optimizedInstructionList.filter((e) => e.instruction?.pc == oldPC);
     if (elementsOld[0]?.instruction) {
       (elementsOld[0].instruction as any).wasActive = true;
       (elementsOld[0].instruction as any).active = false;

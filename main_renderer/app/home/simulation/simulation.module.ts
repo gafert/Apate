@@ -4,7 +4,7 @@ import { MemoryComponent } from './components/memory/memory.component';
 import { InstructionsComponent } from './components/instructions/instructions.component';
 import { RegistersComponent } from './components/registers/registers.component';
 import { ProgramOutput } from './components/program-output/program-output.component';
-import { SimulationComponent } from './simulation.component';
+import { EcallDialog, SimulationComponent } from './simulation.component';
 import { ChangingValueComponent } from './components/changing-value/changing-value.component';
 import { GraphComponent } from './components/graph/graph.component';
 import { SignalsComponent } from './components/signals/signals.component';
@@ -20,6 +20,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatRippleModule } from '@angular/material/core';
 import { SafeHtmlPipe } from '../../components/safeHMTL.pipe';
+import { MatDialogModule } from '@angular/material/dialog';
 
 const routes: Routes = [
   {
@@ -37,10 +38,15 @@ const routes: Routes = [
     RegistersComponent,
     ProgramOutput,
     GraphComponent,
-    SignalsComponent, VerticalTabsComponent, VerticalTabsItemComponent, VarDirective, SafeHtmlPipe
+    SignalsComponent,
+    VerticalTabsComponent,
+    VerticalTabsItemComponent,
+    VarDirective,
+    SafeHtmlPipe,
+    EcallDialog
   ],
   imports: [RouterModule.forChild(routes), CommonModule, MatCheckboxModule, TippyModule,
-    FormsModule, VirtualScrollerModule, MatButtonModule, MatRippleModule],
+    FormsModule, VirtualScrollerModule, MatButtonModule, MatRippleModule, MatDialogModule],
   providers: [],
 })
 export class SimulationModule {

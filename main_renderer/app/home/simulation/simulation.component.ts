@@ -10,6 +10,7 @@ import { Bindings, CPU_STATE_NAMES, CPU_STATES } from './services/bindingSubject
 import { Areas } from './services/graphServiceHelpers/helpers';
 import { ProjectService } from '../../services/project.service';
 import { animate, animation, sequence, state, style, transition, trigger, useAnimation } from '@angular/animations';
+import { MatDialog } from '@angular/material/dialog';
 
 const closedStyle = style({
   maxHeight: '0',
@@ -21,6 +22,13 @@ const closedStyle = style({
   right: '2em',
   background: 'white'
 });
+
+@Component({
+  selector: 'ecall-dialog',
+  template: 'Continued to program counter, reached end of program or executed 1000 instructions concurrently'
+})
+export class EcallDialog {
+}
 
 const hideAnimation = animation([
   sequence([
@@ -120,7 +128,8 @@ export class SimulationComponent implements OnInit, OnDestroy {
     private dataService: DataService,
     private graphService: GraphService,
     private changeDetection: ChangeDetectorRef,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    public dialog: MatDialog
   ) {
     this.elaborateSteps = this.dataService.data[DataKeys.ELABORATE_STEPS].value;
     if (this.elaborateSteps === null) {
@@ -195,6 +204,10 @@ export class SimulationComponent implements OnInit, OnDestroy {
     this.stageName = CPU_STATE_NAMES[CPU_STATES.FETCH];
     this.stage = CPU_STATES.FETCH;
     this.graphService.highlightStage(this.stage, false);
+
+    // The program counter needs to be evaluated in the instruction list first so it jumps to 0
+    // After the jump the elf can be loaded which updates the instructions and removes existing highlights
+    this.changeDetection.detectChanges();
 
     // Load elf into CPU
     this.cpu.init(this.dataService.getSetting(DataKeys.ELF_PATH));
@@ -329,6 +342,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
       this.stageExecuted = true;
       this.setNextInfoByStage(CPU_STATES.ADVANCE_PC);
       this.stepSimulation();
+      this.openDialog();
     });
   }
 
@@ -415,5 +429,13 @@ export class SimulationComponent implements OnInit, OnDestroy {
       this.infoCounter++;
     }
     return { ...RISCV_STAGES[this.instrCounter].infos[this.infoCounter], startOfStage: startOfStage };
+  }
+
+  openDialog() {
+    const dialogRef = this.dialog.open(EcallDialog);
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(`Dialog result: ${result}`);
+    });
   }
 }
