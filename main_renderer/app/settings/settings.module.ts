@@ -1,24 +1,27 @@
-import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {SettingsComponent} from "./settings.component";
-import {RouterModule, Routes} from "@angular/router";
-import {FormsModule} from "@angular/forms";
-import {MatButtonModule} from "@angular/material/button";
-import {WindowModule} from "../components/window/window.module";
-import {SettingModule} from "../components/setting/setting-module.module";
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SettingsComponent } from './settings.component';
+import { RouterModule, Routes } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { WindowModule } from '../components/window/window.module';
+import { SettingModule } from '../components/setting/setting-module.module';
+import { TippyModule } from '@ngneat/helipopper';
+import { VarDirective } from '../components/ngVar.directive';
+import { HttpClientModule } from '@angular/common/http';
 
 const routes: Routes = [
   {
     path: '',
-    component: SettingsComponent,
-  },
+    component: SettingsComponent
+  }
 ];
 
 
 @NgModule({
-  declarations: [SettingsComponent],
+  declarations: [SettingsComponent, VarDirective],
   imports: [
-    RouterModule.forChild(routes), CommonModule, FormsModule, MatButtonModule, WindowModule, SettingModule
+    RouterModule.forChild(routes), CommonModule, FormsModule, MatButtonModule, WindowModule, SettingModule, TippyModule, HttpClientModule
   ]
 })
 export class SettingsModule {

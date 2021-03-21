@@ -1,20 +1,5 @@
 @import "../../import";
 
-.option-menu {
-  position: absolute;
-  font-size: 0.9em;
-  background-color: $grey1;
-  display: none;
-
-  .option {
-    padding: 0.2em 0.5em 0.2em 0.5em;
-
-    &:hover {
-      background: $grey2;
-    }
-  }
-}
-
 .setting-box {
   position: relative;
   margin: 1em;
@@ -39,6 +24,7 @@
     overflow: scroll;
     font-size: inherit;
     height: 2em;
+    line-height: 1.4em;
     border-radius: 0.4em;
 
     &:focus {

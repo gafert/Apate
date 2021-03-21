@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { ToolchainDownEnum, ToolchainDownloaderService } from '../services/toolchain-downloader.service';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
+import { ToolchainDownEnum, ToolchainDownloaderService } from './services/toolchain-downloader.service';
 import { DataKeys, DataService } from '../services/data.service';
 import * as electron from 'electron';
 import { SettingComponent } from '../components/setting/setting.component';
@@ -7,11 +7,11 @@ import { SettingComponent } from '../components/setting/setting.component';
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss'],
+  styleUrls: ['./settings.component.scss']
 })
-export class SettingsComponent implements OnInit, AfterViewInit {
+export class SettingsComponent implements AfterViewInit{
   @ViewChild('toolchainPathOptions') toolchainPathOptions: ElementRef<HTMLDivElement>;
-  @ViewChild('toolchain') toolchain: SettingComponent;
+  @ViewChild('toolchainSetting') toolchainSetting: SettingComponent;
 
   public DataKeys = DataKeys;
 
@@ -25,59 +25,55 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   public toolchainDownloaderState;
   public ToolchainDownEnum = ToolchainDownEnum;
 
-  private toolchainPathOptionsOpen = false;
+  constructor(private toolchainDownloaderService: ToolchainDownloaderService,
+    private dataService: DataService,
+    private changeDetection: ChangeDetectorRef) {
+  }
 
-  constructor(private toolchainDownloaderService: ToolchainDownloaderService, private dataService: DataService) {
-    document.addEventListener('click', (event) => {
-      if (this.toolchainPathOptionsOpen) {
-        this.toolchainPathOptions.nativeElement.style.display = 'none';
-      }
-    });
-
+  ngAfterViewInit() {
     this.toolchainDownloaderService.state.subscribe((state) => {
+      console.log("CHANGE")
       switch (state.state) {
         case ToolchainDownEnum.DOWNLOADING:
           this.toolchainPercentDownloaded = state.reason as number;
           this.toolchainDownloaderState = state.state;
+          this.changeDetection.detectChanges();
+          console.log("Downloading", state.state);
           break;
         case ToolchainDownEnum.DOWNLOADED:
           // Save toolchain path and set it in the vis
           // Only set the path if the path was empty
           this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, state.reason as string);
           this.toolchainDownloaderState = state.state;
-          this.toolchain.refresh();
+          this.changeDetection.detectChanges();
+          this.toolchainSetting.refresh();
+          console.log("Downloaded", state.state);
           break;
         default:
           this.toolchainDownloaderState = state.state;
+          this.changeDetection.detectChanges();
       }
+      this.changeDetection.detectChanges();
+      console.log("updated with state", state)
     });
 
     this.dataService.data[DataKeys.TOOLCHAIN_PATH].subscribe((d) => {
       this.toolchainPath = d;
-    })
-  }
-
-  ngAfterViewInit() {}
-
-  ngOnInit(): void {}
-
-  clickToolchainPath(event) {
-    this.toolchainPathOptions.nativeElement.style.display = 'block';
-    this.toolchainPathOptions.nativeElement.style.top = event.y + 'px';
-    this.toolchainPathOptions.nativeElement.style.left = event.x - 170 + 'px';
-    this.toolchainPathOptionsOpen = true;
-    event.stopPropagation();
+      console.log(this.toolchainPath);
+      this.changeDetection.detectChanges();
+    });
   }
 
   openToolchainPathExplorerDialog() {
     electron.remote.dialog
       .showOpenDialog({
-        properties: ['openDirectory'],
+        properties: ['openDirectory']
       })
       .then((result) => {
         if (!result.canceled) {
           this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, result.filePaths[0]);
-          this.toolchain.refresh();
+          this.changeDetection.detectChanges();
+          this.toolchainSetting.refresh();
         }
       });
   }
@@ -89,13 +85,15 @@ export class SettingsComponent implements OnInit, AfterViewInit {
 
   useDownloadedToolchain() {
     this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, this.toolchainDownloaderService.toolchainDownloadPath);
-    this.toolchain.refresh();
+    this.changeDetection.detectChanges();
+    this.toolchainSetting.refresh();
   }
 
   removeToolchain() {
     this.toolchainDownloaderService.removeToolchain();
     this.dataService.setSetting(DataKeys.TOOLCHAIN_PATH, '');
-    this.toolchain.refresh();
+    this.changeDetection.detectChanges();
+    this.toolchainSetting.refresh();
   }
 
   closeWindow() {

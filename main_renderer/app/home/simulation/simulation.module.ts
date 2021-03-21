@@ -48,6 +48,9 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes), CommonModule, MatCheckboxModule, TippyModule,
     FormsModule, VirtualScrollerModule, MatButtonModule, MatRippleModule, MatDialogModule],
   providers: [],
+  exports: [
+    VarDirective
+  ]
 })
 export class SimulationModule {
 
