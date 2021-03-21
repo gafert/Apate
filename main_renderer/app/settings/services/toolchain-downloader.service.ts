@@ -115,7 +115,6 @@ export class ToolchainDownloaderService {
             this.state.next(new ToolchainDownState(ToolchainDownEnum.DOWNLOADING,
               Number((downloaded / len * 100).toFixed(0))));
             writeStream.write(chunk);
-            console.log("Downloading",  this.state.value.state);
           });
           res.on('end', () => resolve());
         })).on('error', (error) => {

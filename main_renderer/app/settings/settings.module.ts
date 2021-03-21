@@ -7,7 +7,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { WindowModule } from '../components/window/window.module';
 import { SettingModule } from '../components/setting/setting-module.module';
 import { TippyModule } from '@ngneat/helipopper';
-import { VarDirective } from '../components/ngVar.directive';
 import { HttpClientModule } from '@angular/common/http';
 
 const routes: Routes = [
@@ -17,9 +16,8 @@ const routes: Routes = [
   }
 ];
 
-
 @NgModule({
-  declarations: [SettingsComponent, VarDirective],
+  declarations: [SettingsComponent],
   imports: [
     RouterModule.forChild(routes), CommonModule, FormsModule, MatButtonModule, WindowModule, SettingModule, TippyModule, HttpClientModule
   ]
