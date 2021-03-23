@@ -13,7 +13,8 @@ const shell = electron.remote.shell;
 
 export enum ProjectSettings {
   SOURCES = 'sources',
-  GCC_FLAGS = 'gcc_flags'
+  GCC_FLAGS = 'gcc_flags',
+  DEMO_NAME = 'demo_name'
 }
 
 @Injectable({
@@ -124,5 +125,29 @@ export class ProjectService {
 
   public getSetting(setting: ProjectSettings): any {
     return this.projectStore?.get(setting);
+  }
+
+  /**
+   * Returns the name of the demo if this project is a demo
+   */
+  public getDemoName() {
+    return this.projectStore?.get(ProjectSettings.DEMO_NAME);
+  }
+
+  /**
+   * Returns true if this project is a demo and has a demo name
+   */
+  public isDemo() {
+    return !!this.projectStore?.get(ProjectSettings.DEMO_NAME)
+  }
+
+  /**
+   * Returns the contents of the demo if this is a demo
+   */
+  public getDemoFileContents(): string {
+    if(this.isDemo()) {
+      return fs.readFileSync(path.join(this.dataService.getSetting(DataKeys.PROJECT_PATH), 'main.c'), { encoding: 'utf-8' });
+    }
+    return '';
   }
 }

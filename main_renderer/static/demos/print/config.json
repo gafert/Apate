@@ -1,4 +1,5 @@
 {
 	"sources": "start.s main.c",
-	"gcc_flags": "-O0 -march=rv32i -mabi=ilp32 -Triscv.ld -lgcc -nostdlib -o main.elf -g"
+	"gcc_flags": "-O0 -march=rv32i -mabi=ilp32 -Triscv.ld -lgcc -nostdlib -o main.elf -g",
+  "demo_name": "Print to program output"
 }

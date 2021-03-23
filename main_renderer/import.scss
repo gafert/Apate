@@ -53,6 +53,7 @@ $border: 1px solid $grey1;
   /* width */
   *::-webkit-scrollbar {
     width: 10px;
+    height: 10px;
     display: block !important;
   }
 
@@ -69,5 +70,9 @@ $border: 1px solid $grey1;
   /* Handle on hover */
   *::-webkit-scrollbar-thumb:hover {
     background: $grey1;
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: $grey3;
   }
 }

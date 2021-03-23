@@ -1,10 +1,12 @@
-import {NgModule} from '@angular/core';
-import {HomeComponent} from './home.component';
-import {CommonModule} from "@angular/common";
-import {RouterModule, Routes} from "@angular/router";
-import {MatButtonModule} from "@angular/material/button";
-import {TippyModule} from "@ngneat/helipopper";
-import {WindowModule} from "../components/window/window.module";
+import { NgModule } from '@angular/core';
+import { HomeComponent } from './home.component';
+import { CommonModule } from '@angular/common';
+import { RouterModule, Routes } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { TippyModule } from '@ngneat/helipopper';
+import { WindowModule } from '../components/window/window.module';
+import { DemoProjectDescriptionComponent } from './components/demo-project-description/demo-project-description.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 const routes: Routes = [
   {
@@ -25,8 +27,8 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [HomeComponent],
-  imports: [RouterModule.forChild(routes), CommonModule, MatButtonModule, TippyModule, WindowModule],
+  declarations: [HomeComponent, DemoProjectDescriptionComponent],
+  imports: [RouterModule.forChild(routes), CommonModule, MatButtonModule, TippyModule, WindowModule, MatDialogModule],
 })
 export class HomeModule {
 }

@@ -1,0 +1,17 @@
+<div class="title">"{{project.getDemoName()}}" Demo Project</div>
+
+<div class="info">This demo project was compiled from the following source code. <br>The compiled instructions will be visible in the "Instructions" on the left once the program (ELF) is loaded via the "Load ELF" button.</div>
+
+<div class="code">
+  <pre [innerHTML]="styledCode"></pre>
+</div>
+
+<div class="actions">
+  <i class="fas fa-info-circle"></i>
+  <div class="compile-help">
+    You can also view the source code of this demo in the "Compilation" tab when selection "main.c". Open the tab with the left most button in the toolbar at the top. <a routerLink="/home/compile" mat-dialog-close>Open Compilation</a>
+  </div>
+  <div class="button">
+    <button mat-flat-button color="accent" mat-dialog-close>Thank you!</button>
+  </div>
+</div>

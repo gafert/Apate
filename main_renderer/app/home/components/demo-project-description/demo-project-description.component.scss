@@ -1,0 +1,55 @@
+@import "../../../../import";
+
+.code {
+  max-height: 40em;
+  border: $border;
+  background: $grey3;
+  border-radius: 0.5em;
+  padding: 1em;
+  overflow: scroll;
+}
+
+@include scrollbar;
+
+*::-webkit-scrollbar-thumb {
+  background: $grey2;
+}
+
+/* Handle on hover */
+*::-webkit-scrollbar-thumb:hover {
+  background: $grey2;
+}
+
+.title {
+  font-size: large;
+  font-weight: bold;
+}
+
+.info {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.actions {
+  margin-top: 1em;
+  width: 100%;
+  display: flex;
+  margin-bottom: 0em;
+  justify-content: center;
+  align-items: center;
+
+  .button {
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+
+  .compile-help {
+    flex-grow: 1;
+    margin-left: 0.5em;
+    margin-right: 4em;
+  }
+
+  i {
+    flex-grow: 0;
+  }
+}

@@ -4,6 +4,7 @@
 @import "style/material";
 @import "style/tippy";
 @import "style/inline-boxes";
+@import "style/prism";
 
 // Normalize
 
@@ -170,3 +171,15 @@ button {
     top: $tabsHeight;
   }
 }
+
+a {
+  display: inline-block;
+  color: lighten($accent, 10%);
+  font-weight: bold;
+  cursor: pointer;
+  outline: none;
+  &:hover {
+    color: lighten($accent, 20%);
+  }
+}
+

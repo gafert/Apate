@@ -1,12 +1,13 @@
-import {AfterViewInit, Component} from '@angular/core';
-import {byteToHex} from '../utils/helper';
-import {Router} from '@angular/router';
-import {DataKeys, DataService} from '../services/data.service';
-import {ProjectService} from '../services/project.service';
-import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
-import {openSettingsDialog} from "../utils/helper";
-import {SimulationComponent} from "./simulation/simulation.component";
-import {skip} from "rxjs/operators";
+import { AfterViewInit, Component } from '@angular/core';
+import { byteToHex, openSettingsDialog } from '../utils/helper';
+import { Router } from '@angular/router';
+import { DataKeys, DataService } from '../services/data.service';
+import { ProjectService } from '../services/project.service';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { SimulationComponent } from './simulation/simulation.component';
+import { skip } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { DemoProjectDescriptionComponent } from './components/demo-project-description/demo-project-description.component';
 
 @Component({
   selector: 'app-home',
@@ -24,7 +25,12 @@ export class HomeComponent implements AfterViewInit {
 
   constructor(public dataService: DataService,
     private router: Router,
-    public projectService: ProjectService) {
+    public projectService: ProjectService,
+    public dialog: MatDialog) {
+
+    if(this.projectService.isDemo()) {
+      this.dialog.open(DemoProjectDescriptionComponent);
+    }
   }
 
   ngAfterViewInit() {

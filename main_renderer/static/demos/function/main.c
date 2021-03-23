@@ -1,4 +1,4 @@
-#include "sim.h"
+// #include "sim.h" // not needed in this example
 
 int exampleFunction(int parameter) {
   int localVariable = 3;
