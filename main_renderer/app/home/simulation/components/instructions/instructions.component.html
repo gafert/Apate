@@ -18,7 +18,7 @@
     <div *ngIf="!parsedElf" style="text-align: left; width: 90%; margin: auto; margin-top: 1em">
       <ng-container *ngVar="dataService.getSetting(DataKeys.ELF_PATH) as elf">
         <ng-container *ngIf="elf">
-          Found <i>{{elf}}</i> in the current path.
+          Found <i style="word-break: break-all; font-weight: bold">{{elf}} </i> in the current path.
           <br><br>
           Please load the ELF into the CPU.
           <button mat-flat-button color="accent" (click)="initiateSimulation()" style="margin-top: 1em;">Load ELF</button>
