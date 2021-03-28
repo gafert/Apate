@@ -12,9 +12,9 @@ function createWindow(): BrowserWindow {
 
   wizardSettings = {
     x: Math.floor(size.width / 2 - 700 / 2),
-    y: Math.floor(size.height / 2 - 500 / 2),
+    y: Math.floor(size.height / 2 - 510 / 2),
     width: 700,
-    height: 500,
+    height: 510,
     resizable: true, // This prevents maximize minimize events so dont use it
     maximizable: true, // This prevents maximize minimize events so dont use it
     fullscreenable: true // This prevents maximize minimize events so dont use it

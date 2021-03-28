@@ -30,37 +30,31 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    padding: 1em;
     background: $grey3;
     border-top: $border;
 
     .title {
       font-size: 1.5em;
+      line-height: 1.5em;
       font-weight: bold;
     }
 
-    .info {
-      margin-top: 1em;
-    }
-
-    .intro-demos {
-      button:nth-last-child(1) {
-        margin-right: 0em;
-      }
-      button {
-        margin-right: 1em;
-        margin-bottom: 1em;
-      }
-      text-align: center;
-      margin-top: 1em;
-    }
-
     .professional-button-container {
+      padding: 1em;
       width: 100%;
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .video {
+      outline: none;
+      margin-left: 1em;
+      margin-right: 1em;
+      width: calc(100% - 2em);
+      border: $border;
     }
   }
-  
+
 
   .column {
     flex-grow: 1;

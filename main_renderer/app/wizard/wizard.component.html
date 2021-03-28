@@ -1,4 +1,7 @@
 <app-window name="Apate - Wizard">
+  <ng-container window-actions>
+    <button mat-flat-button color="primary" (click)="setIntroActive(true)" *ngIf="introNotActive">Show Intro</button>
+  </ng-container>
   <ng-container window-main>
     <div id="loading"></div>
 
@@ -14,20 +17,16 @@
 
       <div class="wizard-content">
         <div class="intro" *ngIf="!introNotActive; else menu">
-          <div class="title">Welcome!</div>
-
-          <div class="info">If you are a beginner you shoud probably start with one of the <strong>Demo Projects</strong> to understand the basics of this tool.
-          </div>
-
-          <div class="intro-demos">
-            <button mat-flat-button color="accent" (click)="openDemo('adder')">Simple Adder</button>
-            <button mat-flat-button color="accent" (click)="openDemo('function')">Function Call</button>
-            <button mat-flat-button color="accent" (click)="openDemo('print')">Print to Terminal</button>
-          </div>
-
           <div class="professional-button-container">
-            <button mat-flat-button color="primary" (click)="setIntroActive(false)">No, I'm a professional</button>
+            <div class="title">Please watch a short introduction video!</div>
+            <button mat-flat-button color="primary" (click)="openInBrowser()">Open in Browser</button>
+            <button mat-flat-button color="primary" (click)="setIntroActive(false)">Skip Intro / Continue</button>
           </div>
+
+          <video class="video" controls>
+            <source src="{{videoUrl}}" type="video/mp4" />
+          </video>
+
         </div>
 
         <ng-template #menu>

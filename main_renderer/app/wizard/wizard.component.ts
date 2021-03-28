@@ -24,6 +24,9 @@ export class WizardComponent {
 
   public introNotActive = this.dataService.getSetting(DataKeys.WIZARD_INTRO_NOT_ACTIVE);
 
+  public readonly videoUrl = "https://onedrive.live.com/download?cid=7DB401F01603F3FF&resid=7DB401F01603F3FF%21387672&authkey=AIt0zApVbDVJKUc";
+  public readonly videoEmbedUrl = "https://onedrive.live.com/embed?cid=7DB401F01603F3FF&resid=7DB401F01603F3FF%21387672&authkey=AIt0zApVbDVJKUc";
+
   constructor(public dataService: DataService,
     private router: Router,
     private route: ActivatedRoute,
@@ -103,5 +106,9 @@ export class WizardComponent {
   setIntroActive(active) {
     this.dataService.setSetting(DataKeys.WIZARD_INTRO_NOT_ACTIVE, !active);
     this.introNotActive = !active;
+  }
+
+  openInBrowser() {
+    electron.shell.openExternal(this.videoEmbedUrl);
   }
 }
