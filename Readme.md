@@ -2,7 +2,9 @@
 
 # Apate - a visual CPU simulator for use in education
 
-This simulator is a tool for students to learn the inner workings of a CPU. Based on the RISC V instruction set (RV32I) it provides a visual step by step guide through the flow of a CPU. __[Watch the introduction video!](https://onedrive.live.com/embed?cid=7DB401F01603F3FF&resid=7DB401F01603F3FF%21387672&authkey=AIt0zApVbDVJKUc)__
+This simulator is a tool for students to learn the inner workings of a CPU. Based on the RISC V instruction set (RV32I)
+it provides a visual step by step guide through the flow of a
+CPU. __[Watch the introduction video!](https://onedrive.live.com/embed?cid=7DB401F01603F3FF&resid=7DB401F01603F3FF%21387672&authkey=AIt0zApVbDVJKUc)__
 
 <table>
   <tr>
@@ -18,16 +20,18 @@ This simulator is a tool for students to learn the inner workings of a CPU. Base
   </tr>
    <tr>
     <td>
-      <a href="https://github.com/gafert/Apate/releases/latest/download/Apate-1.0.4.exe">
-        <img src="https://img.shields.io/badge/download-Apate--1.0.4.exe-blue" ></a>
+      <a href="https://github.com/gafert/Apate/releases/latest/download/Apate-1.0.5.exe">
+        <img src="https://img.shields.io/badge/download-Apate--1.0.5.exe-blue">
+      </a>
     </td>
     <td>
-            <a href="https://github.com/gafert/Apate/releases/latest/download/Apate-1.0.4.dmg">
-      <img src="https://img.shields.io/badge/download-Apate--1.0.4.dmg-blue" href="https://github.com/gafert/Apate/releases/latest/download/Apate-1.0.4.dmg"></a>
+      <a href="https://github.com/gafert/Apate/releases/latest/download/Apate-1.0.5.dmg">
+        <img src="https://img.shields.io/badge/download-Apate--1.0.5.dmg-blue"></a>
     </td>
     <td>
-            <a href="https://github.com/gafert/Apate/releases/latest/download/Apate-1.0.4.AppImage">
-      <img src="https://img.shields.io/badge/download-Apate--1.0.4.AppImage-blue" href="https://github.com/gafert/Apate/releases/latest/download/Apate-1.0.4.AppImage"></a>
+      <a href="https://github.com/gafert/Apate/releases/latest/download/Apate-1.0.5.AppImage">
+        <img src="https://img.shields.io/badge/download-Apate--1.0.5.AppImage-blue">
+      </a>
     </td>
   </tr>
   <tr>
@@ -57,8 +61,9 @@ This simulator is a tool for students to learn the inner workings of a CPU. Base
 * Custom JavaScript instruciton decoder
 * Custom JavaSript CPU based RV32I ISA
 
-
-Thank you to [@jameslzhu](https://github.com/jameslzhu) for [RISC V Reference Sheet](https://github.com/jameslzhu/riscv-card), and [@anvaka](https://github.com/anvaka) for [three.map.control](https://github.com/anvaka/three.map.control). Other used packages are in the packages.json.
+Thank you to [@jameslzhu](https://github.com/jameslzhu)
+for [RISC V Reference Sheet](https://github.com/jameslzhu/riscv-card), and [@anvaka](https://github.com/anvaka)
+for [three.map.control](https://github.com/anvaka/three.map.control). Other used packages are in the packages.json.
 
 
 
