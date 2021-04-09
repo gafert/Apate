@@ -61,7 +61,8 @@
   font-size: var(--windowHeaderTitleHeight);
 
   img {
-    height: 90%;
+    height: 24px;
+    margin-top: 2px;
     margin-right: 0.5em;
   }
 
@@ -71,7 +72,7 @@
     white-space: nowrap;
     margin-right: 1em;
     flex-shrink: 0;
-    font-size: 1.2em;
+    font-size: 1em;
   }
 
   .actions {
