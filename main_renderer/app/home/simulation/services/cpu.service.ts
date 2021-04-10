@@ -37,6 +37,7 @@ export class CPUService {
     this.bindings.clearAllValues();
     this.bindings.cpuState.next(null);
     this.bindings.nextCpuState.next(CPU_STATES.FETCH);
+    this.bindings.cycleComplete.next(1);
   }
 
   /**
@@ -120,6 +121,7 @@ export class CPUService {
         this.bindings.pc.next(this.bindings.pcAdv.value);
         this.bindings.cpuState.next(CPU_STATES.ADVANCE_PC);
         this.bindings.nextCpuState.next(CPU_STATES.FETCH);
+        this.bindings.clearAllVolatileValues();
         break;
     }
 

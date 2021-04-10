@@ -1,9 +1,11 @@
-import { Color, Geometry, Material, Mesh, MeshBasicMaterial } from 'three';
-import { animate } from 'popmotion';
-import { IdFlatInterface } from './helpers';
+import {Color, Geometry, Material, Mesh, MeshBasicMaterial} from 'three';
+import {animate} from 'popmotion';
+import {IdFlatInterface} from './helpers';
 import SVG_IDS from '../../../../yamls/ids.yml';
+import * as _ from "lodash";
 
-const nonVisibleMeshes: Mesh[] = [];
+const nonVisibleMeshes: Mesh[] = []; // Set once
+let highlightedElements = []; // Cleared sometimes
 
 /**
  * Set the render to the opacity
@@ -16,6 +18,7 @@ function setZIndexOnOpacityChange(mesh: Mesh<Geometry, Material>, newOpacity) {
 
 export function setOpacity<B extends boolean>(meshes: Mesh[], opacity, animateTransition: B): B extends true ? Promise<unknown> : void;
 export function setOpacity(meshes, opacity, animateTransition = true): Promise<unknown> | void {
+  meshes = _.uniq(meshes);
   if (animateTransition) {
     return new Promise((resolve) => {
       for (const mesh of meshes) {
@@ -48,6 +51,7 @@ export function setOpacity(meshes, opacity, animateTransition = true): Promise<u
  */
 export function setColor<B extends boolean>(meshes: Mesh[], color, animateTransition: B): B extends true ? Promise<unknown> : void;
 export function setColor(meshes, color, animateTransition = true): Promise<unknown> | void {
+  meshes = _.uniq(meshes);
   if (animateTransition) {
     return new Promise((resolve) => {
       for (const mesh of meshes) {
@@ -87,9 +91,9 @@ export function hideElement(idFlat: IdFlatInterface, idOrMesh, animate = false):
   return setOpacity(meshes, 0, animate);
 }
 
-export function showElement<B extends boolean>(idFlat: IdFlatInterface, id: string, animate: B): B extends true ? Promise<unknown> : void;
-export function showElement<B extends boolean>(idFlat: IdFlatInterface, meshes: Mesh[], animate: B): B extends true ? Promise<unknown> : void;
-export function showElement(idFlat, idOrMesh, animate = false): Promise<unknown> | void {
+export function showElement<B extends boolean>(idFlat: IdFlatInterface, id: string, animate: B, opacity?: number): B extends true ? Promise<unknown> : void;
+export function showElement<B extends boolean>(idFlat: IdFlatInterface, meshes: Mesh[], animate: B, opacity?: number): B extends true ? Promise<unknown> : void;
+export function showElement(idFlat, idOrMesh, animate = false, opacity = 1): Promise<unknown> | void {
   let meshes: Mesh[];
   if (typeof idOrMesh == 'string') {
     meshes = idFlat[idOrMesh]?.meshes;
@@ -104,10 +108,20 @@ export function showElement(idFlat, idOrMesh, animate = false): Promise<unknown>
 
   const meshesWithoutNonVisibleAreas = meshes.filter((mesh) => !nonVisibleMeshes.includes(mesh));
 
-  return setOpacity(meshesWithoutNonVisibleAreas, 1, animate);
+  return setOpacity(meshesWithoutNonVisibleAreas, opacity, animate);
 }
 
-export function highLightElement(idFlat, idOrMesh, animate = false): void {
+
+export function highLightElement(idFlat: IdFlatInterface, id: string, temporary?: boolean): void;
+export function highLightElement(idFlat: IdFlatInterface, meshes: Mesh[], temporary?: boolean): void;
+
+/**
+ * Highlight specific meshes in the graph
+ * @param idFlat
+ * @param idOrMesh String of the mesh id or a list of meshes
+ * @param temporary If temporary is true everything can be reset with resetHighlights
+ */
+export function highLightElement(idFlat, idOrMesh, temporary = false): void {
   let meshes: Mesh[];
   if (typeof idOrMesh == 'string') {
     meshes = idFlat[idOrMesh]?.meshes;
@@ -120,6 +134,9 @@ export function highLightElement(idFlat, idOrMesh, animate = false): void {
     return;
   }
 
+  // Save which are currently highlighted
+  if(!temporary) highlightedElements.push(..._.uniq(meshes));
+
   for (const mesh of meshes) {
     if ((mesh.material as any).isMarkerMaterial) {
       (mesh.material as any).highlight = 1;
@@ -127,7 +144,13 @@ export function highLightElement(idFlat, idOrMesh, animate = false): void {
   }
 }
 
-export function removeAllHighlights(idFlat: IdFlatInterface, animate = false): void {
+/**
+ * Remove all highlights from the graph
+ * @param idFlat
+ * @param temporary If temporary is true everything can be reset with resetHighlights
+ */
+export function removeAllHighlights(idFlat: IdFlatInterface, temporary = false): void {
+  if(!temporary) highlightedElements = [];
   for (const key of Object.keys(idFlat)) {
     for (const mesh of idFlat[key].meshes) {
       if ((mesh.material as any).isMarkerMaterial && (mesh.material as any).highlight > 0) {
@@ -135,6 +158,15 @@ export function removeAllHighlights(idFlat: IdFlatInterface, animate = false): v
       }
     }
   }
+}
+
+/**
+ * Reset highlights as before temporary = true was called
+ * @param idFlat
+ */
+export function resetHighlights(idFlat: IdFlatInterface) {
+  removeAllHighlights(idFlat, true);
+  highLightElement(idFlat, highlightedElements, true);
 }
 
 export function hideNonVisibleElements(idFlat: IdFlatInterface) {

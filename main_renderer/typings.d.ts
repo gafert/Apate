@@ -66,3 +66,10 @@ declare module "*.png" {
   const value: string;
   export default value;
 }
+
+// Lodash extension typing
+declare namespace _ {
+  interface LoDashStatic {
+    subtractFromLeft(a: _.List<any>, b: _.List<any>): any[];
+  }
+}

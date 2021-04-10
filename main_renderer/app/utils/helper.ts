@@ -4,6 +4,7 @@ import * as url from 'url';
 import { DataService } from '../services/data.service';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as _ from 'lodash';
 
 /**
  * Read the custom property of body section with given name
@@ -173,3 +174,9 @@ export const cpuRegDefinitions = [
   ['t6', 'Temporary']
 ];
 
+// Lodash extension
+_.mixin({
+  subtractFromLeft: function(a, b) {
+    return a.filter(x => !b.includes(x) );
+  },
+})

@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import {
   AmbientLight,
   Clock,
@@ -16,30 +16,31 @@ import {
   WebGLRenderer
 } from 'three';
 import panzoom from '../../../utils/drag.js';
-import { CPUService } from './cpu.service';
+import {CPUService} from './cpu.service';
 import BACKGROUND_IMAGE from 'assets/background.png';
-import { animate, linear } from 'popmotion';
-import tippy, { Instance, Props } from 'tippy.js';
+import {animate, linear} from 'popmotion';
+import tippy, {Instance, Props} from 'tippy.js';
 import RISCV_DEFINITIONS from '../../../yamls/risc.yml';
 import SVG_IDS from '../../../yamls/ids.yml';
-import { Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal } from './graphServiceHelpers/helpers';
-import { centerCameraOnElement, focusCameraOnElement, forceStopFocus } from './graphServiceHelpers/helperFocus';
+import {Areas, getCenterOfMeshes, IdFlatInterface, IdRootInterface, Signal} from './graphServiceHelpers/helpers';
+import {centerCameraOnElement, focusCameraOnElement, forceStopFocus} from './graphServiceHelpers/helperFocus';
 import {
   hideElement,
   highLightElement,
-  removeAllHighlights,
+  removeAllHighlights, resetHighlights, setOpacity,
   showElement
 } from './graphServiceHelpers/helperVisibility';
-import { getModuleName, getPortName, getSName, getWName } from './graphServiceHelpers/helperNameMatch';
+import {getModuleName, getPortName, getSName, getWName} from './graphServiceHelpers/helperNameMatch';
 import initiateSVGObjects, {
-  addSignalTextsAndUpdate,
+  addSignalTextsAndUpdate, getActiveMuxedMeshes, getAllMeshes, getAllMuxedMeshes, getDeactivatedMuxedMeshes,
   highlightStage,
   updateActiveElements,
   updateSignalTexts
 } from './graphServiceHelpers/helperSVGObject';
-import { CPU_STATES } from './bindingSubjects';
-import { fromEvent, Subject } from 'rxjs';
-import { cumulativeOffset } from '../../../utils/helper';
+import {CPU_STATES} from './bindingSubjects';
+import {fromEvent, Subject} from 'rxjs';
+import {cumulativeOffset} from '../../../utils/helper';
+import * as _ from "lodash";
 
 @Injectable({
   providedIn: 'root'
@@ -76,8 +77,8 @@ export class GraphService {
   private renderLoopFunctions: ((time: number, deltaTime: number) => void)[] = [];
   private renderGroup; // Holds the meshes in js groups named according to svg names
   private globalUniforms = {
-    time: { value: 0 },
-    resolution: { value: new Vector2(0, 0) }
+    time: {value: 0},
+    resolution: {value: new Vector2(0, 0)}
   };
   // intersection on 0,0 before mouse is moved
   private centeredMouse = new Vector2(-10000, -10000);
@@ -135,7 +136,7 @@ export class GraphService {
 
           // Setup renderer
           this.scene = new Scene();
-          this.renderer = new WebGLRenderer({ alpha: true, antialias: true });
+          this.renderer = new WebGLRenderer({alpha: true, antialias: true});
           this.renderer.setPixelRatio(window.devicePixelRatio);
           this.renderDom.appendChild(this.renderer.domElement);
 
@@ -256,7 +257,7 @@ export class GraphService {
 
     if (animationElement && !reverse) {
       await Promise.all([new Promise((resolve) => {
-        const { center } = getCenterOfMeshes(this.idFlat[animationElement].meshes);
+        const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
         animate({
           from: 0,
           to: 1,
@@ -282,7 +283,7 @@ export class GraphService {
       showElement(this.idFlat, SVG_IDS.areaID + newArea, true).then(() => updateActiveElements(this.cpu.bindings, this.idFlat, this.update.animations));
 
       // Lerp camera from center of animationElement to full view
-      const { center } = getCenterOfMeshes(this.idFlat[animationElement].meshes);
+      const {center} = getCenterOfMeshes(this.idFlat[animationElement].meshes);
       this.camera.position.copy(center);
       await focusCameraOnElement(this.camera, this.idFlat, SVG_IDS.areaBorderID + newArea, true);
     } else {
@@ -316,11 +317,11 @@ export class GraphService {
   }
 
   public highlightElement(id: string) {
-    highLightElement(this.idFlat, id, true);
+    highLightElement(this.idFlat, id);
   }
 
   public removeAllHighlights() {
-    removeAllHighlights(this.idFlat, true);
+    removeAllHighlights(this.idFlat);
   }
 
   /**
@@ -397,32 +398,87 @@ export class GraphService {
 
     // Show Tooltip on intersection
     const removeTooltip = () => {
-      if (this.intersectedElement) {
-        // this.intersectedElement.material.color.setHex(this.intersectedElement.currentHex);
-        this.hoverTooltipInstance.hide();
-      }
       this.hoverTooltipInstance.hide();
       this.intersectedElement = null;
+      showElement(this.idFlat,
+        _.union(
+          getActiveMuxedMeshes(this.cpu.bindings, this.idFlat),
+          _.difference(this.idFlat[SVG_IDS.areaID + this.currentArea]?.meshes, getAllMuxedMeshes(this.idFlat))), true);
+      resetHighlights(this.idFlat);
     };
+
+    const markOtherSignalsWithThisId = (id) => {
+      // Get all common signals with the same name
+      const allMeshesWithSameSignal = [];
+      for (const key of Object.keys(this.idFlat)) {
+        if (getPortName(key) === id || getSName(key) === id) {
+          allMeshesWithSameSignal.push(...this.idFlat[key].meshes);
+        }
+      }
+
+      // Show signals if they are used in this instruction if they have been hidden
+      const activeMuxedMeshes = getActiveMuxedMeshes(this.cpu.bindings, this.idFlat);
+      const allMuxedMeshes = getAllMuxedMeshes(this.idFlat);
+      const notMuxedActiveMeshes = _.difference(allMeshesWithSameSignal, allMuxedMeshes)
+
+      const showElements = _.union(_.intersection(activeMuxedMeshes, allMeshesWithSameSignal), notMuxedActiveMeshes);
+
+      if (showElements.length > 0) {
+        // Darken the other elements not with this name
+        showElement(this.idFlat,
+          _.union(
+            _.difference(activeMuxedMeshes, allMeshesWithSameSignal),
+            _.subtractFromLeft(
+              _.difference(this.idFlat[SVG_IDS.areaID + this.currentArea]?.meshes, allMuxedMeshes), allMeshesWithSameSignal)
+          ), true, 0.5);
+
+        showElement(this.idFlat, showElements, true);
+
+
+        // Remove old highlights and set new ones
+        removeAllHighlights(this.idFlat, true)
+        highLightElement(this.idFlat, showElements, true);
+      } else {
+        // If the selected signal is not active, dont hide anything but make sure that everything is still shown
+        showElement(this.idFlat, _.union(activeMuxedMeshes, _.difference(this.idFlat[SVG_IDS.areaID + this.currentArea]?.meshes, getAllMuxedMeshes(this.idFlat))), true);
+      }
+    }
+
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0) {
       const getName = (i) => {
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.signalID)) return { name: i.parent.parent.name, type: 's', order: 1 };
-        if (i?.parent?.name?.startsWith(SVG_IDS.signalID)) return { name: i.parent.name, type: 's', order: 2  };
-        if (i?.name?.startsWith(SVG_IDS.signalID)) return { name: i.name, type: 's', order: 3  };
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.portID)) return { name: i.parent.parent.name, type: 'p', order: 4  };
-        if (i?.parent?.name?.startsWith(SVG_IDS.portID)) return { name: i.parent.name, type: 'p', order: 5  };
-        if (i?.name?.startsWith(SVG_IDS.portID)) return { name: i.name, type: 'p', order: 6  };
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.parent.parent.name, type: 'm', order: 7  };
-        if (i?.parent?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.parent.name, type: 'm', order: 8  };
-        if (i?.name?.startsWith(SVG_IDS.moduleID)) return { name: i.name, type: 'm', order: 9  };
-        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.wireID)) return { name: i.parent.parent.name, type: 'w', order: 10  };
-        if (i?.parent?.name?.startsWith(SVG_IDS.wireID)) return { name: i.parent.name, type: 'w', order: 11  };
-        if (i?.name?.startsWith(SVG_IDS.wireID)) return { name: i.name, type: 'w', order: 12  };
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.signalID)) return {
+          name: i.parent.parent.name,
+          type: 's',
+          order: 1
+        };
+        if (i?.parent?.name?.startsWith(SVG_IDS.signalID)) return {name: i.parent.name, type: 's', order: 2};
+        if (i?.name?.startsWith(SVG_IDS.signalID)) return {name: i.name, type: 's', order: 3};
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.portID)) return {
+          name: i.parent.parent.name,
+          type: 'p',
+          order: 4
+        };
+        if (i?.parent?.name?.startsWith(SVG_IDS.portID)) return {name: i.parent.name, type: 'p', order: 5};
+        if (i?.name?.startsWith(SVG_IDS.portID)) return {name: i.name, type: 'p', order: 6};
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.moduleID)) return {
+          name: i.parent.parent.name,
+          type: 'm',
+          order: 7
+        };
+        if (i?.parent?.name?.startsWith(SVG_IDS.moduleID)) return {name: i.parent.name, type: 'm', order: 8};
+        if (i?.name?.startsWith(SVG_IDS.moduleID)) return {name: i.name, type: 'm', order: 9};
+        if (i?.parent?.parent?.name?.startsWith(SVG_IDS.wireID)) return {
+          name: i.parent.parent.name,
+          type: 'w',
+          order: 10
+        };
+        if (i?.parent?.name?.startsWith(SVG_IDS.wireID)) return {name: i.parent.name, type: 'w', order: 11};
+        if (i?.name?.startsWith(SVG_IDS.wireID)) return {name: i.name, type: 'w', order: 12};
       };
 
       let object;
-      intersects.sort((a,b) => getName(a)?.order > getName(b)?.order ? 1 : -1);
+      intersects.sort((a, b) => getName(a)?.order > getName(b)?.order ? 1 : -1);
       for (const intersection of intersects) {
         object = getName(intersection.object);
         if (object) break;
@@ -460,6 +516,7 @@ export class GraphService {
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
               desc = RISCV_DEFINITIONS.signalsNPorts[id]?.desc;
               this.hoverTooltipInstance.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
+              markOtherSignalsWithThisId(id);
               console.log(object.name, id, name, prevalue, value);
               break;
             case 'm':
@@ -467,6 +524,8 @@ export class GraphService {
               name = RISCV_DEFINITIONS.modules[id]?.name;
               desc = RISCV_DEFINITIONS.modules[id]?.desc;
               this.hoverTooltipInstance.setContent('<strong>' + name + '</strong>' + (desc ? '<br>' + desc : ''));
+              // Show elements which might have been hidden
+              showElement(this.idFlat, getActiveMuxedMeshes(this.cpu.bindings, this.idFlat), true);
               console.log(object.name, id, name);
               break;
             case 'p':
@@ -476,6 +535,7 @@ export class GraphService {
               value = (prevalue === null || prevalue === undefined) ? 'NaN' : prevalue.toString();
               desc = RISCV_DEFINITIONS.signalsNPorts[id]?.desc;
               this.hoverTooltipInstance.setContent('<strong>' + name + '</strong><br>Value: ' + value + (desc ? '<br>' + desc : ''));
+              markOtherSignalsWithThisId(id);
               console.log(object.name, id, name, prevalue, value);
               break;
           }
@@ -494,10 +554,12 @@ export class GraphService {
           });
         }
       } else {
-        removeTooltip();
+        if (this.intersectedElement)
+          removeTooltip();
       }
     } else {
-      removeTooltip();
+      if (this.intersectedElement)
+        removeTooltip();
     }
   }
 

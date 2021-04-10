@@ -147,55 +147,89 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
   return { idFlat, idRoot, renderGroup };
 }
 
-export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterface, animateTransition: boolean) {
-  const nextCpuState = cpuBindings.nextCpuState.value;
-
-  // Reset all lines
-  // Dont show any active lines
-  if (nextCpuState === CPU_STATES.FETCH) {
-    for (const key of Object.keys(idFlat)) {
-      // Hide all elements when the next decoding stage is incoming
-      if (key.startsWith(SVG_IDS.muxGroupID)) {
-        setOpacity(idFlat[key].meshes, 1, animateTransition);
-      }
-    }
-    // Reset all values
-    cpuBindings.clearAllVolatileValues();
+/**
+ * Get all meshes
+ */
+export function getAllMeshes(idFlat: IdFlatInterface) {
+  // Deactivate all elements with 'mux_' which are currently not on if there are some to activate
+  const allMeshes = [];
+  for (const key of Object.keys(idFlat)) {
+    allMeshes.push(...idFlat[key].meshes);
   }
 
-  // Show decoded active lines if the current executed state was decoding
-  if (cpuBindings.instruction.value) {
+  return _.uniq(allMeshes);
+}
 
-    /**
-     * Checks the idFlat list for mux elements with the given element name.
-     * @param element Name which should be included in the id -> 'add' to match 'mux_xor_add' or 'mux_add_lui'
-     */
-    const checkActiveElementsInGraph = (element: string) => {
-      const meshesToActivate = [];
-      for (const key of Object.keys(idFlat)) {
-        // Only match exact word -> 'add' -> match 'add' and not 'addi'
-        const regex = new RegExp(`(\b|_)${element.toLowerCase()}(\b|_|$|-)`);
-        const keySmall = key.toLowerCase();
-        if (keySmall.startsWith(SVG_IDS.muxGroupID) && regex.test(keySmall)) {
-          meshesToActivate.push(...idFlat[key].meshes);
-        }
-      }
-      return meshesToActivate;
-    };
+/**
+ * Get all elements which are active and dependant on the current instruction
+ * @param cpuBindings
+ * @param idFlat
+ */
+export function getActiveMuxedMeshes(cpuBindings: Bindings, idFlat: IdFlatInterface ) {
 
-    // Get list with meshes to activate
-    const meshesToActivate = [];
-    meshesToActivate.push(...checkActiveElementsInGraph(cpuBindings.instruction.value?.opcodeName));
-    meshesToActivate.push(...checkActiveElementsInGraph(cpuBindings.instruction.value?.instructionName));
-    // Deactivate all elements with 'mux_' which are currently not on if there are some to activate
-    const allMeshes = [];
+  if(!cpuBindings.instruction.value) {
+    return []; // No instruction -> nothing can be active
+  }
+
+  /**
+   * Checks the idFlat list for mux elements with the given element name.
+   * @param element Name which should be included in the id -> 'add' to match 'mux_xor_add' or 'mux_add_lui'
+   */
+  const checkActiveElementsInGraph = (element: string) => {
+    const activeMeshes = [];
+    // Only match exact word -> 'add' -> match 'add' and not 'addi'
+    const regex = new RegExp(`(\b|_)${element.toLowerCase()}(\b|_|$|-)`);
     for (const key of Object.keys(idFlat)) {
       const keySmall = key.toLowerCase();
-      if (keySmall.startsWith(SVG_IDS.muxGroupID)) {
-        allMeshes.push(...idFlat[key].meshes);
+      if (keySmall.startsWith(SVG_IDS.muxGroupID) && regex.test(keySmall)) {
+        activeMeshes.push(...idFlat[key].meshes);
       }
     }
-    setOpacity(_.difference(allMeshes, meshesToActivate), 0.05, animateTransition);
+    return activeMeshes;
+  };
+
+  // Get list with meshes to activate
+  const activeMeshes = [];
+  activeMeshes.push(...checkActiveElementsInGraph(cpuBindings.instruction.value.opcodeName));
+  activeMeshes.push(...checkActiveElementsInGraph(cpuBindings.instruction.value.instructionName));
+
+  return _.uniq(activeMeshes);
+}
+
+/**
+ * Get all meshes which are dependant on the instruciton
+ */
+export function getAllMuxedMeshes(idFlat: IdFlatInterface) {
+  // Deactivate all elements with 'mux_' which are currently not on if there are some to activate
+  const allMeshes = [];
+  for (const key of Object.keys(idFlat)) {
+    const keySmall = key.toLowerCase();
+    if (keySmall.startsWith(SVG_IDS.muxGroupID)) {
+      allMeshes.push(...idFlat[key].meshes);
+    }
+  }
+
+  return _.uniq(allMeshes);
+}
+
+
+
+/**
+ * Get all meshes which should be deactivated in the current instruction
+ * @param cpuBindings
+ * @param idFlat
+ */
+export function getDeactivatedMuxedMeshes(cpuBindings: Bindings, idFlat: IdFlatInterface) {
+  return _.difference(getAllMuxedMeshes(idFlat), getActiveMuxedMeshes(cpuBindings, idFlat));
+}
+
+export function updateActiveElements(cpuBindings: Bindings, idFlat: IdFlatInterface, animateTransition: boolean) {
+  // Show decoded active lines if the current executed state was decoding
+  if (cpuBindings.instruction.value) {
+    setOpacity(getActiveMuxedMeshes(cpuBindings, idFlat), 1, animateTransition);
+    setOpacity(getDeactivatedMuxedMeshes(cpuBindings, idFlat), 0.05, animateTransition);
+  } else {
+    setOpacity(getAllMuxedMeshes(idFlat), 0.05, animateTransition);
   }
 }
 
