@@ -3,8 +3,8 @@ import {Color, DoubleSide, Material, Mesh, TextGeometry, TextureLoader} from "th
 import createFontGeometry from 'three-bmfont-text';
 
 // Converts the ttf to a msdf font and packs it in the bundle
-import robotoRegularFont from 'ttf-msdf-loader!../../../assets/fonts/Roboto/Roboto-Regular.ttf';
-import robotoBoldFont from 'ttf-msdf-loader!../../../assets/fonts/Roboto/Roboto-Bold.ttf';
+import robotoRegularFont from 'ttf-msdf-loader!../../../bundled/fonts/Roboto/Roboto-Regular.ttf';
+import robotoBoldFont from 'ttf-msdf-loader!../../../bundled/fonts/Roboto/Roboto-Bold.ttf';
 
 console.log(robotoRegularFont);
 

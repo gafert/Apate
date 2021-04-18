@@ -24,7 +24,7 @@
               "main_renderer/styles.scss"
             ],
             "scripts": [
-              "main_renderer/bundle/dynamicHTMLRouter.js"
+              "main_renderer/bundled/dynamicHTMLRouter.js"
             ],
             "customWebpackConfig": {
               "path": "./angular.webpack.js"

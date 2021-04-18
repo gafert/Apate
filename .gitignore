@@ -57,3 +57,4 @@ Thumbs.db
 /risc_test_executable/.idea
 /risc_test_executable/riscv-exe.cbp
 
+/webpack_plugin/ttf-msdf-loader.js
