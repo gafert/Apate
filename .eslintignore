@@ -1,6 +1,8 @@
 /node_modules
 /release
 /risc_test_executable
+/build_resources
+/github_resources
+/.github
 /dist
-/binaries
 angular.webpack.js

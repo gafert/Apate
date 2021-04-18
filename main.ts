@@ -7,6 +7,8 @@ const args = process.argv.slice(1);
 const serve = args.some((val) => val === '--serve');
 let wizardSettings;
 
+
+
 function createWindow(): BrowserWindow {
   const size = screen.getPrimaryDisplay().workAreaSize;
 

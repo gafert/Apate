@@ -3,6 +3,9 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { AppModule } from './app/app.module';
 import { AppConfig } from './environments/environment';
 
+// Expose global THREE variable
+global.THREE = require('three');
+
 if (AppConfig.production) {
   enableProdMode();
 }

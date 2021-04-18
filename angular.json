@@ -17,12 +17,6 @@
             "tsConfig": "main_renderer/tsconfig.app.json",
             "polyfills": "main_renderer/polyfills.ts",
             "assets": [
-              "main_renderer/assets",
-              "main_renderer/favicon.ico",
-              "main_renderer/favicon.png",
-              "main_renderer/favicon.icns",
-              "main_renderer/favicon.256x256.png",
-              "main_renderer/favicon.512x512.png",
               "main_renderer/static",
               { "glob": "**/*", "input": "node_modules/monaco-editor", "output": "assets/monaco-editor/" }
             ],
@@ -30,7 +24,7 @@
               "main_renderer/styles.scss"
             ],
             "scripts": [
-              "main_renderer/assets/dynamicHTMLRouter.js"
+              "main_renderer/bundle/dynamicHTMLRouter.js"
             ],
             "customWebpackConfig": {
               "path": "./angular.webpack.js"

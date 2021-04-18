@@ -175,6 +175,15 @@ export const cpuRegDefinitions = [
 ];
 
 // Lodash extension
+declare module "lodash" {
+  interface LoDashStatic {
+    subtractFromLeft(a: any, b: any): any[];
+  }
+  interface LoDashExplicitWrapper<TValue> {
+    subtractFromLeft(a: any, b: any): any[];
+  }
+}
+
 _.mixin({
   subtractFromLeft: function(a, b) {
     return a.filter(x => !b.includes(x) );

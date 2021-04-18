@@ -1,3 +1,7 @@
+/**
+ This is the tsconfig for all electron / build files and not angular specific files.
+*/
+
 {
   "compilerOptions": {
     "sourceMap": true,
@@ -17,7 +21,8 @@
     ]
   },
   "files": [
-    "main.ts"
+    "main.ts",
+    "webpack_plugin/ttf-msdf-loader.ts"
   ],
   "exclude": [
     "node_modules",

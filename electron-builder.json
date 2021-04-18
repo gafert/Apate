@@ -1,7 +1,8 @@
 {
   "productName": "Apate",
   "directories": {
-    "output": "release/"
+    "output": "release/",
+    "buildResources": "build_resources/"
   },
   "files": [
     "./dist/**/*",

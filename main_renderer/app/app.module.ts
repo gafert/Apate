@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import '../polyfills';
-
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
@@ -26,9 +25,9 @@ const routes: Routes = [
     redirectTo: 'wizard',
     pathMatch: 'full',
   },
-  {path: 'home', loadChildren: () => import('./home/home.module').then((m) => m.HomeModule)},
-  {path: 'settings', loadChildren: () => import('./settings/settings.module').then((m) => m.SettingsModule)},
-  {path: 'wizard', loadChildren: () => import('./wizard/wizard.module').then((m) => m.WizardModule)},
+  {path: 'home', loadChildren: () => import('./module_home/home.module').then((m) => m.HomeModule)},
+  {path: 'settings', loadChildren: () => import('./module_settings/settings.module').then((m) => m.SettingsModule)},
+  {path: 'wizard', loadChildren: () => import('./module_wizard/wizard.module').then((m) => m.WizardModule)},
 ];
 
 @NgModule({

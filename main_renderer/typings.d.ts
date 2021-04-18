@@ -4,7 +4,6 @@ interface NodeModule {
   id: string;
 }
 interface Window {
-  objdumpWorker: Worker;
   process: any;
   require: any;
 }
@@ -67,9 +66,9 @@ declare module "*.png" {
   export default value;
 }
 
-// Lodash extension typing
-declare namespace _ {
-  interface LoDashStatic {
-    subtractFromLeft(a: _.List<any>, b: _.List<any>): any[];
-  }
+// See ttf-msdf-loader plugin
+declare module "*.ttf" {
+  const value: { font: any; textures: string[] };
+  export default value;
 }
+

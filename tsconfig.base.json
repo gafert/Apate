@@ -1,3 +1,7 @@
+/**
+  This is the base config for the angular tsconfig files
+*/
+
 {
   "compileOnSave": false,
   "compilerOptions": {

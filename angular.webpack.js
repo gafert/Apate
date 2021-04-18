@@ -1,7 +1,7 @@
 const arch = process.env.ARCH || process.arch;
 const platform = process.env.PLATFORM || process.platform;
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = (config, options) => {
   config.target = 'electron-renderer';
@@ -77,8 +77,15 @@ module.exports = (config, options) => {
     }
   ];
 
+  config.resolveLoader = {
+    alias: {
+      // Register loader so it can be used inline with import
+      'ttf-msdf-loader': require('path').resolve('./webpack_plugin/ttf-msdf-loader.js'),
+    },
+  };
+
   config.plugins = [
-    ...config.plugins /*,
+    ...config.plugins,/*,
     new BundleAnalyzerPlugin({
       generateStatsFile: true
     })*/
