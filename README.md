@@ -1,12 +1,11 @@
+
+<img src="https://user-images.githubusercontent.com/26965341/116008549-7311c300-a615-11eb-982e-630efdbb3523.gif" width="100%" />
+
 ![Build/release](https://github.com/gafert/Apate/workflows/Build/release/badge.svg) ![GitHub all releases](https://img.shields.io/github/downloads/gafert/apate/total?color=blue)
 
-# Apate - a visual CPU simulator for use in education
+This simulator is a tool for students to learn the inner workings of a CPU. It is based on the RISC-V instruction set architecture (RV32I) and provides a visual step by step guide through a CPU. __[Watch the introduction video!](https://onedrive.live.com/embed?cid=7DB401F01603F3FF&resid=7DB401F01603F3FF%21387672&authkey=AIt0zApVbDVJKUc)__
 
-This simulator is a tool for students to learn the inner workings of a CPU. Based on the RISC V instruction set (RV32I)
-it provides a visual step by step guide through the flow of a
-CPU. __[Watch the introduction video!](https://onedrive.live.com/embed?cid=7DB401F01603F3FF&resid=7DB401F01603F3FF%21387672&authkey=AIt0zApVbDVJKUc)__
-
-<table>
+<table style="width=100%">
   <tr>
     <th>
       Windows
@@ -35,7 +34,8 @@ CPU. __[Watch the introduction video!](https://onedrive.live.com/embed?cid=7DB40
     </td>
   </tr>
   <tr>
-    <td colspan=3>See older versions in the <a href="https://github.com/gafert/Apate/releases">releases</td>
+    <td colspan=3>    
+      See older versions in the <a href="https://github.com/gafert/Apate/releases">releases</td>
   </tr>
 </table>
 
