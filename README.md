@@ -1,9 +1,18 @@
 
 <img src="https://user-images.githubusercontent.com/26965341/116008549-7311c300-a615-11eb-982e-630efdbb3523.gif" width="100%" />
 
-![Build/release](https://github.com/gafert/Apate/workflows/Build/release/badge.svg) ![GitHub all releases](https://img.shields.io/github/downloads/gafert/apate/total?color=blue)
+![Screenshot](https://github.com/gafert/Apate/blob/master/github_resources/apate.png?raw=true)
+
+
+<hr>
+
 
 This simulator is a tool for students to learn the inner workings of a CPU. It is based on the RISC-V instruction set architecture (RV32I) and provides a visual step by step guide through a CPU. __[Watch the introduction video!](https://onedrive.live.com/embed?cid=7DB401F01603F3FF&resid=7DB401F01603F3FF%21387672&authkey=AIt0zApVbDVJKUc)__
+
+
+
+# Downloads ![Build/release](https://github.com/gafert/Apate/workflows/Build/release/badge.svg) ![GitHub all releases](https://img.shields.io/github/downloads/gafert/apate/total?color=blue)
+
 
 <table style="width=100%">
   <tr>
@@ -39,7 +48,6 @@ This simulator is a tool for students to learn the inner workings of a CPU. It i
   </tr>
 </table>
 
-![Screenshot](https://github.com/gafert/Apate/blob/master/github_resources/apate.png?raw=true)
 
 # Features
 
