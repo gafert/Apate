@@ -124,7 +124,7 @@ export class GraphService {
    * @param domElement Target of render. This function will add a canvas matching the size of the domElement.
    */
   public init(domElement: HTMLElement): Promise<unknown> {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       console.log('Initiating Graph...');
       this.ngZone.runOutsideAngular(() => {
         this.renderDom = domElement;

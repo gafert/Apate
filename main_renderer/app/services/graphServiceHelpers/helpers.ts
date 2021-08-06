@@ -1,6 +1,5 @@
 import { Box3, Mesh, Object3D, ShapePath, Vector3 } from 'three';
 import * as d3 from 'd3';
-import { MeshText2D } from 'three-text2d';
 import { BehaviorSubject } from 'rxjs';
 import SVG_IDS from '../../../bundled/yamls/ids.yml';
 
@@ -46,7 +45,7 @@ export interface IdFlatInterface {
 }
 
 export interface Signal {
-  textElement: MeshText2D;
+  textElement: any;
   meshes: Mesh[];
   binding: BehaviorSubject<any>;
 }

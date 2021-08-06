@@ -1,15 +1,18 @@
 import {SVGLoader} from './SVGLoader';
 import RISC_SVG from '!!raw-loader!./riscv.svg';
 import {
-  BufferGeometry,
   Color,
+  LineBasicMaterial,
+  LineSegments,
+  LoadingManager,
   Mesh,
   Object3D,
+  PlaneGeometry,
   ShapeGeometry,
+  WireframeGeometry,
 } from 'three';
 import {checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface, Signal} from './helpers';
 import {getSName} from './helperNameMatch';
-import {textAlign} from 'three-text2d';
 import * as d3 from 'd3';
 import * as tinycolor from 'tinycolor2';
 import {Bindings, CPU_STATES} from '../cpuServiceHelpers/bindingSubjects';
@@ -19,16 +22,15 @@ import {readStyleProperty} from '../../utils/helper';
 import {IUniform} from 'three/src/renderers/shaders/UniformsLib';
 import {MarkerMaterial} from './MarkerMaterial';
 import SVG_IDS from '../../../bundled/yamls/ids.yml';
-import {MeshText2D} from './MeshText2D';
-import {MSDFFont} from "./MSDFFont";
+import {MSDFFont} from "./msdf/MSDFFont";
 
 
 /**
  * Loads the SVG and generates meshes. Does not add anything to the scene.
  */
 export default function initiateSVGObjects(globalUniforms: { [uniform: string]: IUniform }): { idRoot: IdRootInterface; idFlat: IdFlatInterface; renderGroup: Object3D } {
-  const loader = new SVGLoader();
-  const idRoot: IdRootInterface = loader.parse(RISC_SVG).root;
+  const loader = new SVGLoader(new LoadingManager());
+  const idRoot: IdRootInterface = loader.parse(RISC_SVG).root as IdRootInterface;
   const renderGroup = new Object3D();
 
 
@@ -84,7 +86,7 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
 
             for (let j = 0, jl = path.subPaths.length; j < jl; j++) {
               const subPath = path.subPaths[j];
-              const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path.userData.style);
+              const geometry = loader.pointsToStroke(subPath.getPoints(), path.userData.style);
               if (geometry) {
                 const mesh = new Mesh(geometry, shaderMaterial);
                 childGroup.add(mesh);
@@ -101,7 +103,7 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
         if (child.text) {
           const style = child.text.userData.style;
 
-          const text = new MSDFFont(child.text.text, 1, new Color(style.fill), style.fontSize, style.fontWeight);
+          const text = new MSDFFont(child.text.text, 1, new Color(style.fill), style.fontSize, style.fontWeight, true);
 
           child.text.userData.position.y -= 2;
           text.position.copy(child.text.userData.position);
@@ -112,6 +114,8 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
           // Store it for us to
           child.meshes = [];
           child.meshes.push(text);
+          // child.meshes.push(meshRect as unknown as Mesh<BufferGeometry, Material>);
+
           // child.isGroup = false;
           child.group = childGroup;
           child.parent = parent;
@@ -262,7 +266,7 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
       // This is a string, tell typescript
       signalName = signalName as string;
       const meshOfSignal = idFlat[key].meshes[0];
-      const geometry = (meshOfSignal.geometry as BufferGeometry);
+      const geometry = meshOfSignal.geometry;
       const renderGroup = idFlat[key].group;
 
       const text = new MSDFFont(signalName, 1, new Color(0xffffff), 10);

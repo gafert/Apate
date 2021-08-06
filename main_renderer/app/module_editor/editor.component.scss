@@ -1,0 +1,9 @@
+@import "../../import";
+
+.canvas {
+    height: 100%;
+    outline: none;
+    background: $grey3;
+    min-width: 0px;
+    min-height: 0px;
+}

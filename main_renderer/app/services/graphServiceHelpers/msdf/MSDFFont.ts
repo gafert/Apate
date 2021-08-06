@@ -1,19 +1,22 @@
 import { MSDFMaterial } from './MSDFMaterial';
-import {Color, DoubleSide, Material, Mesh, TextGeometry, TextureLoader} from "three";
-import createFontGeometry from 'three-bmfont-text';
+import {BufferGeometry, Color, DoubleSide, Material, Mesh, TextureLoader} from "three";
+import {TextGeometry} from './TextGeometry';
+
+const { clipboard } = require('electron')
+const nativeImage = require('electron').nativeImage
 
 // Converts the ttf to a msdf font and packs it in the bundle
-import robotoRegularFont from 'ttf-msdf-loader!../../../bundled/fonts/Roboto/Roboto-Regular.ttf';
-import robotoBoldFont from 'ttf-msdf-loader!../../../bundled/fonts/Roboto/Roboto-Bold.ttf';
+import robotoRegularFont from 'ttf-msdf-loader!../../../../bundled/fonts/Roboto/Roboto-Regular.ttf';
+import robotoBoldFont from 'ttf-msdf-loader!../../../../bundled/fonts/Roboto/Roboto-Bold.ttf';
 
-console.log(robotoRegularFont);
+// console.log(robotoRegularFont);
 
 const robotoRegularTexture = (new TextureLoader()).load(robotoRegularFont.textures[0]);
 const robotoBoldTexture = (new TextureLoader()).load(robotoBoldFont.textures[0]);
 
-console.log('Bold\n%c ', 'font-size:400px; background:url(' + robotoBoldFont.textures[0] + ') no-repeat; background-size: contain; ');
+// console.log('Bold\n%c ', 'font-size:400px; background:url(' + robotoBoldFont.textures[0] + ') no-repeat; background-size: contain; ');
 console.log('Regular\n%c ', 'font-size:400px; background:url(' + robotoRegularFont.textures[0] + ') no-repeat; background-size: contain; ');
-
+clipboard.writeImage(nativeImage.createFromDataURL(robotoRegularFont.textures[0]));
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#common_weight_name_mapping
 const fontWeightMap = {
@@ -36,7 +39,7 @@ const fontWeightMap = {
   'extra black': 950,
 }
 
-class MSDFFont extends Mesh<TextGeometry, Material> {
+export class MSDFFont extends Mesh<BufferGeometry, Material> {
 
   set text(value: string) {
     this._text = value;
@@ -45,9 +48,7 @@ class MSDFFont extends Mesh<TextGeometry, Material> {
     }
   }
 
-
-
-  constructor(public _text: string, opacity = 1, color = new Color(0xFFFFFF), fontSize = 12, fontWeight = 'normal') {
+  constructor(public _text: string, opacity = 1, color = new Color(0xFFFFFF), fontSize = 12, fontWeight = 'normal', flipY = true) {
     super();
 
     let fontWeightNumeric;
@@ -67,10 +68,11 @@ class MSDFFont extends Mesh<TextGeometry, Material> {
     }
 
 
-    this.geometry = createFontGeometry({
+    this.geometry = new TextGeometry({
       text: this._text,
       align: 'left',
-      font: font
+      font: font,
+      flipY: flipY
     })
 
     this.material = new MSDFMaterial({
@@ -85,5 +87,3 @@ class MSDFFont extends Mesh<TextGeometry, Material> {
     this.scale.multiplyScalar(fontSize / 42);
   }
 }
-
-export {MSDFFont}

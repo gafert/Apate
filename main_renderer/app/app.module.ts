@@ -28,6 +28,8 @@ const routes: Routes = [
   {path: 'home', loadChildren: () => import('./module_home/home.module').then((m) => m.HomeModule)},
   {path: 'settings', loadChildren: () => import('./module_settings/settings.module').then((m) => m.SettingsModule)},
   {path: 'wizard', loadChildren: () => import('./module_wizard/wizard.module').then((m) => m.WizardModule)},
+  {path: 'editor', loadChildren: () => import('./module_editor/editor.module').then((m) => m.EditorModule)},
+
 ];
 
 @NgModule({

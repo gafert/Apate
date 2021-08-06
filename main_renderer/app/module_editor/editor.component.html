@@ -1,0 +1,8 @@
+<app-window name="Editor" [showMaximize]="false" [showMinimize]="false">
+  <div window-actions>
+    <button [routerLink]="['../wizard']" mat-flat-button color="primary">Back</button>
+  </div>
+  <div window-main style="height: 100%">
+    <div #graph class="canvas"></div>
+  </div>
+</app-window>

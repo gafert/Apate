@@ -1,4 +1,4 @@
-import {Color, Geometry, Material, Mesh, MeshBasicMaterial} from 'three';
+import {BufferGeometry, Color, Material, Mesh, MeshBasicMaterial} from 'three';
 import {animate} from 'popmotion';
 import {IdFlatInterface} from './helpers';
 import SVG_IDS from '../../../bundled/yamls/ids.yml';
@@ -12,7 +12,7 @@ let highlightedElements = []; // Cleared sometimes
  * @param mesh
  * @param newOpacity
  */
-function setZIndexOnOpacityChange(mesh: Mesh<Geometry, Material>, newOpacity) {
+function setZIndexOnOpacityChange(mesh: Mesh<BufferGeometry, Material>, newOpacity) {
   mesh.renderOrder = newOpacity;
 }
 
@@ -20,7 +20,7 @@ export function setOpacity<B extends boolean>(meshes: Mesh[], opacity, animateTr
 export function setOpacity(meshes, opacity, animateTransition = true): Promise<unknown> | void {
   meshes = _.uniq(meshes);
   if (animateTransition) {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       for (const mesh of meshes) {
         setZIndexOnOpacityChange(mesh, opacity);
         animate({
@@ -53,7 +53,7 @@ export function setColor<B extends boolean>(meshes: Mesh[], color, animateTransi
 export function setColor(meshes, color, animateTransition = true): Promise<unknown> | void {
   meshes = _.uniq(meshes);
   if (animateTransition) {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       for (const mesh of meshes) {
         animate({
           from: '#' + mesh.material.color.getHexString(),
@@ -184,6 +184,6 @@ export function hideNonVisibleElements(idFlat: IdFlatInterface) {
       transparent: true,
       opacity: 0
     });
-    (nonVisibleMesh.geometry as Geometry).uvsNeedUpdate = true;
+    nonVisibleMesh.geometry.attributes.position.needsUpdate = true;
   }
 }

@@ -1,12 +1,13 @@
-import { Color, ShaderMaterial, ShaderMaterialParameters } from 'three';
+import { Color, ShaderMaterial, ShaderMaterialParameters, Texture } from 'three';
 import SHADER_MARKER_VERT from './shader_marker.vert';
 import SHADER_MARKER_FRAG from './shader_marker.frag';
-import { readStyleProperty } from '../../utils/helper';
+import { readStyleProperty } from '../utils/helper';
 
 interface MarkerMaterialParameters extends ShaderMaterialParameters {
   // opacity: number; // --> already in super
   globalUniforms: any; // Cannot be named uniforms because that would overwrite the set uniforms
   color?: Color;
+  map: Texture;
   highlight?: number;
 }
 
@@ -16,8 +17,14 @@ interface MarkerMaterialParameters extends ShaderMaterialParameters {
  * @param parameters
  * @constructor
  */
-export class MarkerMaterial extends ShaderMaterial {
-
+class MarkerMaterial extends ShaderMaterial {
+  private _map;
+  public get map() {
+    return this.uniforms.map.value;
+  }
+  public set map(v) {
+    this.uniforms.map.value = v;
+  }
   private _color;
   public get color() {
     return this.uniforms.color.value;
@@ -42,6 +49,7 @@ export class MarkerMaterial extends ShaderMaterial {
       highlight: { value: parameters.highlight ? parameters.highlight : 0 },
       greyColor: { value: new Color(readStyleProperty('grey2')) },
       whiteColor: { value: new Color(readStyleProperty('accent')) },
+      map: { value: parameters.map }
     };
 
     this.vertexShader = SHADER_MARKER_VERT;
@@ -49,3 +57,5 @@ export class MarkerMaterial extends ShaderMaterial {
     this.transparent = false;
   }
 }
+
+export { MarkerMaterial };

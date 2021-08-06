@@ -1,5 +1,6 @@
 <app-window name="Apate - Wizard">
   <ng-container window-actions>
+    <button [routerLink]="['../editor']" mat-flat-button color="primary">Editor</button>
     <button mat-flat-button color="primary" (click)="setIntroActive(true)" *ngIf="introNotActive">Show Intro</button>
   </ng-container>
   <ng-container window-main>
