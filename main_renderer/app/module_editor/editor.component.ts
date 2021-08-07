@@ -29,6 +29,8 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { Mux } from './Mux.js';
 import { GraphLine } from './Line.js';
 import { MSDFFont } from 'app/services/graphServiceHelpers/msdf/MSDFFont.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 
 @Component({
   selector: 'app-editor',
@@ -115,7 +117,7 @@ export class EditorComponent implements AfterViewInit {
           // Setup renderer
           this.scene = new Scene();
           this.renderer = new WebGLRenderer({alpha: true, antialias: true});
-          this.renderer.setPixelRatio(1);
+          this.renderer.setPixelRatio(window.devicePixelRatio);
           this.renderer.autoClear = false;
 
 
@@ -138,6 +140,7 @@ export class EditorComponent implements AfterViewInit {
           this.outlinePass = new OutlinePass( new Vector2( this.renderDom.clientWidth, this.renderDom.clientHeight ), this.scene, this.camera );
           this.composer.addPass( this.outlinePass );
 
+          // this.composer.addPass(new ShaderPass(FXAAShader));
 
           // Setup scene with light
           this.scene.add(...this.setupLights());
@@ -168,49 +171,6 @@ export class EditorComponent implements AfterViewInit {
     });
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-  /*
-
-    var max = geometry.boundingBox.max,
-        min = geometry.boundingBox.min;
-      
-    var offset = new Vector2(0 - min.x, 0 - min.y);
-    var range = new Vector2(max.x - min.x, max.y - min.y);
-
-    const uv = [];
-
-    for (let index = 0; index < vertices.length; index = index + 3) {
-      const x = vertices[index];
-      const y = vertices[index + 1];
-      const z = vertices[index + 2];
-      uv.push((x + offset.x)/range.x)
-      uv.push((y + offset.y)/range.y)
-    }
-*/
-
-
   private addScene(scene) {
     const mesh = new Mesh(new BoxGeometry(1,1,1), new MeshNormalMaterial());
     mesh.position.set(20,20,0);
@@ -226,17 +186,17 @@ export class EditorComponent implements AfterViewInit {
     scene.add(line1.renderGroup);
 
 
-    const text = new MSDFFont("TEXT TEXT TEXT");
+    const text = new MSDFFont("DasgyS ist ein Text der text hat");
     text.position.set(6,0,0);
     scene.add(text);
 
 
-    const rect = new WireframeGeometry(text.geometry);
+    /*const rect = new WireframeGeometry(text.geometry);
     const meshRect = new LineSegments(rect, new LineBasicMaterial({color: new Color(0xffffff)}));
     meshRect.position.set(6,0,0);
     meshRect.scale.multiplyScalar(12 / 42);
 
-    scene.add(meshRect);
+    scene.add(meshRect);*/
 
     setInterval(() => {
       mux1.setSelected(Math.floor(Math.random() * 2), true);

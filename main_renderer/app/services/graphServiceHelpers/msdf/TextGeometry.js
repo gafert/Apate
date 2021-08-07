@@ -80,14 +80,12 @@ export class TextGeometry extends THREE.BufferGeometry {
       var bitmap = glyph.data
       return bitmap.width * bitmap.height > 0
     })
-
-    console.log(glyphs);
-
+    
     // provide visible glyphs for convenience
     this.visibleGlyphs = glyphs
 
     // get common vertex data
-    var positions = vertices.positions(glyphs)
+    var positions = vertices.positions(glyphs, this.layout)
     var uvs = vertices.uvs(glyphs, texWidth, texHeight, flipY)
     var indices = createIndices({
       clockwise: true,
@@ -99,7 +97,6 @@ export class TextGeometry extends THREE.BufferGeometry {
     buffer.index(this, indices, 1, 'uint16')
     buffer.attr(this, 'position', positions, 3)
 
-    console.log(positions);
     this.positions = positions;
 
     buffer.attr(this, 'uv', uvs, 2)
@@ -116,7 +113,7 @@ export class TextGeometry extends THREE.BufferGeometry {
       buffer.attr(this, 'page', pages, 1)
     }
   }
-  
+
   computeBoundingSphere() {
     if (this.boundingSphere === null) {
       this.boundingSphere = new THREE.Sphere()

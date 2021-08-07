@@ -28,7 +28,7 @@
  */
 
 
-module.exports.pages = function pages (glyphs) {
+module.exports.pages = function pages(glyphs) {
   var pages = new Float32Array(glyphs.length * 4 * 1)
   var i = 0
   glyphs.forEach(function (glyph) {
@@ -41,7 +41,7 @@ module.exports.pages = function pages (glyphs) {
   return pages
 }
 
-module.exports.uvs = function uvs (glyphs, texWidth, texHeight, flipY) {
+module.exports.uvs = function uvs(glyphs, texWidth, texHeight, flipY) {
   var uvs = new Float32Array(glyphs.length * 4 * 2)
   var i = 0
   glyphs.forEach(function (glyph) {
@@ -54,6 +54,7 @@ module.exports.uvs = function uvs (glyphs, texWidth, texHeight, flipY) {
     var v1 = bitmap.y / texHeight
     var u1 = bw / texWidth
     var v0 = bh / texHeight
+
 
     if (flipY) {
       v1 = (texHeight - bitmap.y) / texHeight
@@ -76,7 +77,7 @@ module.exports.uvs = function uvs (glyphs, texWidth, texHeight, flipY) {
   return uvs
 }
 
-module.exports.positions = function positions (glyphs) {
+module.exports.positions = function positions(glyphs, layout) {
   var positions = new Float32Array(glyphs.length * 4 * 3)
   var i = 0
   glyphs.forEach(function (glyph) {
@@ -84,7 +85,7 @@ module.exports.positions = function positions (glyphs) {
 
     // bottom left position
     var x = glyph.position[0] + bitmap.xoffset
-    var y = glyph.position[1] + bitmap.yoffset
+    var y = glyph.position[1] - bitmap.yoffset - bitmap.height + layout.lineHeight
 
     // quad size
     var w = bitmap.width

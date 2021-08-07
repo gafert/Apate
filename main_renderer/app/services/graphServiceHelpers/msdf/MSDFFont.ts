@@ -15,8 +15,8 @@ const robotoRegularTexture = (new TextureLoader()).load(robotoRegularFont.textur
 const robotoBoldTexture = (new TextureLoader()).load(robotoBoldFont.textures[0]);
 
 // console.log('Bold\n%c ', 'font-size:400px; background:url(' + robotoBoldFont.textures[0] + ') no-repeat; background-size: contain; ');
-console.log('Regular\n%c ', 'font-size:400px; background:url(' + robotoRegularFont.textures[0] + ') no-repeat; background-size: contain; ');
-clipboard.writeImage(nativeImage.createFromDataURL(robotoRegularFont.textures[0]));
+// console.log('Regular\n%c ', 'font-size:400px; background:url(' + robotoRegularFont.textures[0] + ') no-repeat; background-size: contain; ');
+clipboard.writeText(JSON.stringify(robotoRegularFont.font));
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#common_weight_name_mapping
 const fontWeightMap = {
@@ -48,7 +48,7 @@ export class MSDFFont extends Mesh<BufferGeometry, Material> {
     }
   }
 
-  constructor(public _text: string, opacity = 1, color = new Color(0xFFFFFF), fontSize = 12, fontWeight = 'normal', flipY = true) {
+  constructor(public _text: string, opacity = 1, color = new Color(0xFFFFFF), fontSize = 12, fontWeight = 'normal') {
     super();
 
     let fontWeightNumeric;
@@ -71,8 +71,7 @@ export class MSDFFont extends Mesh<BufferGeometry, Material> {
     this.geometry = new TextGeometry({
       text: this._text,
       align: 'left',
-      font: font,
-      flipY: flipY
+      font: font
     })
 
     this.material = new MSDFMaterial({

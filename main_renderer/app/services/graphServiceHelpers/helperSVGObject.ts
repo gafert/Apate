@@ -9,6 +9,7 @@ import {
   Object3D,
   PlaneGeometry,
   ShapeGeometry,
+  TextureLoader,
   WireframeGeometry,
 } from 'three';
 import {checkNoneColor, flattenRootToIndexIdArray, IdFlatInterface, IdRootInterface, Signal} from './helpers';
@@ -103,10 +104,13 @@ export default function initiateSVGObjects(globalUniforms: { [uniform: string]: 
         if (child.text) {
           const style = child.text.userData.style;
 
-          const text = new MSDFFont(child.text.text, 1, new Color(style.fill), style.fontSize, style.fontWeight, true);
+          const text = new MSDFFont(child.text.text, 1, new Color(style.fill), style.fontSize, style.fontWeight);
 
-          child.text.userData.position.y -= 2;
-          text.position.copy(child.text.userData.position);
+          // @ts-ignore
+          text.geometry.computeBoundingBox();
+          child.text.userData.position.y -= style.fontSize / 1.5;
+          text.position.copy(child.text.userData.position)
+          text.scale.y *= -1;
 
           // Render that text
           childGroup.add(text);
@@ -270,6 +274,7 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
       const renderGroup = idFlat[key].group;
 
       const text = new MSDFFont(signalName, 1, new Color(0xffffff), 10);
+      text.scale.y *= -1;
 
       // Get position from signal
       const positions = [];
@@ -282,7 +287,7 @@ export function addSignalTextsAndUpdate(cpuBindings: Bindings, idFlat: IdFlatInt
       }
       const leftes = d3.scan(positions, (a, b) => a.x - b.x);
 
-      text.position.set(positions[leftes].x + 3, positions[leftes].y + 10, positions[leftes].z);
+      text.position.set(positions[leftes].x + 3, positions[leftes].y + 5, positions[leftes].z);
 
       const binding = cpuBindings.allValues[signalName];
       if (binding) {
