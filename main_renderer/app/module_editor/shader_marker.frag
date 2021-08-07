@@ -1,7 +1,12 @@
+#version 300 es
+
+out highp vec4 pc_fragColor;
+#define gl_FragColor pc_fragColor
+
 precision highp float;
 
-varying vec2 vUv;
-varying vec3 vPosition;
+in vec2 vUv;
+in vec3 vPosition;
 
 // MarkerMaterial
 uniform vec3 color;
@@ -33,5 +38,5 @@ void main(){
 
   vec3 outColor = m * color;
 
-  gl_FragColor = texture2D(map, vUv) * vec4(mix(greyColor, outColor, opacity), 1.0);
+  gl_FragColor = texture(map, vUv) * vec4(mix(greyColor, outColor, opacity), 1.0);
 }

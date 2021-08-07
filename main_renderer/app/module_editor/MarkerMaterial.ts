@@ -1,4 +1,4 @@
-import { Color, ShaderMaterial, ShaderMaterialParameters, Texture } from 'three';
+import { Color, RawShaderMaterial, ShaderMaterialParameters, Texture } from 'three';
 import SHADER_MARKER_VERT from './shader_marker.vert';
 import SHADER_MARKER_FRAG from './shader_marker.frag';
 import { readStyleProperty } from '../utils/helper';
@@ -17,22 +17,19 @@ interface MarkerMaterialParameters extends ShaderMaterialParameters {
  * @param parameters
  * @constructor
  */
-class MarkerMaterial extends ShaderMaterial {
-  private _map;
+class MarkerMaterial extends RawShaderMaterial {
   public get map() {
     return this.uniforms.map.value;
   }
   public set map(v) {
     this.uniforms.map.value = v;
   }
-  private _color;
   public get color() {
     return this.uniforms.color.value;
   }
   public set color(v) {
     this.uniforms.color.value = v;
   }
-  private _highlight;
   public get highlight() {
     return this.uniforms.highlight.value;
   }

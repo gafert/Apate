@@ -37,5 +37,6 @@ export class MSDFMaterial extends RawShaderMaterial {
 
     this.vertexShader = MSDF_VERT_SHADER;
     this.fragmentShader = MSDF_FRAG_SHADER;
+    this.transparent = true;
   }
 } 

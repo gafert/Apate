@@ -1,7 +1,12 @@
+#version 300 es
+
+out highp vec4 pc_fragColor;
+#define gl_FragColor pc_fragColor
+
 precision highp float;
 
-varying vec2 vUv;
-varying vec3 vPosition;
+in vec2 vUv;
+in vec3 vPosition;
 
 // MarkerMaterial
 uniform vec3 color;

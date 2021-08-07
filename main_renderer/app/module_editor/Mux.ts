@@ -2,7 +2,6 @@ import { MarkerMaterial } from "./MarkerMaterial";
 import { Vector3, BufferGeometry, BufferAttribute, TextureLoader, Color, Mesh, Group } from "three";
 import { makeBox, setUVofVertex, triangleLeftBottom, triangleLeftTop } from "./3Dhelpers";
 import MUX_IMAGE from './mux.png';
-import { MeshLine, MeshLineMaterial } from "./meshline/main.js";
 import { GraphLine } from "./Line";
 import { animate, easeIn } from 'popmotion';
 

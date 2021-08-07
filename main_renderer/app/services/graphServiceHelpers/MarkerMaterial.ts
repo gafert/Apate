@@ -1,4 +1,4 @@
-import { Color, ShaderMaterial, ShaderMaterialParameters } from 'three';
+import { Color, RawShaderMaterial, ShaderMaterial, ShaderMaterialParameters } from 'three';
 import SHADER_MARKER_VERT from './shader_marker.vert';
 import SHADER_MARKER_FRAG from './shader_marker.frag';
 import { readStyleProperty } from '../../utils/helper';
@@ -16,25 +16,35 @@ interface MarkerMaterialParameters extends ShaderMaterialParameters {
  * @param parameters
  * @constructor
  */
-export class MarkerMaterial extends ShaderMaterial {
+export class MarkerMaterial extends RawShaderMaterial {
 
-  private _color;
+  public isMarkerMaterial = true;
+
   public get color() {
     return this.uniforms.color.value;
   }
   public set color(v) {
     this.uniforms.color.value = v;
   }
-  private _highlight;
   public get highlight() {
     return this.uniforms.highlight.value;
   }
   public set highlight(v) {
     this.uniforms.highlight.value = v;
   }
+  // @ts-ignore
+  public get opacity() {
+    return this.uniforms?.opacity?.value;
+  }
+  public set opacity(v) {
+    if (this.uniforms)
+      this.uniforms.opacity.value = v;
+  }
+
 
   constructor(parameters: MarkerMaterialParameters) {
     super();
+
     this.uniforms = {
       ...parameters.globalUniforms,
       color: { value: parameters.color ? parameters.color : new Color(0xffffff) },
