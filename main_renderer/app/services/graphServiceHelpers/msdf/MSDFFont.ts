@@ -1,13 +1,12 @@
 import { MSDFMaterial } from './MSDFMaterial';
-import {BufferGeometry, Color, DoubleSide, Material, Mesh, TextureLoader} from "three";
-import {TextGeometry} from './TextGeometry';
-
-const { clipboard } = require('electron')
-const nativeImage = require('electron').nativeImage
-
+import { Color, DoubleSide, Material, Mesh, TextureLoader } from 'three';
+import { TextGeometry } from './TextGeometry';
 // Converts the ttf to a msdf font and packs it in the bundle
 import robotoRegularFont from 'ttf-msdf-loader!../../../../bundled/fonts/Roboto/Roboto-Regular.ttf';
 import robotoBoldFont from 'ttf-msdf-loader!../../../../bundled/fonts/Roboto/Roboto-Bold.ttf';
+
+const { clipboard } = require('electron')
+const nativeImage = require('electron').nativeImage
 
 // console.log(robotoRegularFont);
 
@@ -39,7 +38,7 @@ const fontWeightMap = {
   'extra black': 950,
 }
 
-export class MSDFFont extends Mesh<BufferGeometry, Material> {
+export class MSDFFont extends Mesh<TextGeometry, Material> {
 
   set text(value: string) {
     this._text = value;

@@ -1,36 +1,16 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
-import {NgZone} from '@angular/core';
-import {
-  AmbientLight,
-  Clock,
-  DirectionalLight,
-  Light,
-  PerspectiveCamera,
-  Scene,
-  Vector2,
-  WebGLRenderer,
-  BoxGeometry,
-  Mesh,
-  MeshNormalMaterial,
-  LineSegments,
-  LineBasicMaterial,
-  WireframeGeometry,
-  Vector3,
-  Color,
-} from 'three';
+import { AfterViewInit, Component, ElementRef, NgZone, ViewChild } from '@angular/core';
+import { AmbientLight, Clock, DirectionalLight, Light, PerspectiveCamera, Scene, Vector2, WebGLRenderer } from 'three';
 
 import panzoom from '../services/graphServiceHelpers/panzoom.js';
-import {fromEvent} from 'rxjs';
-import {cumulativeOffset} from '../utils/helper';
-import * as _ from "lodash";
+import { fromEvent } from 'rxjs';
+import { cumulativeOffset } from '../utils/helper';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-import {OutlinePass} from 'three/examples/jsm/postprocessing/OutlinePass.js'
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { Mux } from './Mux.js';
-import { GraphLine } from './Line.js';
-import { MSDFFont } from 'app/services/graphServiceHelpers/msdf/MSDFFont.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
+import { GraphNode } from './GraphNode';
+import { InputNode } from './Input';
+import { GenericNode } from './GenericNode';
 
 @Component({
   selector: 'app-editor',
@@ -172,38 +152,107 @@ export class EditorComponent implements AfterViewInit {
   }
 
   private addScene(scene) {
-    const mesh = new Mesh(new BoxGeometry(1,1,1), new MeshNormalMaterial());
-    mesh.position.set(20,20,0);
-    scene.add(mesh);
+    const structure = [
+      {
+        name: 'mux1',
+        position: [0,0,0],
+        type: 'mux',
+        numIn: 2,
+      },
+      {
+        name: 'mux2',
+        position: [5,0,0],
+        type: 'mux',
+        numIn: 4
+      },
+      {
+        name: 'mux3',
+        position: [10,0,0],
+        type: 'mux',
+        numIn: 2
+      },
+      {
+        name: 'input1',
+        text: 'RS1',
+        position: [-5,0,0],
+        type: 'input',
+      },
+      {
+        name: 'generic1',
+        position: [15,0,0],
+        type: 'generic',
+      }
+    ];
 
-    const mux1 = new Mux(2, "MUX", this.globalUniforms);
-    mux1.position.set(0,0,0);
-    scene.add(mux1.renderGroup);
-    const mux2 = new Mux(10, "MUX", this.globalUniforms);
-    mux2.position.set(4,2,0);
-    scene.add(mux2.renderGroup);
-    const line1 = new GraphLine(new Vector3().add(mux1.position).add(mux1.outPos), new Vector3().add(mux2.position).add(mux2.inPos[2]));
-    scene.add(line1.renderGroup);
+    const lines = [
+      "mux1@0 -> mux2@3",
+      "mux2 -> mux3@1",
+      "input1 -> mux1",
+    ]
 
+    const sceneObjects: GraphNode[] = [];
 
-    const text = new MSDFFont("DasgyS ist ein Text der text hat");
-    text.position.set(6,0,0);
-    scene.add(text);
+    structure.forEach((element) => {
+      switch(element.type) {
+        case "mux":
+          const mux1 = new Mux(element.name, element.numIn, this.globalUniforms);
+          mux1.position.set(element.position[0],element.position[1],element.position[2]);
+          scene.add(mux1.renderGroup);
+          sceneObjects.push(mux1);
+          break;
+        case "input":
+          const input1 = new InputNode(element.name, element.text);
+          input1.position.set(element.position[0],element.position[1],element.position[2]);
+          scene.add(input1.renderGroup);
+          sceneObjects.push(input1);
+          break;
+        case "generic":
+          const generic1 = new GenericNode(element.name, 3,5, this.globalUniforms);
+          console.log(generic1);
+          generic1.position.set(element.position[0],element.position[1],element.position[2]);
+          scene.add(generic1.renderGroup);
+          sceneObjects.push(generic1);
+          break;
+      }
+    });
 
+    lines.forEach((line) => {
+      const elements = line.split("->");
 
-    /*const rect = new WireframeGeometry(text.geometry);
-    const meshRect = new LineSegments(rect, new LineBasicMaterial({color: new Color(0xffffff)}));
-    meshRect.position.set(6,0,0);
-    meshRect.scale.multiplyScalar(12 / 42);
+      if(elements.length !== 2) {
+        console.error("Cannot parse line '" + line + "'. There are no elements left and right of the arrow.");
+        return;
+      }
 
-    scene.add(meshRect);*/
+      const source = elements[0].split("@");
+      const target = elements[1].split("@");
 
-    setInterval(() => {
-      mux1.setSelected(Math.floor(Math.random() * 2), true);
-      mux2.setSelected(Math.floor(Math.random() * 10), true);
-      mux1.setHighlight(Math.floor(Math.random() * 2));      
-      mux2.setHighlight(Math.floor(Math.random() * 2));
-    }, 1000);
+      const sourceName = source[0].replaceAll(" ", "");
+      const sourceOut = Number.parseInt(source[1] ?? '0');
+
+      const targetName = target[0].replaceAll(" ", "");
+      const targetIn = Number.parseInt(target[1] ?? '0');
+
+      if(sourceName === targetName) {
+        console.error("The same target and source node with name '" + sourceName + "' cannot be linked to itself.");
+        return;
+      }
+
+      const sourceNode = sceneObjects.filter((e) => e.name === sourceName)[0];
+      const targetNode = sceneObjects.filter((e) => e.name === targetName)[0];
+
+      if(!sourceNode) {
+        console.error("Source node with name '" + sourceName + "' does not exist.");
+        return;
+      }
+
+      if(!targetNode) {
+        console.error("Target node with name '" + targetName + "' does not exist.");
+        return;
+      }
+
+      sourceNode.connectToInput(targetNode, targetIn, sourceOut);
+    })
   }
 
 

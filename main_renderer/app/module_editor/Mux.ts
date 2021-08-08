@@ -1,23 +1,20 @@
-import { MarkerMaterial } from "./MarkerMaterial";
-import { Vector3, BufferGeometry, BufferAttribute, TextureLoader, Color, Mesh, Group } from "three";
-import { makeBox, setUVofVertex, triangleLeftBottom, triangleLeftTop } from "./3Dhelpers";
+import { MarkerMaterial } from './MarkerMaterial';
+import { BufferAttribute, BufferGeometry, Color, Mesh, TextureLoader, Vector3 } from 'three';
+import { makeBox, setUVofVertex, triangleLeftBottom, triangleLeftTop } from './3Dhelpers';
 import MUX_IMAGE from './mux.png';
-import { GraphLine } from "./Line";
+import { GraphLine } from './Line';
 import { animate, easeIn } from 'popmotion';
+import { GraphNode } from './GraphNode';
 
-export class Mux {
-  public position: Vector3;
-  public name: string;
-  public renderGroup: Group;
-  public inPos: Vector3[] = [];
-  public outPos: Vector3;
+export class Mux extends GraphNode {
+
   private selectionLine;
   private numIn;
   private shaderMaterial;
 
   private MUX_WIDTH = 1;
 
-  // Distance from fisrt and last stud to top and bottom edge of the mux
+  // Distance from first and last stud to top and bottom edge of the mux
   private STUD_EDGE_DISTANCE = 0.5;
 
   // Distance between studs
@@ -26,13 +23,15 @@ export class Mux {
   private STUD_WIDTH = 0.15;
   private STUD_HEIGHT = 0.05;
 
-  constructor(numIn, name, globalUniforms) {
+  constructor(name, numIn, globalUniforms) {
+    super(name);
+
     console.assert(numIn >= 2, "MUX component needs at least 2 inputs, currently has " + numIn);
 
     this.name = name;
     this.numIn = numIn;
 
-    this.outPos = new Vector3(this.MUX_WIDTH + this.STUD_WIDTH, -this.STUD_DISTANCE * ((numIn - 2) / 2) - this.STUD_DISTANCE / 2 - this.STUD_EDGE_DISTANCE, 0);
+    this.outPos[0] = new Vector3(this.MUX_WIDTH + this.STUD_WIDTH, -this.STUD_DISTANCE * ((numIn - 2) / 2) - this.STUD_DISTANCE / 2 - this.STUD_EDGE_DISTANCE, 0);
 
     // To allow the uv to always have the right relation to the element
     // if this distance was absolute the texture might show wrong
@@ -43,7 +42,7 @@ export class Mux {
     const centerTop = makeBox(this.MUX_WIDTH, bottomTopTriangleRectsToHelpTextureHeight, 0, -this.STUD_EDGE_DISTANCE)
     const centerBottom = makeBox(this.MUX_WIDTH, bottomTopTriangleRectsToHelpTextureHeight, 0, -this.STUD_DISTANCE * (numIn - 1) - this.STUD_EDGE_DISTANCE + bottomTopTriangleRectsToHelpTextureHeight)
     const center = makeBox(this.MUX_WIDTH, this.STUD_DISTANCE * (numIn - 1) - bottomTopTriangleRectsToHelpTextureHeight * 2, 0, -(this.STUD_EDGE_DISTANCE + bottomTopTriangleRectsToHelpTextureHeight), 0);
-    const studs = [...this.getInputStuds(numIn), ...makeBox(this.STUD_WIDTH, this.STUD_HEIGHT, this.outPos.x - this.STUD_WIDTH, this.outPos.y + this.STUD_HEIGHT / 2)];
+    const studs = [...this.getInputStuds(numIn), ...makeBox(this.STUD_WIDTH, this.STUD_HEIGHT, this.outPos[0].x - this.STUD_WIDTH, this.outPos[0].y + this.STUD_HEIGHT / 2)];
 
 
     const vertices = new Float32Array([
@@ -95,12 +94,8 @@ export class Mux {
     const selectionLinePos = this.getSelectionLinePosition(0);
     this.selectionLine = new GraphLine(selectionLinePos[0], selectionLinePos[1]);
 
-    const group = new Group();
-    group.add(mesh);
-    group.add(this.selectionLine.renderGroup);
-
-    this.position = group.position;
-    this.renderGroup = group;
+    this.renderGroup.add(mesh);
+    this.renderGroup.add(this.selectionLine.renderGroup);
   }
 
   /**
@@ -142,7 +137,7 @@ export class Mux {
     if(animated)
       return new Promise<void>(resolve => {
         animate({
-          from: on ? 0 : 1,
+          from: this.shaderMaterial.highlight,
           to: on ? 0 : 1,
           ease: easeIn,
           duration: 1000,
