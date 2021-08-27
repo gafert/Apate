@@ -1,11 +1,13 @@
-import { CatmullRomCurve3, Vector3, Mesh, Object3D } from "three";
+import { CatmullRomCurve3, CircleGeometry, Color, Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three';
 import { MeshLine, MeshLineMaterial } from './meshline/main.js';
+import { animate, easeIn, linear } from 'popmotion';
 
 export class GraphLine {
   public renderGroup: Object3D;
-  private line: MeshLine;
   public from: Vector3;
   public to: Vector3;
+  private line: MeshLine;
+  private followCircle: Mesh<CircleGeometry, MeshBasicMaterial>;
 
   constructor(from: Vector3, to: Vector3) {
     this.from = from;
@@ -17,12 +19,68 @@ export class GraphLine {
       lineWidth: 0.05
     });
 
-    const curveObject = new Mesh(this.line, material)
+    const curveObject = new Mesh(this.line, material);
     this.renderGroup = curveObject;
+
+    this.followCircle = new Mesh(new CircleGeometry(0.1, 20), new MeshBasicMaterial({
+      color: new Color(0xffffff),
+      transparent: true,
+      opacity: 0
+    }));
+    this.renderGroup.add(this.followCircle);
+
   }
 
   public redraw() {
     this.line.setPoints(this.getPoints());
+  }
+
+  public followLine(): Promise<any> {
+    return new Promise(resolve => {
+      this.followCircle.position.copy(this.line._points[0].clone());
+
+      const points = [];
+      // Copy points, start at 1 because 0 is the 'to' in animate
+      for (let i = 1; i < this.line._points.length; i++) {
+        points.push(this.line._points[i].clone());
+      }
+
+      animate({
+        from: 0,
+        to: 1,
+        ease: easeIn,
+        duration: 200,
+        onUpdate: (v) => {
+          console.log(v);
+          this.followCircle.material.opacity = v;
+        }
+      });
+
+      animate({
+        from: this.followCircle.position,
+        to: points,
+        ease: linear,
+        duration: 2000,
+        onUpdate: (v) => {
+          this.followCircle.position.copy(v);
+        }
+      });
+
+      animate({
+        from: 1,
+        to: 0,
+        ease: easeIn,
+        duration: 200,
+        elapsed: -1800,
+        onUpdate: (v) => {
+          this.followCircle.material.opacity = v;
+        },
+        onComplete: () => {
+          resolve();
+        }
+      });
+    });
+
   }
 
   private getPoints() {

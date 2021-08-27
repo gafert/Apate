@@ -2,6 +2,7 @@ import { MarkerMaterial } from './MarkerMaterial';
 import { BufferAttribute, BufferGeometry, Color, Mesh, TextureLoader, Vector3 } from 'three';
 import { makeBox, setUVofVertex, triangleLeftBottom, triangleLeftTop } from './3Dhelpers';
 import MUX_IMAGE from './mux.png';
+import CLICK_SOUND from './mixkit-slide-click-1130.wav';
 import { GraphLine } from './Line';
 import { animate, easeIn } from 'popmotion';
 import { GraphNode } from './GraphNode';
@@ -11,6 +12,8 @@ export class Mux extends GraphNode {
   private selectionLine;
   private numIn;
   private shaderMaterial;
+  private _selected = 0;
+  private animatingSelected;
 
   private MUX_WIDTH = 1;
 
@@ -26,7 +29,7 @@ export class Mux extends GraphNode {
   constructor(name, numIn, globalUniforms) {
     super(name);
 
-    console.assert(numIn >= 2, "MUX component needs at least 2 inputs, currently has " + numIn);
+    console.assert(numIn >= 2, 'MUX component needs at least 2 inputs, currently has ' + numIn);
 
     this.name = name;
     this.numIn = numIn;
@@ -39,8 +42,8 @@ export class Mux extends GraphNode {
 
     const triangleTop = triangleLeftBottom(this.MUX_WIDTH, this.STUD_EDGE_DISTANCE);
     const triangleBottom = triangleLeftTop(this.MUX_WIDTH, this.STUD_EDGE_DISTANCE, 0, -this.STUD_DISTANCE * (numIn - 1) - this.STUD_EDGE_DISTANCE);
-    const centerTop = makeBox(this.MUX_WIDTH, bottomTopTriangleRectsToHelpTextureHeight, 0, -this.STUD_EDGE_DISTANCE)
-    const centerBottom = makeBox(this.MUX_WIDTH, bottomTopTriangleRectsToHelpTextureHeight, 0, -this.STUD_DISTANCE * (numIn - 1) - this.STUD_EDGE_DISTANCE + bottomTopTriangleRectsToHelpTextureHeight)
+    const centerTop = makeBox(this.MUX_WIDTH, bottomTopTriangleRectsToHelpTextureHeight, 0, -this.STUD_EDGE_DISTANCE);
+    const centerBottom = makeBox(this.MUX_WIDTH, bottomTopTriangleRectsToHelpTextureHeight, 0, -this.STUD_DISTANCE * (numIn - 1) - this.STUD_EDGE_DISTANCE + bottomTopTriangleRectsToHelpTextureHeight);
     const center = makeBox(this.MUX_WIDTH, this.STUD_DISTANCE * (numIn - 1) - bottomTopTriangleRectsToHelpTextureHeight * 2, 0, -(this.STUD_EDGE_DISTANCE + bottomTopTriangleRectsToHelpTextureHeight), 0);
     const studs = [...this.getInputStuds(numIn), ...makeBox(this.STUD_WIDTH, this.STUD_HEIGHT, this.outPos[0].x - this.STUD_WIDTH, this.outPos[0].y + this.STUD_HEIGHT / 2)];
 
@@ -66,7 +69,7 @@ export class Mux extends GraphNode {
       ...setUVofVertex(0.125, 0.875, 0.75, 1, [...triangleTop, ...centerTop]),
       ...setUVofVertex(0.125, 0.875, 0, 0.25, [...triangleBottom, ...centerBottom]),
       ...setUVofVertex(0.125, 0.875, 0.25, 0.75, center),
-      ...setUVofVertex(0, 0.125, 0, 1, studs),
+      ...setUVofVertex(0, 0.125, 0, 1, studs)
     ]);
 
     // itemSize = 2 because there are 2 values (components) per vertex
@@ -81,7 +84,8 @@ export class Mux extends GraphNode {
       map: backgroundTexture
     });
 
-    const mesh = new Mesh(geometry, this.shaderMaterial);
+    this.mainMesh = new Mesh(geometry, this.shaderMaterial);
+    this.renderGroup.add(this.mainMesh);
 
     // Debug with lines
     // var geo = new EdgesGeometry( geometry );
@@ -93,48 +97,63 @@ export class Mux extends GraphNode {
 
     const selectionLinePos = this.getSelectionLinePosition(0);
     this.selectionLine = new GraphLine(selectionLinePos[0], selectionLinePos[1]);
-
-    this.renderGroup.add(mesh);
     this.renderGroup.add(this.selectionLine.renderGroup);
   }
 
   /**
    * setSelected
    */
-  public setSelected(selected, animated) {
-    if(selected >= this.numIn) {
-      console.error("Selected mux input " + selected + ", but only " + this.numIn + " available");
+  public set selected(selected) {
+    if (selected >= this.numIn) {
+      console.error('Selected mux input ' + selected + ', but only ' + this.numIn + ' available');
       return;
     }
-    if(selected < 0) {
-      console.error("Cannot select mux input smaller than 0, you selected " + selected);
+    if (selected < 0) {
+      console.error('Cannot select mux input smaller than 0, you selected ' + selected);
       return;
     }
+
+    this._selected = selected;
+
     const selectionLinePos = this.getSelectionLinePosition(selected);
 
-    if(animated)
-      return new Promise<void>(resolve => {
-        animate({
-          from: 0,
-          to: 1,
-          ease: easeIn,
-          duration: 1000,
-          onUpdate: (v) => {
-            this.selectionLine.from.lerp(selectionLinePos[0], v);
-            this.selectionLine.redraw();
-          },
-          onComplete: () => resolve(),
-          onStop:() => resolve()
-        });
+    this.animatingSelected?.stop();
+
+    const audio = new Audio(CLICK_SOUND);
+    audio.play();
+
+    new Promise<void>(resolve => {
+      this.animatingSelected = animate({
+        from: 0,
+        to: 1,
+        ease: easeIn,
+        duration: 200,
+        onUpdate: (v) => {
+          this.selectionLine.from.lerp(selectionLinePos[0], v);
+          this.selectionLine.redraw();
+        },
+        onComplete: () => resolve(),
+        onStop: () => resolve()
       });
-    else {
-      this.selectionLine.from.copy(selectionLinePos[0]);
-      this.selectionLine.redraw();
+    });
+  }
+
+  public get selected() {
+    return this._selected;
+  }
+
+  public selectNext() {
+    if(this._selected === (this.numIn - 1)) {
+      this._selected = 0;
+    } else {
+      this._selected++;
     }
+
+    this.selected = this._selected;
   }
 
   public setHighlight(on, animated = true) {
-    if(animated)
+    if (animated)
       return new Promise<void>(resolve => {
         animate({
           from: this.shaderMaterial.highlight,
@@ -145,7 +164,7 @@ export class Mux extends GraphNode {
             this.shaderMaterial.highlight = v;
           },
           onComplete: () => resolve(),
-          onStop:() => resolve()
+          onStop: () => resolve()
         });
       });
     else {
@@ -154,7 +173,7 @@ export class Mux extends GraphNode {
   }
 
   private getSelectionLinePosition(selected) {
-    return [new Vector3( this.MUX_WIDTH / 5, - this.STUD_EDGE_DISTANCE - (this.STUD_DISTANCE * selected), 0 ), new Vector3( this.MUX_WIDTH - this.MUX_WIDTH / 5, - this.STUD_EDGE_DISTANCE - (this.STUD_DISTANCE * (this.numIn - 1)) / 2, 0 )];
+    return [new Vector3(this.MUX_WIDTH / 5, -this.STUD_EDGE_DISTANCE - (this.STUD_DISTANCE * selected), 0), new Vector3(this.MUX_WIDTH - this.MUX_WIDTH / 5, -this.STUD_EDGE_DISTANCE - (this.STUD_DISTANCE * (this.numIn - 1)) / 2, 0)];
   }
 
   private getInputStuds(numIn) {
@@ -162,8 +181,22 @@ export class Mux extends GraphNode {
     for (let index = 0; index < numIn; index++) {
       const pos = new Vector3(0 - this.STUD_WIDTH, -this.STUD_DISTANCE * (index) - this.STUD_EDGE_DISTANCE, 0);
       this.inPos.push(pos);
-      studs.push(...makeBox(this.STUD_WIDTH, this.STUD_HEIGHT, pos.x, pos.y + this.STUD_HEIGHT / 2))
+      studs.push(...makeBox(this.STUD_WIDTH, this.STUD_HEIGHT, pos.x, pos.y + this.STUD_HEIGHT / 2));
     }
     return studs;
+  }
+
+  private muxOutput = 0;
+
+  public compute() {
+    super.compute();
+    // Get selection signals and choose output
+    this.muxOutput = this.inputs[this.selected].getValue();
+    // TODO: Display output
+  }
+
+  protected onSetInputPortValue(portNum, value) {
+    super.onSetInputPortValue(portNum, value);
+    // TODO: Update display
   }
 }

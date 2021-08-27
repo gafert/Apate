@@ -33,6 +33,11 @@ declare module "*.yml" {
   export default value;
 }
 
+declare module "*.wav" {
+  const value: string;
+  export default value;
+}
+
 /**
  * Definition for svg ids yaml to be used in typescript
  */

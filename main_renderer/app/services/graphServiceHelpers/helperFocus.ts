@@ -27,8 +27,8 @@ export function focusCameraOnElement(camera, idFlat, idOrMesh, enableAnimation =
   const fovY = camera.fov;
 
   // TODO: 1.1???
-  const distanceX = (w / 2) / Math.tan(Math.PI * fovX / 360 / 1.1);
-  const distanceY = (h / 2) / Math.tan(Math.PI * fovY / 360 / 1.1);
+  const distanceX = (w / 2) / Math.tan(Math.PI * fovX / 360 / 2);
+  const distanceY = (h / 2) / Math.tan(Math.PI * fovY / 360 / 2);
 
   const distance = Math.max(distanceX, distanceY);
 

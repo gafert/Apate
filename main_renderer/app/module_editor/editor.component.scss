@@ -1,3 +1,4 @@
+@use "sass:color";
 @import "../../import";
 
 .canvas {
@@ -6,4 +7,21 @@
     background: $grey3;
     min-width: 0px;
     min-height: 0px;
+}
+
+.toolbar {
+  position: absolute;
+  bottom: 5em;
+  margin-left: 10em;
+  margin-right: 10em;
+  background: rgba(lighten($grey2, 5%), 0.5);
+  width: -webkit-fill-available;
+  border: $border;
+  border-radius: 1em;
+  height: 5em;
+  padding: 2em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(10px);
 }

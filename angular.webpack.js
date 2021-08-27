@@ -74,6 +74,9 @@ module.exports = (config, options) => {
           safe: false
         }
       }]
+    }, {
+      test: /\.(mp3|wav)$/,
+      loader: 'file-loader',
     }
   ];
 

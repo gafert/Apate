@@ -40,6 +40,17 @@ export function byteToHex(num: number, padding: number) {
   return hex.toUpperCase();
 }
 
+export function cycleArray(array) {
+  const newArray = [];
+
+  newArray[0] = array[array.length - 1];
+  for (let i = 1; i < array.length; i++) {
+    newArray[i] = array[i-1];
+  }
+
+  return newArray;
+}
+
 export function range(min, max, step) {
   step = step || 1;
   const input = [];
@@ -62,6 +73,33 @@ export function setZeroTimeout(fn) {
   timeouts.push(fn);
   window.postMessage(messageName, '*');
 }
+
+/**
+ * Remove spaces which might be at the start or the end of a string
+ * @param string String to sanitize
+ */
+export function sanitizeSpaces(string) {
+  let backCounter = string.length - 1;
+  while(string[backCounter] === ' ') {
+    backCounter--;
+  }
+
+  let startCounter = 0;
+  while(string[startCounter] === ' ') {
+    startCounter++;
+  }
+
+  return string.slice(startCounter, backCounter + 1)
+}
+
+/**
+ * Convert a string to an int. If there is no string return 0
+ * @param string String to convert
+ */
+export function stringToNumber(string) {
+  return Number.parseInt(string ?? '0');
+}
+
 
 function handleMessage(event) {
   if (event.source == window && event.data == messageName) {
