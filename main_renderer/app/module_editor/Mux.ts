@@ -191,7 +191,7 @@ export class Mux extends GraphNode {
   public compute() {
     super.compute();
     // Get selection signals and choose output
-    this.muxOutput = this.inputs[this.selected].getValue();
+    this.muxOutput = this.inputs[this.selected].value;
     // TODO: Display output
   }
 

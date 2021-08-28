@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { WindowModule } from '../components/window/window.module';
 import { TippyModule } from '@ngneat/helipopper';
 import { HttpClientModule } from '@angular/common/http';
+import {MatSliderModule} from "@angular/material/slider";
 
 const routes: Routes = [
   {
@@ -17,9 +18,9 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [EditorComponent],
-  imports: [
-    RouterModule.forChild(routes), CommonModule, FormsModule, MatButtonModule, WindowModule, TippyModule, HttpClientModule
-  ]
+    imports: [
+        RouterModule.forChild(routes), CommonModule, FormsModule, MatButtonModule, WindowModule, TippyModule, HttpClientModule, MatSliderModule
+    ]
 })
 export class EditorModule {
 }

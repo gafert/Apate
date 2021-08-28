@@ -1,10 +1,10 @@
-import { BufferAttribute, BufferGeometry, Color, Mesh, TextureLoader } from 'three';
-import { makeBox, setUVofVertex } from './3Dhelpers';
+import {BufferAttribute, BufferGeometry, Color, Mesh, TextureLoader} from 'three';
+import {makeBox, setUVofVertex} from './3Dhelpers';
 import NODE_IMAGE from './node.png';
-import { MarkerMaterial } from './MarkerMaterial';
-import { GraphNode } from './GraphNode';
-import { MSDFFont } from '../services/graphServiceHelpers/msdf/MSDFFont';
-import { byteToBinary, byteToHex } from '../utils/helper';
+import {MarkerMaterial} from './MarkerMaterial';
+import {GraphNode} from './GraphNode';
+import {MSDFFont} from '../services/graphServiceHelpers/msdf/MSDFFont';
+import {byteToBinary, byteToHex} from '../utils/helper';
 
 export class SelectionNode extends GraphNode {
   private static readonly BORDER = 0.15;
@@ -25,20 +25,6 @@ export class SelectionNode extends GraphNode {
     this.renderGroup.add(this.mainMesh);
 
     this.createTextMesh(0xDEADBEEF, 10, 15);
-
-    let counter = 1;
-    let dir = 1;
-    setInterval(() => {
-      console.log('Text', counter);
-      this.createTextMesh(0xDEADBEEF, counter, counter + 5);
-      if (counter > 26) {
-        dir = -1;
-      } else if (counter <= 0) {
-        dir = 1;
-      }
-      counter = counter + dir;
-    }, 500);
-
   }
 
   public setOutputText(portNum, text) {
@@ -58,13 +44,16 @@ export class SelectionNode extends GraphNode {
   }
 
   public createTextMesh(value: number, from, to) {
+    if (from < 0) from = 0;
+    if (to > 31) to = 31;
+    if (to < from) to = from;
 
     const valueBytes = byteToBinary(value, 32);
 
     // Make new meshes
 
-    from = Math.floor(from / 8) + from;
-    to = Math.floor(to / 8) + to;
+    from = Math.floor((from - 1) / 8) + from;
+    to = Math.floor(to / 8) + to + 1;
 
     console.log(from, to);
 
@@ -79,19 +68,32 @@ export class SelectionNode extends GraphNode {
     const textMeshRight = new MSDFFont(right, 0.5, new Color(0xffffff), GraphNode.FONT_SIZE * 0.8, 'regular', 'left', 'mono');
 
 
-    const textWidth = textMeshLeft.width + textMeshCenter.width + textMeshRight.width + 0.02 * 2;
+    const gl1 = textMeshLeft.geometry.layout.glyphs[textMeshLeft.geometry.layout.glyphs.length - 1];
+    const gl2 = textMeshCenter.geometry.layout.glyphs[textMeshCenter.geometry.layout.glyphs.length - 1];
+
+    const advance1 = (gl1 ? gl1.data.xadvance : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
+    const advance2 = (gl2 && textMeshRight.width !== 0 ? gl2.data.xadvance : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
+
+    const lastGlyphWidth1 = (gl1 ? gl1.data.width : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
+    const lastGlyphWidth2 = (gl2 && textMeshRight.width !== 0 ? gl2.data.width : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
+
+    const xoffset1 = (gl1 ? gl1.data.xoffset : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
+    const xoffset2 = (gl2 && textMeshRight.width !== 0 ? gl2.data.xoffset : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
+
+    const textWidth = textMeshLeft.width + textMeshCenter.width + textMeshRight.width + advance1 + advance2 - lastGlyphWidth1 - lastGlyphWidth2 - xoffset1 - xoffset2;
     const xPos = SelectionNode.WIDTH / 2 - textWidth / 2;
-    const yPos = -SelectionNode.HEIGHT / 2 + textMeshLeft.height / 2; // Height is same for all
+    const yPos = -SelectionNode.HEIGHT / 2 + Math.max(textMeshLeft.height, textMeshCenter.height) / 2; // Height is same for all, but could be 0 if the element has no text
 
     // align center
     textMeshLeft.position.setX(xPos);
     textMeshLeft.position.setY(yPos);
     // align center
-    textMeshCenter.position.setX(xPos + textMeshLeft.width + 0.02);
+    textMeshCenter.position.setX(xPos + textMeshLeft.width + advance1 - lastGlyphWidth1 - xoffset1);
     textMeshCenter.position.setY(yPos);
     // align center
-    textMeshRight.position.setX(xPos + textMeshLeft.width + textMeshCenter.width + 0.02);
+    textMeshRight.position.setX(xPos + textMeshLeft.width + textMeshCenter.width + advance1 + advance2 - lastGlyphWidth1 - lastGlyphWidth2 - xoffset1 - xoffset2);
     textMeshRight.position.setY(yPos);
+
 
     // Remove old meshes
     this.renderGroup.remove(...this.textMeshes);

@@ -27,6 +27,10 @@ import { renderLoopFunctions } from './globals';
 import sync, { cancelSync, Process } from 'framesync';
 import * as _ from 'lodash';
 import { SelectionNode } from './SelectionNode';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
+import {ShaderPass} from "three/examples/jsm/postprocessing/ShaderPass";
+import {SMAAPass} from "three/examples/jsm/postprocessing/SMAAPass";
+import {MatSliderChange} from "@angular/material/slider";
 
 @Component({
   selector: 'app-editor',
@@ -52,6 +56,8 @@ export class EditorComponent implements AfterViewInit {
   private scene: Scene;
   private composer: EffectComposer;
   private outlinePass: OutlinePass;
+  private fxaaPass: ShaderPass;
+
   // Set by requestAnimationFrame to render next frame
   private frameSync: Process;
   private time = 0;
@@ -116,21 +122,15 @@ export class EditorComponent implements AfterViewInit {
 
           // Setup renderer
           this.scene = new Scene();
-          this.renderer = new WebGLRenderer({ alpha: true, antialias: true });
-          this.renderer.setPixelRatio(window.devicePixelRatio);
-          this.renderer.autoClear = false;
+          this.renderer = new WebGLRenderer({ alpha: true });
+          this.renderer.setPixelRatio(window.devicePixelRatio >= 2 ? window.devicePixelRatio : 2);
+          this.renderer.autoClear = true;
 
 
           this.renderDom.appendChild(this.renderer.domElement);
 
           // Setup camera
           this.camera = this.setupCamera(this.renderDom.clientWidth, this.renderDom.clientHeight);
-
-          // const renderPass = new RenderPass(this.scene, this.camera);
-          // this.fxaaPass = new ShaderPass(FXAAShader);
-          // this.fxaaRenderer = new EffectComposer(this.renderer);
-          // this.fxaaRenderer.addPass(renderPass);
-          // this.fxaaRenderer.addPass(this.fxaaPass);
 
           this.composer = new EffectComposer(this.renderer);
 
@@ -139,6 +139,9 @@ export class EditorComponent implements AfterViewInit {
 
           this.outlinePass = new OutlinePass(new Vector2(this.renderDom.clientWidth, this.renderDom.clientHeight), this.scene, this.camera);
           this.composer.addPass(this.outlinePass);
+
+          this.fxaaPass = new ShaderPass(FXAAShader)
+          this.composer.addPass(this.fxaaPass);
 
           // Add tooltips
           this.hoverTooltipInstance = tippy(window.document.body, {
@@ -206,7 +209,7 @@ export class EditorComponent implements AfterViewInit {
     renderLoopFunctions.push(func);
   }
 
-  private focusOnNext() {
+  public focusOnNext() {
 
     switch (this.stateMachineCounter) {
       case -1:
@@ -519,9 +522,9 @@ export class EditorComponent implements AfterViewInit {
 
 
     // this.fxaaRenderer.setSize(width, height);
-    // const pixelRatio = this.renderer.getPixelRatio();
-    // this.fxaaPass.material.uniforms['resolution'].value.x = 1 / (this.renderer.domElement.clientWidth * pixelRatio);
-    // this.fxaaPass.material.uniforms['resolution'].value.y = 1 / (this.renderer.domElement.clientHeight * pixelRatio);
+    const pixelRatio = this.renderer.getPixelRatio();
+    this.fxaaPass.material.uniforms['resolution'].value.x = 1 / (this.renderer.domElement.clientWidth * pixelRatio);
+    this.fxaaPass.material.uniforms['resolution'].value.y = 1 / (this.renderer.domElement.clientHeight * pixelRatio);
 
     this.globalUniforms.resolution.value = new Vector2(width, height);
   }
@@ -588,5 +591,16 @@ export class EditorComponent implements AfterViewInit {
 
   private getSceneObject(name) {
     return this.sceneObjects.filter((o) => o.name === name)[0];
+  }
+
+  private fromSlider = 0;
+  private toSlider = 1;
+  fromSliderChanged($event: MatSliderChange) {
+    this.fromSlider = $event.value;
+    (this.getSceneObject("RS Bit Selector") as SelectionNode).createTextMesh(0xDEADBEEF, this.fromSlider, this.toSlider)
+  }
+  toSliderChanged($event: MatSliderChange) {
+    this.toSlider = $event.value;
+    (this.getSceneObject("RS Bit Selector") as SelectionNode).createTextMesh(0xDEADBEEF, this.fromSlider, this.toSlider)
   }
 }

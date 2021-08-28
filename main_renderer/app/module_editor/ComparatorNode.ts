@@ -39,14 +39,14 @@ export class ComparatorNode extends GraphNode {
     const textMesh = new MSDFFont('0x' + byteToHex(constValue, 2), 1, new Color(0xffffff), GraphNode.FONT_SIZE * 0.8, 'normal', 'right', 'mono');
 
     // align center
-    textMesh.position.setX(-0.1 + -(textMesh.geometry.layout.width / textMesh.geometry.layout._opt.font.info.size * textMesh.fontSize + ComparatorNode.STUD_WIDTH + 0.1));
-    textMesh.position.setY(-ComparatorNode.HEIGHT / 2 + ComparatorNode.STUD_DISTANCE + textMesh.geometry.layout.height / textMesh.geometry.layout._opt.font.info.size * textMesh.fontSize / 2);
+    textMesh.position.setX(-0.1 + -(textMesh.width + ComparatorNode.STUD_WIDTH + 0.1));
+    textMesh.position.setY(-ComparatorNode.HEIGHT / 2 + ComparatorNode.STUD_DISTANCE + textMesh.height / 2 + 0.05);
     this.renderGroup.add(textMesh);
 
     // Add equal text
     const equalSymbol = new MSDFFont('==', 1, new Color(0xffffff), GraphNode.FONT_SIZE, 'bold');
-    equalSymbol.position.setX(ComparatorNode.WIDTH / 2 - equalSymbol.geometry.layout.width / equalSymbol.geometry.layout._opt.font.info.size * equalSymbol.fontSize / 2);
-    equalSymbol.position.setY(-ComparatorNode.HEIGHT / 2 + equalSymbol.geometry.layout.height / equalSymbol.geometry.layout._opt.font.info.size * equalSymbol.fontSize / 2);
+    equalSymbol.position.setX(ComparatorNode.WIDTH / 2 - equalSymbol.width / 2);
+    equalSymbol.position.setY(-ComparatorNode.HEIGHT / 2 + equalSymbol.height / 2);
 
     // Add circle to
     const circle = new CircleGeometry(ComparatorNode.CIRCLE_RADIUS, 20);

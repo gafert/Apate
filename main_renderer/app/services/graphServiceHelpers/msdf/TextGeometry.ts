@@ -27,25 +27,26 @@
 
  */
 
-var createLayout = require('./layout-bmfont-text')
-var createIndices = require('./quad-indices')
-var buffer = require('./three-buffer-vertex-data')
+import {BufferGeometry} from "three";
 
-var vertices = require('./vertices')
-var utils = require('./utils')
+import {TextLayout} from './layout-bmfont-text'
+import {createQuadElements }  from './quad-indices'
+import {setAttribute, setIndex} from './three-buffer-vertex-data'
 
-export class TextGeometry extends THREE.BufferGeometry {
+import * as vertices from './vertices'
 
-  constructor(opt) {
+export class TextGeometry extends BufferGeometry {
+  private positions: any;
+  public layout: TextLayout;
+  public visibleGlyphs: any[];
+  private uvs: any;
+
+  constructor(private opt) {
     super();
 
     if (typeof opt === 'string') {
-      opt = { text: opt }
+      this.opt = { text: opt }
     }
-
-    // use these as default values for any subsequent
-    // calls to update()
-    this._opt = Object.assign({}, opt)
 
     // also do an initial setup...
     if (opt) this.update(opt)
@@ -57,27 +58,27 @@ export class TextGeometry extends THREE.BufferGeometry {
     }
 
     // use constructor defaults
-    opt = Object.assign({}, this._opt, opt)
+    opt = Object.assign({}, this.opt, opt)
 
     if (!opt.font) {
       throw new TypeError('must specify a { font } in options')
     }
 
-    this.layout = createLayout(opt)
+    this.layout = new TextLayout(opt)
 
     // get vec2 texcoords
-    var flipY = true;
+    const flipY = true;
 
     // the desired BMFont data
-    var font = opt.font
+    const font = opt.font
 
     // determine texture size from font file
-    var texWidth = font.common.scaleW
-    var texHeight = font.common.scaleH
+    const texWidth = font.common.scaleW
+    const texHeight = font.common.scaleH
 
     // get visible glyphs
-    var glyphs = this.layout.glyphs.filter(function (glyph) {
-      var bitmap = glyph.data
+    const glyphs = this.layout.glyphs.filter(function (glyph) {
+      const bitmap = glyph.data
       return bitmap.width * bitmap.height > 0
     })
 
@@ -85,32 +86,31 @@ export class TextGeometry extends THREE.BufferGeometry {
     this.visibleGlyphs = glyphs
 
     // get common vertex data
-    var positions = vertices.positions(glyphs, this.layout)
-    var uvs = vertices.uvs(glyphs, texWidth, texHeight, flipY)
-    var indices = createIndices({
+    const positions = vertices.positions(glyphs, this.layout)
+    const uvs = vertices.uvs(glyphs, texWidth, texHeight, flipY)
+    const indices = createQuadElements({
       clockwise: true,
       type: 'uint16',
       count: glyphs.length
     })
 
     // update vertex data
-    buffer.index(this, indices, 1, 'uint16')
-    buffer.attr(this, 'position', positions, 3)
+    setIndex(this, indices, 1, 'uint16')
 
+    setAttribute(this, 'position', positions, 3)
     this.positions = positions;
 
-    buffer.attr(this, 'uv', uvs, 2)
+    setAttribute(this, 'uv', uvs, 2)
     this.uvs = uvs;
-
 
     // update multipage data
     if (!opt.multipage && 'page' in this.attributes) {
       // disable multipage rendering
       this.deleteAttribute('page')
     } else if (opt.multipage) {
-      var pages = vertices.pages(glyphs)
+      const pages = vertices.pages(glyphs)
       // enable multipage rendering
-      buffer.attr(this, 'page', pages, 1)
+      setAttribute(this, 'page', pages, 1)
     }
   }
 }

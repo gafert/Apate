@@ -19,8 +19,8 @@ const robotoMonoBoldTexture = (new TextureLoader()).load(robotoMonoBoldFont.text
 
 
 
-// console.log('Mono\n%c ', 'font-size:400px; background:url(' + robotoMonoRegularFont.textures[0] + ') no-repeat; background-size: contain; ');
-// console.log(robotoMonoRegularFont.font );
+//console.log('Mono\n%c ', 'font-size:400px; background:url(' + robotoMonoRegularFont.textures[0] + ') no-repeat; background-size: contain; ');
+console.log(robotoMonoRegularFont.font );
 // console.log('Regular\n%c ', 'font-size:400px; background:url(' + robotoRegularFont.textures[0] + ') no-repeat; background-size: contain; ');
 // clipboard.writeText(JSON.stringify(robotoRegularFont.font));
 
@@ -47,7 +47,7 @@ const fontWeightMap = {
 
 export class MSDFFont extends Mesh<TextGeometry, Material> {
 
-  constructor(private _text: string, opacity = 1, color: Color = new Color(0xFFFFFF), public fontSize = 12, fontWeight = 'normal', align: 'left' | 'right' | 'center' = 'left', fontType: 'mono' | 'regular' = 'regular') {
+  constructor(private _text: string, opacity = 1, color: Color = new Color(0xFFFFFF), public fontSize = 12, fontWeight = 'normal', align: 'left' | 'right' | 'center' = 'left', fontType: 'mono' | 'regular' = 'regular', mode = 'pre') {
     super();
 
     let fontWeightNumeric;
@@ -69,7 +69,8 @@ export class MSDFFont extends Mesh<TextGeometry, Material> {
     this.geometry = new TextGeometry({
       text: this._text,
       align: align,
-      font: font
+      font: font,
+      mode: mode
     });
 
     this.material = new MSDFMaterial({
@@ -81,20 +82,24 @@ export class MSDFFont extends Mesh<TextGeometry, Material> {
 
     this.updateMorphTargets();
 
-    this.scale.multiplyScalar(fontSize / 42);
+    this.scale.multiplyScalar(fontSize / this.getGlyphFontSize()); // 42 is set when generating the font by webpack
   }
 
   public getCharWidth(index = 0) {
     console.log(this.geometry.visibleGlyphs)
-    return this.geometry.visibleGlyphs[index].data.xadvance / this.geometry.layout._opt.font.info.size * this.fontSize;
+    return this.geometry.visibleGlyphs[index].data.xadvance / this.getGlyphFontSize() * this.fontSize;
   }
 
   public get height() {
-    return this.geometry.layout.height / this.geometry.layout._opt.font.info.size * this.fontSize;
+    return this.geometry.layout.height / this.getGlyphFontSize() * this.fontSize;
   }
 
   public get width() {
-    return this.geometry.layout.width / this.geometry.layout._opt.font.info.size * this.fontSize;
+    return this.geometry.layout.width / this.getGlyphFontSize() * this.fontSize;
+  }
+
+  public getGlyphFontSize() {
+    return this.geometry.layout.opt.font.info.size
   }
 
   public get text() {
