@@ -1,6 +1,6 @@
-import { MSDFMaterial } from './MSDFMaterial';
-import { Color, DoubleSide, Material, Mesh, TextureLoader } from 'three';
-import { TextGeometry } from './TextGeometry';
+import {MSDFMaterial} from './MSDFMaterial';
+import {Color, DoubleSide, Material, Mesh, TextureLoader} from 'three';
+import {TextGeometry} from './TextGeometry';
 // Converts the ttf to a msdf font and packs it in the bundle
 import robotoRegularFont from 'ttf-msdf-loader!../../../../bundled/fonts/Roboto/Roboto-Regular.ttf';
 import robotoBoldFont from 'ttf-msdf-loader!../../../../bundled/fonts/Roboto/Roboto-Bold.ttf';
@@ -111,5 +111,10 @@ export class MSDFFont extends Mesh<TextGeometry, Material> {
     if (this.geometry) { // @ts-ignore
       this.geometry.update(this._text);
     }
+  }
+
+  public dispose() {
+    this.geometry.dispose();
+    this.material.dispose();
   }
 }

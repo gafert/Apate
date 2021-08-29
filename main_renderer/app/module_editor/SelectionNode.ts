@@ -52,14 +52,13 @@ export class SelectionNode extends GraphNode {
 
     // Make new meshes
 
-    from = Math.floor((from - 1) / 8) + from;
-    to = Math.floor(to / 8) + to + 1;
+    const fromTextPos = Math.floor((from - 1) / 8) + from;
+    const toTextPos = Math.floor(to / 8) + to + 1;
 
-    console.log(from, to);
 
-    const left = valueBytes.substring(0, from);
-    const center = valueBytes.substring(from, to);
-    const right = valueBytes.substring(to, valueBytes.length);
+    const left = valueBytes.substring(0, fromTextPos);
+    const center = valueBytes.substring(fromTextPos, toTextPos);
+    const right = valueBytes.substring(toTextPos, valueBytes.length);
 
     console.log('\'' + left + '\'', '\'' + center + '\'', '\'' + right + '\'');
 
@@ -67,41 +66,82 @@ export class SelectionNode extends GraphNode {
     const textMeshCenter = new MSDFFont(center, 1, new Color(0xffffff), GraphNode.FONT_SIZE * 0.8, 'regular', 'left', 'mono');
     const textMeshRight = new MSDFFont(right, 0.5, new Color(0xffffff), GraphNode.FONT_SIZE * 0.8, 'regular', 'left', 'mono');
 
+    const centerFirstGlyph = textMeshCenter.geometry.layout.glyphs[0];
+    const leftLastGlyph = textMeshLeft.geometry.layout.glyphs[textMeshLeft.geometry.layout.glyphs.length - 1];
+    const centerLastGlyph = textMeshCenter.geometry.layout.glyphs[textMeshCenter.geometry.layout.glyphs.length - 1];
 
-    const gl1 = textMeshLeft.geometry.layout.glyphs[textMeshLeft.geometry.layout.glyphs.length - 1];
-    const gl2 = textMeshCenter.geometry.layout.glyphs[textMeshCenter.geometry.layout.glyphs.length - 1];
+    const leftLastGlyphAdvance = (leftLastGlyph ? leftLastGlyph.data.xadvance : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
+    const centerLastGlyphAdvance = (centerLastGlyph  ? centerLastGlyph.data.xadvance : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
+    const centerFirstGlyphAdvance = (centerFirstGlyph ? centerFirstGlyph.data.xadvance : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
 
-    const advance1 = (gl1 ? gl1.data.xadvance : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
-    const advance2 = (gl2 && textMeshRight.width !== 0 ? gl2.data.xadvance : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
+    const leftLastGlyphWidth = (leftLastGlyph ? leftLastGlyph.data.width : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
+    const centerLastGlyphWidth = (centerLastGlyph ? centerLastGlyph.data.width : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
 
-    const lastGlyphWidth1 = (gl1 ? gl1.data.width : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
-    const lastGlyphWidth2 = (gl2 && textMeshRight.width !== 0 ? gl2.data.width : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
+    const leftLastGlyphWidthXOffset = (leftLastGlyph ? leftLastGlyph.data.xoffset : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
+    const centerLastGlyphWidthXOffset = (centerLastGlyph  ? centerLastGlyph.data.xoffset : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
 
-    const xoffset1 = (gl1 ? gl1.data.xoffset : 0) / textMeshLeft.getGlyphFontSize() * textMeshLeft.fontSize;
-    const xoffset2 = (gl2 && textMeshRight.width !== 0 ? gl2.data.xoffset : 0) / textMeshCenter.getGlyphFontSize() * textMeshCenter.fontSize;
+    const textWidth =
+      textMeshLeft.width
+      + textMeshCenter.width
+      + textMeshRight.width
+      + leftLastGlyphAdvance
+      - leftLastGlyphWidthXOffset
+      - leftLastGlyphWidth
+      + (textMeshRight.width !== 0 ? (centerLastGlyphAdvance // Ignore last element if there is no right element
+        - centerLastGlyphWidthXOffset
+        - centerLastGlyphWidth) : 0);
 
-    const textWidth = textMeshLeft.width + textMeshCenter.width + textMeshRight.width + advance1 + advance2 - lastGlyphWidth1 - lastGlyphWidth2 - xoffset1 - xoffset2;
     const xPos = SelectionNode.WIDTH / 2 - textWidth / 2;
-    const yPos = -SelectionNode.HEIGHT / 2 + Math.max(textMeshLeft.height, textMeshCenter.height) / 2; // Height is same for all, but could be 0 if the element has no text
+    let yPos = -SelectionNode.HEIGHT / 2 + Math.max(textMeshLeft.height, textMeshCenter.height) / 2; // Height is same for all, but could be 0 if the element has no text
 
     // align center
     textMeshLeft.position.setX(xPos);
     textMeshLeft.position.setY(yPos);
     // align center
-    textMeshCenter.position.setX(xPos + textMeshLeft.width + advance1 - lastGlyphWidth1 - xoffset1);
+    textMeshCenter.position.setX(xPos + textMeshLeft.width + leftLastGlyphAdvance - leftLastGlyphWidth - leftLastGlyphWidthXOffset);
     textMeshCenter.position.setY(yPos);
     // align center
-    textMeshRight.position.setX(xPos + textMeshLeft.width + textMeshCenter.width + advance1 + advance2 - lastGlyphWidth1 - lastGlyphWidth2 - xoffset1 - xoffset2);
+    textMeshRight.position.setX(xPos + textMeshLeft.width + textMeshCenter.width + leftLastGlyphAdvance + centerLastGlyphAdvance - leftLastGlyphWidth - centerLastGlyphWidth - leftLastGlyphWidthXOffset - centerLastGlyphWidthXOffset);
     textMeshRight.position.setY(yPos);
+
+
+    // Bit numbers
+
+    const leftBitNumber = new MSDFFont(from.toString(), 1, new Color(0xffffff), GraphNode.FONT_SIZE * 0.3, 'regular', 'left', 'mono');
+    yPos += leftBitNumber.height
+
+    leftBitNumber.position.setX(xPos + textMeshLeft.width + leftLastGlyphAdvance - leftLastGlyphWidth - leftLastGlyphWidthXOffset + (from !== 0 && from % 8 === 0 ? centerFirstGlyphAdvance : 0));
+    leftBitNumber.position.setY(yPos);
+
+    // Do not add second bit number if we dont need to
+    let rightBitNumber;
+    if(from !== to) {
+      rightBitNumber = new MSDFFont(to.toString(), 1, new Color(0xffffff), GraphNode.FONT_SIZE * 0.3, 'regular', 'left', 'mono');
+      rightBitNumber.position.setX(xPos + textMeshLeft.width + textMeshCenter.width + leftLastGlyphAdvance - leftLastGlyphWidth - centerLastGlyphWidth - leftLastGlyphWidthXOffset);
+      rightBitNumber.position.setY(yPos);
+    }
 
 
     // Remove old meshes
     this.renderGroup.remove(...this.textMeshes);
 
+    // Be sure to dispose all old meshes
+    this.textMeshes.forEach((t) => {
+      t.dispose();
+    })
+
     this.textMeshes = [];
-    this.textMeshes.push(textMeshLeft);
+
+    (from <= 0) ? textMeshLeft.dispose() : this.textMeshes.push(textMeshLeft);
+    (to >= 31) ? textMeshRight.dispose() : this.textMeshes.push(textMeshRight);
+
     this.textMeshes.push(textMeshCenter);
-    this.textMeshes.push(textMeshRight);
+
+    this.textMeshes.push(leftBitNumber);
+
+    // Do not add second bit number if we dont need to
+    if(from !== to)
+      this.textMeshes.push(rightBitNumber);
 
     // Add new meshes
     this.renderGroup.add(...this.textMeshes);

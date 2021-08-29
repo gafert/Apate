@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, NgZone, ViewChild } from '@angular/core';
+import {AfterViewInit, Component, ElementRef, NgZone, ViewChild} from '@angular/core';
 import {
   AmbientLight,
   DirectionalLight,
@@ -12,24 +12,23 @@ import {
 } from 'three';
 
 import panzoom from '../services/graphServiceHelpers/panzoom.js';
-import { fromEvent } from 'rxjs';
-import { cumulativeOffset, sanitizeSpaces, stringToNumber } from '../utils/helper';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-import { Mux } from './Mux.js';
-import { GraphNode } from './GraphNode';
-import { InputNode } from './InputNode';
-import { GenericNode } from './GenericNode';
+import {fromEvent} from 'rxjs';
+import {cumulativeOffset, sanitizeSpaces, stringToNumber} from '../utils/helper';
+import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer';
+import {OutlinePass} from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass';
+import {Mux} from './Mux.js';
+import {GraphNode} from './GraphNode';
+import {InputNode} from './InputNode';
+import {GenericNode} from './GenericNode';
 import tippy from 'tippy.js';
-import { ComparatorNode } from './ComparatorNode';
-import { renderLoopFunctions } from './globals';
-import sync, { cancelSync, Process } from 'framesync';
+import {ComparatorNode} from './ComparatorNode';
+import {renderLoopFunctions} from './globals';
+import sync, {cancelSync, Process} from 'framesync';
 import * as _ from 'lodash';
-import { SelectionNode } from './SelectionNode';
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
+import {SelectionNode} from './SelectionNode';
+import {FXAAShader} from 'three/examples/jsm/shaders/FXAAShader';
 import {ShaderPass} from "three/examples/jsm/postprocessing/ShaderPass";
-import {SMAAPass} from "three/examples/jsm/postprocessing/SMAAPass";
 import {MatSliderChange} from "@angular/material/slider";
 
 @Component({
@@ -94,6 +93,7 @@ export class EditorComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.init(this.graphElement.nativeElement);
+    this.resize();
   }
 
   /**
@@ -142,6 +142,7 @@ export class EditorComponent implements AfterViewInit {
 
           this.fxaaPass = new ShaderPass(FXAAShader)
           this.composer.addPass(this.fxaaPass);
+
 
           // Add tooltips
           this.hoverTooltipInstance = tippy(window.document.body, {

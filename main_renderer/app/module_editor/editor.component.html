@@ -9,7 +9,7 @@
         You can see the Register Source 1 here<br>
       </div>
       <div>
-        <mat-slider thumbLabel min="0" max="31" step="1" value="0" (input)="fromSliderChanged($event)"></mat-slider>
+        <mat-slider (input)="fromSliderChanged($event)" max="31" min="0" step="1" thumbLabel value="1"></mat-slider>
         <mat-slider thumbLabel min="0" max="31" step="1" value="1" (input)="toSliderChanged($event)"></mat-slider>
 
         <button mat-flat-button color="primary" (click)="focusOnNext()">Continue</button>

@@ -1,11 +1,11 @@
-import { MarkerMaterial } from './MarkerMaterial';
-import { BufferAttribute, BufferGeometry, Color, Mesh, TextureLoader, Vector3 } from 'three';
-import { makeBox, setUVofVertex, triangleLeftBottom, triangleLeftTop } from './3Dhelpers';
+import {MarkerMaterial} from './MarkerMaterial';
+import {BufferAttribute, BufferGeometry, Color, Mesh, TextureLoader, Vector3} from 'three';
+import {makeBox, setUVofVertex, triangleLeftBottom, triangleLeftTop} from './3Dhelpers';
 import MUX_IMAGE from './mux.png';
 import CLICK_SOUND from './mixkit-slide-click-1130.wav';
-import { GraphLine } from './Line';
-import { animate, easeIn } from 'popmotion';
-import { GraphNode } from './GraphNode';
+import {GraphLine} from './Line';
+import {animate, easeIn} from 'popmotion';
+import {GraphNode} from './GraphNode';
 
 export class Mux extends GraphNode {
 
@@ -25,6 +25,8 @@ export class Mux extends GraphNode {
 
   private STUD_WIDTH = 0.15;
   private STUD_HEIGHT = 0.05;
+
+  private clickSound = CLICK_SOUND;
 
   constructor(name, numIn, globalUniforms) {
     super(name);
@@ -119,7 +121,7 @@ export class Mux extends GraphNode {
 
     this.animatingSelected?.stop();
 
-    const audio = new Audio(CLICK_SOUND);
+    const audio = new Audio(this.clickSound);
     audio.play();
 
     new Promise<void>(resolve => {
