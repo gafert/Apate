@@ -30,6 +30,8 @@ import {SelectionNode} from './SelectionNode';
 import {FXAAShader} from 'three/examples/jsm/shaders/FXAAShader';
 import {ShaderPass} from "three/examples/jsm/postprocessing/ShaderPass";
 import {MatSliderChange} from "@angular/material/slider";
+import Stats from "three/examples/jsm/libs/stats.module";
+import {GLOBAL_UNIFORMS} from "../utils/globals";
 
 @Component({
   selector: 'app-editor',
@@ -38,6 +40,7 @@ import {MatSliderChange} from "@angular/material/slider";
 })
 export class EditorComponent implements AfterViewInit {
   @ViewChild('graph') graphElement: ElementRef<HTMLElement>;
+  @ViewChild('stats') statsElement: ElementRef<HTMLElement>;
 
   public initiated = false;
 
@@ -64,10 +67,6 @@ export class EditorComponent implements AfterViewInit {
 
   // Intersection related
   // centeredMouse is update once the mouse is moved, so set start to value which never could be to prevent
-  private globalUniforms = {
-    time: { value: 0 },
-    resolution: { value: new Vector2(0, 0) }
-  };
   private raycaster = new Raycaster();
   // intersection on 0,0 before mouse is moved
   private centeredMouse = new Vector2(-10000, -10000);
@@ -76,6 +75,8 @@ export class EditorComponent implements AfterViewInit {
 
   // For zooming, needs to be disposed and restarted on new init
   private panZoomInstance;
+
+  public stats = Stats();
 
   /** Offset of renderDom in window, used for mouse position */
   private offsetInWindow = {
@@ -128,6 +129,8 @@ export class EditorComponent implements AfterViewInit {
 
 
           this.renderDom.appendChild(this.renderer.domElement);
+          this.stats.domElement.style.position = null;
+          this.statsElement.nativeElement.appendChild(this.stats.domElement);
 
           // Setup camera
           this.camera = this.setupCamera(this.renderDom.clientWidth, this.renderDom.clientHeight);
@@ -351,7 +354,7 @@ export class EditorComponent implements AfterViewInit {
     structure.forEach((element) => {
       switch (element.type) {
         case 'mux':
-          const mux1 = new Mux(element.name, element.numIn, this.globalUniforms);
+          const mux1 = new Mux(element.name, element.numIn, GLOBAL_UNIFORMS);
           mux1.position.set(element.position[0], element.position[1], element.position[2]);
           scene.add(mux1.renderGroup);
           this.sceneObjects.push(mux1);
@@ -363,19 +366,19 @@ export class EditorComponent implements AfterViewInit {
           this.sceneObjects.push(input1);
           break;
         case 'generic':
-          const generic1 = new GenericNode(element.name, element.inPorts, element.outPorts, this.globalUniforms, element.computation);
+          const generic1 = new GenericNode(element.name, element.inPorts, element.outPorts, GLOBAL_UNIFORMS, element.computation);
           generic1.position.set(element.position[0], element.position[1], element.position[2]);
           scene.add(generic1.renderGroup);
           this.sceneObjects.push(generic1);
           break;
         case 'comparator':
-          const comparator1 = new ComparatorNode(element.name, element.constValue, this.globalUniforms);
+          const comparator1 = new ComparatorNode(element.name, element.constValue, GLOBAL_UNIFORMS);
           comparator1.position.set(element.position[0], element.position[1], element.position[2]);
           scene.add(comparator1.renderGroup);
           this.sceneObjects.push(comparator1);
           break;
         case 'selector':
-          const selector1 = new SelectionNode(element.name, this.globalUniforms);
+          const selector1 = new SelectionNode(element.name, GLOBAL_UNIFORMS);
           selector1.position.set(element.position[0], element.position[1], element.position[2]);
           scene.add(selector1.renderGroup);
           this.sceneObjects.push(selector1);
@@ -503,9 +506,10 @@ export class EditorComponent implements AfterViewInit {
       this.frameSync = sync.render(({ delta, timestamp }) => {
         this.time += delta;
         // Set uniforms for shaders
-        this.globalUniforms.time.value = this.time;
+        GLOBAL_UNIFORMS.time.value = this.time;
         // Handle interactability via intersections
         this.handleIntersection();
+        this.stats.update();
         this.composer.render();
       }, true);
     });
@@ -527,7 +531,7 @@ export class EditorComponent implements AfterViewInit {
     this.fxaaPass.material.uniforms['resolution'].value.x = 1 / (this.renderer.domElement.clientWidth * pixelRatio);
     this.fxaaPass.material.uniforms['resolution'].value.y = 1 / (this.renderer.domElement.clientHeight * pixelRatio);
 
-    this.globalUniforms.resolution.value = new Vector2(width, height);
+    GLOBAL_UNIFORMS.resolution.value = new Vector2(width, height);
   }
 
   private handleIntersection() {
