@@ -51,7 +51,7 @@
     "@typescript-eslint/eslint-plugin": "2.20.0",
     "@typescript-eslint/eslint-plugin-tslint": "3.6.0",
     "@typescript-eslint/parser": "3.6.0",
-    "electron": "11.1.0",
+    "electron": "13.6.6",
     "electron-builder": "22.9.1",
     "electron-reload": "1.5.0",
     "eslint": "7.16.0",
